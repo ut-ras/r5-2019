@@ -1,3 +1,6 @@
 [submodule "tools/ascii-div"]
 	path = tools/ascii-div
 	url = https://github.com/thetianshuhuang/ascii-div
+[submodule "tools/ssh-manage"]
+	path = tools/ssh-manage
+	url = https://github.com/thetianshuhuang/ssh-manage
