@@ -1,70 +1,47 @@
-int amt;
+int amt
 int pin250 = 22;
 int pin500 = 26;
 int pin750 = 30;
 int pin1K = 34;
+// 250HZ,500HZ,750HZ,1000HZ
+int pins[4] = {pin250,pin500,pin750,pin1K};
+// Keeps track of which pin is on or off
 boolean on[4] = {false,false,false,false};
+
 void setup() {
   pinMode(pin250,OUTPUT);
   pinMode(pin500,OUTPUT);
   pinMode(pin750,OUTPUT);
   pinMode(pin1K,OUTPUT);
-  // put your setup code here, to run once:
   amt = 0;
 }
 
+//Should run every 1/6000th of a second, calls appropriate pins to switch
 void loop() {
-  // put your main code here, to run repeatedly:
   if(amt%12==0){
-    switch250();
+    switch(0);
+    amt = 0;
   }
   if(amt%6==0){
-    switch500();
+    switch(1);
   }
   if(amt%4==0){
-    switch750();
+    switch(2);
   }
   if(amt%3==0){
-    switch1K();
+    switch(3);
   }
-  delayMicroseconds(333);
-  //delay(3);
+  delayMicroseconds(166);
   amt++;
 }
 
-void switch250(){
-  if(on[0]){
-    digitalWrite(pin250, LOW);
+//switches pin at pins[i] from on to off
+void switch(int i){
+  if(on[i]){
+    digitalWrite(pins[i], LOW);
   }
   else{
-    digitalWrite(pin250, HIGH);
+    digitalWrite(pins[i], HIGH);
   }
-  on[0] = !on[0];
-}
-void switch500(){
-  if(on[1]){
-    digitalWrite(pin500, LOW);
-  }
-  else{
-    digitalWrite(pin500, HIGH);
-  }
-  on[1] = !on[1];
-}
-void switch750(){
-  if(on[2]){
-    digitalWrite(pin750, LOW);
-  }
-  else{
-    digitalWrite(pin750, HIGH);
-  }
-  on[2] = !on[2];
-}
-void switch1K(){
-  if(on[3]){
-    digitalWrite(pin1K, LOW);
-  }
-  else{
-    digitalWrite(pin1K, HIGH);
-  }
-  on[3] = !on[3];
+  on[i] = !on[i];
 }
