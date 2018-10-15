@@ -33,7 +33,8 @@ void loop() {
   if(amt%3==0){
     switchLight(3);
   }
-  delayMicroseconds(166);
+  // (delay - execution time cost of loop)
+  delayMicroseconds(166-49);
   amt++;
 }
 //switches pin at pins[i] from on to off
