@@ -1,10 +1,15 @@
 """
 Utilities for motion profiling and robot kinematics.
 
-A note on the motion profiling algorithms: there are currently no preclusion checks. If it isn't possible to fit a
-profile to the endpoints given the constraints, no attempt will be made to refine the constraints (one quick way to tell
-if a profile is malformed is to check if the position of its end state is equal to that which was specified). I'm
-working on fixing this for the S-curve algo, since this is likely the one we'll be using.
+Some notes on the motion profiling algorithms:
+    * There are currently no preclusion checks. If it isn't possible to fit a profile to the endpoints given the
+      constraints, no attempt will be made to refine the constraints (one quick way to tell if a profile is malformed is
+      to check if the position of its end state is not equal to that which was originally specified). I'm working on
+      fixing this for the S-curve algo, since this is likely the one we'll be using.
+    * The algorithms only recognize asymmetrical and nonzero values in endpoint position and velocity (e.g. initial and
+      final velocities of 0 and 5 are asymmetrical; initial and final velocities of 10 are nonzero). Algorithms exist
+      for generating profiles that are asymmetrical in acceleration and jerk, but they are expensive. Also, there's no
+      reason we would ever need a robot to finish a profile going 5 m/s/s/s or something equally stupid.
 """
 
 from collections import namedtuple
