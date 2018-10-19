@@ -1,7 +1,13 @@
 """
 Utilities for motion profiling and robot kinematics.
+
+A note on the motion profiling algorithms: there are currently no preclusion checks. If it isn't possible to fit a
+profile to the endpoints given the constraints, no attempt will be made to refine the constraints (one quick way to tell
+if a profile is malformed is to check if the position of its end state is equal to that which was specified). I'm
+working on fixing this for the S-curve algo, since this is likely the one we'll be using.
 """
 
+from collections import namedtuple
 from enum import Enum
 import math
 import numpy as np
@@ -230,24 +236,6 @@ def make_scurve(start, end, constraints):
         append_jerk(-constraints.j * dir, seg3time).append_acc(0, cruisetime).\
         append_jerk(-constraints.j * dir, seg5time).append_acc(-constraints.a * dir, seg6time).\
         append_jerk(constraints.j * dir, seg7time).clean()
-
-
-class MotionConstraints:
-    """
-    Represents a set of kinematic constraints for some system.
-    """
-
-    def __init__(self, v, a, j):
-        """
-        Creates a new set of constraints.
-        :param float v: Maximum absolute velocity.
-        :param float a: Maximum absolute acceleration.
-        :param float j: Maximum absolute jerk.
-        """
-
-        self.v = v
-        self.a = a
-        self.j = j
 
 
 class MotionSegment:
@@ -551,3 +539,18 @@ class MotionState:
         """
 
         return "<" + "{}, {}, {}, {}, {}".format(self.x, self.v, self.a, self.j, self.t) + ">"
+
+
+"""
+Represents a set of kinematic constraints.
+
+Parameters
+----------
+v: float
+    Maximum velocity magnitude.
+a: float
+    Maximum acceleration magnitude.
+j: float
+    Maximum jerk magnitude.
+"""
+MotionConstraints = namedtuple("MotionConstraints", ["v", "a", "j"])
