@@ -12,11 +12,18 @@ class MotionState:
         """
         Creates a new state.
 
-        :param float x: Position.
-        :param float v: Velocity.
-        :param float a: Acceleration.
-        :param float j: Jerk.
-        :param float t: Timestamp.
+        Parameters
+        ----------
+        x: float
+            Position.
+        v: float
+            Velocity.
+        a:
+            Acceleration.
+        j:
+            Jerk.
+        t:
+            Time.
         """
 
         self.x = x
@@ -29,10 +36,17 @@ class MotionState:
         """
         Extrapolates the state at a point in time relative to this state.
 
-        Kinematics are calculated by triple-deriving the constant jerk equation a = j0*t + a0.
+        Calculated by triple-deriving the constant jerk equation a = j0*t + a0.
 
-        :param float t: CHANGE IN time since the time of this state.
-        :return: MotionState: Relative state at time t0 + t.
+        Parameters
+        ----------
+        t: float
+            CHANGE IN time relative to the time of this state.
+
+        Returns
+        -------
+        MotionState
+            State at time self.t + t.
         """
 
         t2 = t * t
@@ -48,9 +62,12 @@ class MotionState:
 
     def __str__(self):
         """
-        Gets a string representation of this state.
+        Gets a string representation of this state in vector notation.
 
-        :return: str: String rep.
+        Returns
+        -------
+        str
+            String representation <x, v, a, j, t>.
         """
 
         return "<" + "{}, {}, {}, {}, {}".format(self.x, self.v, self.a, self.j, self.t) + ">"

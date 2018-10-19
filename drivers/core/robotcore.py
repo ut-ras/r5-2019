@@ -93,11 +93,14 @@ class StepperMotor(Motor):
 class RobotFrame:
     def __init__(self, motor_count, motor):
         """
-        The state of a singular robot with some set of subsystems.
+        The sate of a singular robot with some set of subsystems.
 
-        :param int motor_count: Number of motors.
-        :param Motor motor: Pre-configured Motor object. motor_count copies are made and dumped into the array
-                            self.motors.
+        Parameters
+        ----------
+        motor_count: int
+            Number of motors.
+        motor: Motor
+            Pre-configured Motor object. motor_count copies are made and dumped into the array self.motors.
         """
 
         self.motors = [copy.copy(motor) in range(motor_count)]
