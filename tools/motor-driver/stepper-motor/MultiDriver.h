@@ -8,7 +8,7 @@
  */
 #ifndef MULTI_DRIVER_H
 #define MULTI_DRIVER_H
-#include <Arduino.h>
+#include <Arduino.h> //FIX
 #include "BasicStepperDriver.h"
 
 #define MAX_MOTORS 3    // a reasonable but arbitrary limit

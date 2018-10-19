@@ -58,23 +58,23 @@ short DRV8834::setMicrostep(short microsteps){
      *  Z = high impedance mode (M0 is tri-state)
      */
 
-    pinMode(m1_pin, OUTPUT);
-    digitalWrite(m1_pin, (this->microsteps < 8) ? LOW : HIGH);
+    pinMode(m1_pin, OUTPUT); //FIX
+    digitalWrite(m1_pin, (this->microsteps < 8) ? LOW : HIGH); //FIX
 
     switch(this->microsteps){
     case 1:
     case 8:
-        pinMode(m0_pin, OUTPUT);
-        digitalWrite(m0_pin, LOW);
+        pinMode(m0_pin, OUTPUT);//FIX
+        digitalWrite(m0_pin, LOW);//FIX
         break;
     case 2:
     case 16:
-        pinMode(m0_pin, OUTPUT);
-        digitalWrite(m0_pin, HIGH);
+        pinMode(m0_pin, OUTPUT);//FIX
+        digitalWrite(m0_pin, HIGH);//FIX
         break;
     case 4:
     case 32:
-        pinMode(m0_pin, INPUT); // Z - high impedance
+        pinMode(m0_pin, INPUT); // Z - high impedance//FIX
         break;
     }
     return this->microsteps;

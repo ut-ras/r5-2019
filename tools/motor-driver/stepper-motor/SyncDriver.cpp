@@ -3,7 +3,7 @@
  * All motors reach their target at the same time.
  *
  * Copyright (C)2017 Laurentiu Badea
- *
+ *//FIX
  * This file may be redistributed under the terms of the MIT license.
  * A copy of this license has been included with this distribution in the file LICENSE.
  */
