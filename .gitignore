@@ -23,6 +23,13 @@
 
 
 
+# -- Module drivers/core -------------------------------------------------------
+
+drivers/.idea
+drivers/core/__pychache__
+drivers/core/test.py
+
+
 # -- OSX -----------------------------------------------------------------------
 
 # General
@@ -256,4 +263,3 @@ __pycache__/
 
 # Generated with http://patorjk.com/software/taag and
 # http://www.glassgiant.com/ascii/
-drivers/core/test.py

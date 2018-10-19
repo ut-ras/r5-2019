@@ -2,23 +2,133 @@
 Abstract state representations for a robot. Intended to provide a common interface for both simulated and real robots.
 """
 
-import copy
 from core.robotmotion import MotionState
 import math
 
 
-class Motor:
-    def __init__(self):
+class Subsystem:
+    def __init__(self, name):
+        """
+        A mechanism on a robot with a unique name.
+
+        Parameters
+        ----------
+        name: str
+            Unique identifying string.
+        """
+
+        self.subsys_name = name
+
+
+class Motor(Subsystem):
+    def __init__(self, name):
         """
         Abstraction of a motor. For extending, not constructing.
+
+        Parameters
+        ----------
+        name: str
+            Unique identifying string.
         """
+
+        super().__init__(name)
 
         self.state = MotionState()
         self.last_timestamp = self.state.t
 
 
+class BinaryActuator(Subsystem):
+    def __init__(self, initial_state, name):
+        """
+        An actuator with two possible positions (such as a servo claw).
+
+        Parameters
+        ----------
+        name: str
+            Unique identifying string.
+        initial_state: bool
+            Initial binary state.
+        """
+
+        super().__init__(name)
+
+        self.state = initial_state
+
+    def toggle(self):
+        """
+        Toggles the actuator to the other position.
+
+        Returns
+        -------
+        None
+        """
+
+        self.state = not self.state
+
+
+class AnalogActuator(Subsystem):
+    def __init__(self, initial_state, name, state_lower_bound=None, state_upper_bound=None):
+        """
+        An actuator whose position lies in a range (such as a linear slide). `None` represents the lack of a bound.
+
+        Parameters
+        ----------
+        initial_state: float
+            Initial position on [state_lower_bound, state_upper_bound].
+        name: str
+            Unique identifying string.
+        state_lower_bound: float
+            Lowest possible position.
+        state_upper_bound: float
+            Highest possible position.
+        name
+        """
+
+        super().__init__(name)
+
+        self.state = initial_state
+        self.state_lower_bound = state_lower_bound
+        self.state_upper_bound = state_upper_bound
+
+        self.state_check()
+
+    def state_check(self):
+        """
+        Verifies that the current position lies within the bounds and clamps it if necessary.
+
+        Returns
+        -------
+        None
+        """
+
+        if self.state_lower_bound is not None and self.state < self.state_lower_bound:
+            self.state = self.state_lower_bound
+
+        if self.state_upper_bound is not None and self.state > self.state_upper_bound:
+            self.state = self.state_upper_bound
+
+    def state_set(self, state):
+        """
+        Updates the state of the actuator. This method is preferable to mutating state directly because of the inherent
+        bound check.
+
+        Parameters
+        ----------
+        state: float
+            New state.
+
+        Returns
+        -------
+        None
+        """
+
+        self.state = state
+
+        self.state_check()
+
+
 class StepperMotor(Motor):
-    def __init__(self, steps_per_rev, wheel_radius):
+    def __init__(self, steps_per_rev, wheel_radius, name):
         """
         Represents the state of a stepper motor.
 
@@ -31,9 +141,11 @@ class StepperMotor(Motor):
             Steps per driveshaft revolution.
         wheel_radius: float
             Radius of the wheel attached to this motor. Used for calculation of the linear state.
+        name: str
+            Unique identifying string.
         """
 
-        super().__init__()
+        super().__init__(name)
 
         self.linear_state = MotionState()
         self.steps_per_rev = steps_per_rev
@@ -58,6 +170,7 @@ class StepperMotor(Motor):
             Linear state of the motor.
         """
 
+        # Dividing by 0 is bad
         if timestamp == self.last_timestamp:
             return
 
@@ -91,16 +204,36 @@ class StepperMotor(Motor):
 
 
 class RobotFrame:
-    def __init__(self, motor_count, motor):
+    def __init__(self, *argv):
         """
-        The sate of a singular robot with some set of subsystems.
+        Initializes a new robot with some subsystems.
 
         Parameters
         ----------
-        motor_count: int
-            Number of motors.
-        motor: Motor
-            Pre-configured Motor object. motor_count copies are made and dumped into the array self.motors.
+        args: array of Subsystems
         """
 
-        self.motors = [copy.copy(motor) in range(motor_count)]
+        self.subsystems = []
+
+        for subsys in argv:
+            self.subsystems.append(subsys)
+
+    def get_subsys(self, name):
+        """
+        Gets a subsystem by name.
+
+        Parameters
+        ----------
+        name: str
+            Unique identifying string.
+        Returns
+        -------
+        Subsystem
+            Subsystem matching the given name, or None if not found.
+        """
+
+        for subsys in self.subsystems:
+            if subsys.subsys_name == name:
+                return subsys
+
+        return None
