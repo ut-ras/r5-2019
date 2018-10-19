@@ -10,7 +10,7 @@ import math
 class Motor:
     def __init__(self):
         """
-        Abstraction of a motor. For extending, not for constructing.
+        Abstraction of a motor. For extending, not constructing.
         """
 
         self.state = MotionState()
@@ -25,8 +25,12 @@ class StepperMotor(Motor):
         Important note: kinematic units for MotionState state are in terms of steps (steps per second, etc.). For the
         definite linear state, access MotionState linear_state.
 
-        :param int steps_per_rev: Steps per driveshaft revolution.
-        :param float wheel_radius: Radius of the wheel attached to this motor. Used for calculation of the linear state.
+        Parameters
+        ----------
+        steps_per_rev: int
+            Steps per driveshaft revolution.
+        wheel_radius: float
+            Radius of the wheel attached to this motor. Used for calculation of the linear state.
         """
 
         super().__init__()
@@ -37,13 +41,21 @@ class StepperMotor(Motor):
 
     def update(self, pos, timestamp):
         """
-        Updates the position of this motor. The kinematic state is updated accordingly.
+        Updates the position of this motor. Both the step and linear kinematic states are updated.
 
         Ideally, this method is called at high frequency.
 
-        :param int pos: Current position of the driveshaft.
-        :param float timestamp: Current time.
-        :return: MotionState: Motor state.
+        Parameters
+        ----------
+        pos: int
+            Current position of the driveshaft.
+        timestamp: float
+            Current time.
+
+        Returns
+        -------
+        MotionState
+            Linear state of the motor.
         """
 
         if timestamp == self.last_timestamp:
@@ -75,8 +87,7 @@ class StepperMotor(Motor):
 
         self.last_timestamp = timestamp
 
-    def rotations(self):
-        return self.state.x / self.steps_per_rev
+        return self.linear_state
 
 
 class RobotFrame:
