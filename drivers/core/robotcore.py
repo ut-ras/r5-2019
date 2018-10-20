@@ -4,12 +4,13 @@ Abstract state representations for a robot. Intended to provide a common interfa
 
 from core.robotmotion import MotionState
 import math
+from threading import Thread
 
 
 class Subsystem:
     def __init__(self, name):
         """
-        A mechanism on a robot with a unique name.
+        A mechanism on a robot with a unique name. Treat like an abstract class.
 
         Parameters
         ----------
@@ -23,7 +24,7 @@ class Subsystem:
 class Motor(Subsystem):
     def __init__(self, name):
         """
-        Abstraction of a motor. For extending, not constructing.
+        Abstraction of a motor. Treat like an abstract class.
 
         Parameters
         ----------
@@ -101,9 +102,11 @@ class AnalogActuator(Subsystem):
         None
         """
 
+        # Binding lower
         if self.state_lower_bound is not None and self.state < self.state_lower_bound:
             self.state = self.state_lower_bound
 
+        # Binding upper
         if self.state_upper_bound is not None and self.state > self.state_upper_bound:
             self.state = self.state_upper_bound
 
@@ -132,8 +135,8 @@ class StepperMotor(Motor):
         """
         Represents the state of a stepper motor.
 
-        Important note: kinematic units for MotionState state are in terms of steps (steps per second, etc.). For the
-        definite linear state, access MotionState linear_state.
+        Important note: kinematic units for the state are in terms of steps (steps per second, etc.). For the linear
+        state, access linear_state.
 
         Parameters
         ----------
@@ -203,17 +206,24 @@ class StepperMotor(Motor):
         return self.linear_state
 
 
-class RobotFrame:
-    def __init__(self, *argv):
+class RobotFrame(Subsystem, Thread):
+    def __init__(self, name, *argv):
         """
-        Initializes a new robot with some subsystems.
+        Initializes a new robot with some subsystems. Notice that the RobotFrame itself is a Subsystem.
+
+        The RobotFrame is threaded. When implementing in a simulation object or a real controller object, this class
+        should be extended and run() should be overridden.
 
         Parameters
         ----------
         args: array of Subsystems
         """
 
-        self.subsystems = []
+        super().__init__(name)
+
+        self.subsystems = []  # List of Subsystems
+        self.xstate = MotionState()  # Kinematic state in the x direction
+        self.ystate = MotionState()  # Kinematic state in the y direction
 
         for subsys in argv:
             self.subsystems.append(subsys)
@@ -237,3 +247,14 @@ class RobotFrame:
                 return subsys
 
         return None
+
+    def run(self):
+        """
+        Runs the robot instruction sequence. Should always be overridden.
+
+        Returns
+        -------
+        None
+        """
+
+        pass
