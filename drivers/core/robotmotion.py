@@ -9,7 +9,7 @@ Some notes on the motion profiling algorithms:
     * The algorithms only recognize asymmetrical and nonzero values in endpoint position and velocity (e.g. initial and
       final velocities of 0 and 5 are asymmetrical; initial and final velocities of 10 are nonzero). Algorithms exist
       for generating profiles that are asymmetrical in acceleration and jerk, but they are expensive. Also, there's no
-      reason we would ever need a robot to finish a profile going 5 m/s/s/s or something equally stupid.
+      reason we would ever need a robot to finish a profile going precisely 5 m/s/s/s or something equally stupid.
 """
 
 from collections import namedtuple
@@ -245,7 +245,7 @@ def make_scurve(start, end, constraints):
 
 class MotionSegment:
     """
-    A segment of a motion profile; a instantaneous state held for a period of time.
+    A segment of a motion profile; an instantaneous state held for a period of time.
     """
 
     def __init__(self, state, dur):
@@ -491,11 +491,11 @@ class MotionState:
             Position.
         v: float
             Velocity.
-        a:
+        a: float
             Acceleration.
-        j:
+        j: float
             Jerk.
-        t:
+        t: float
             Time.
         """
 
