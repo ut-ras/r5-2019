@@ -1,16 +1,16 @@
 """
-Abstract state representations for a robot. Intended to provide a common interface for both simulated and real robots.
+Abstract subsystem classes.
 """
 
 from core.robotmotion import MotionState
 import math
-from threading import Thread
 
 
 class Subsystem:
     def __init__(self, name):
         """
-        A mechanism on a robot with a unique name. Treat like an abstract class.
+        A mechanism on a robot with a unique name. Treat like an abstract
+        class.
 
         Parameters
         ----------
@@ -68,9 +68,13 @@ class BinaryActuator(Subsystem):
 
 
 class AnalogActuator(Subsystem):
-    def __init__(self, initial_state, name, state_lower_bound=None, state_upper_bound=None):
+    def __init__(
+            self, initial_state, name,
+            state_lower_bound=None,
+            state_upper_bound=None):
         """
-        An actuator whose position lies in a range (such as a linear slide). `None` represents the lack of a bound.
+        An actuator whose position lies in a range (such as a linear slide).
+        `None` represents the lack of a bound.
 
         Parameters
         ----------
@@ -95,7 +99,8 @@ class AnalogActuator(Subsystem):
 
     def state_check(self):
         """
-        Verifies that the current position lies within the bounds and clamps it if necessary.
+        Verifies that the current position lies within the bounds and clamps
+        it if necessary.
 
         Returns
         -------
@@ -103,17 +108,21 @@ class AnalogActuator(Subsystem):
         """
 
         # Binding lower
-        if self.state_lower_bound is not None and self.state < self.state_lower_bound:
+        if(
+                self.state_lower_bound is not None and
+                self.state < self.state_lower_bound):
             self.state = self.state_lower_bound
 
         # Binding upper
-        if self.state_upper_bound is not None and self.state > self.state_upper_bound:
+        if(
+                self.state_upper_bound is not None and
+                self.state > self.state_upper_bound):
             self.state = self.state_upper_bound
 
     def state_set(self, state):
         """
-        Updates the state of the actuator. This method is preferable to mutating state directly because of the inherent
-        bound check.
+        Updates the state of the actuator. This method is preferable to
+        mutating state directly because of the inherent bound check.
 
         Parameters
         ----------
@@ -135,15 +144,16 @@ class StepperMotor(Motor):
         """
         Represents the state of a stepper motor.
 
-        Important note: kinematic units for the state are in terms of steps (steps per second, etc.). For the linear
-        state, access linear_state.
+        Important note: kinematic units for the state are in terms of steps
+        (steps per second, etc.). For the linear state, access linear_state.
 
         Parameters
         ----------
         steps_per_rev: int
             Steps per driveshaft revolution.
         wheel_radius: float
-            Radius of the wheel attached to this motor. Used for calculation of the linear state.
+            Radius of the wheel attached to this motor. Used for calculation
+            of the linear state.
         name: str
             Unique identifying string.
         """
@@ -156,7 +166,8 @@ class StepperMotor(Motor):
 
     def update(self, pos, timestamp):
         """
-        Updates the position of this motor. Both the step and linear kinematic states are updated.
+        Updates the position of this motor. Both the step and linear kinematic
+        states are updated.
 
         Ideally, this method is called at high frequency.
 
@@ -204,57 +215,3 @@ class StepperMotor(Motor):
         self.last_timestamp = timestamp
 
         return self.linear_state
-
-
-class RobotFrame(Subsystem, Thread):
-    def __init__(self, name, *argv):
-        """
-        Initializes a new robot with some subsystems. Notice that the RobotFrame itself is a Subsystem.
-
-        The RobotFrame is threaded. When implementing in a simulation object or a real controller object, this class
-        should be extended and run() should be overridden.
-
-        Parameters
-        ----------
-        args: array of Subsystems
-        """
-
-        super().__init__(name)
-
-        self.subsystems = []  # List of Subsystems
-        self.xstate = MotionState()  # Kinematic state in the x direction
-        self.ystate = MotionState()  # Kinematic state in the y direction
-
-        for subsys in argv:
-            self.subsystems.append(subsys)
-
-    def get_subsys(self, name):
-        """
-        Gets a subsystem by name.
-
-        Parameters
-        ----------
-        name: str
-            Unique identifying string.
-        Returns
-        -------
-        Subsystem
-            Subsystem matching the given name, or None if not found.
-        """
-
-        for subsys in self.subsystems:
-            if subsys.subsys_name == name:
-                return subsys
-
-        return None
-
-    def run(self):
-        """
-        Runs the robot instruction sequence. Should always be overridden.
-
-        Returns
-        -------
-        None
-        """
-
-        pass
