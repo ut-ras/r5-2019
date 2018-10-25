@@ -21,15 +21,20 @@ BasicStepperDriver::BasicStepperDriver(short steps, short dir_pin, short step_pi
 :motor_steps(steps), dir_pin(dir_pin), step_pin(step_pin)
 {
     GPIOClass GPIOdir (to_string(dir_pin));
+    GPIOdir.export_gpio();  
     GPIOClass GPIOstep (to_sting(step_pin));
+    GPIOstep.export_gpio();
 }
 
 BasicStepperDriver::BasicStepperDriver(short steps, short dir_pin, short step_pin, short enable_pin)
 :motor_steps(steps), dir_pin(dir_pin), step_pin(step_pin), enable_pin(enable_pin)
 {
     GPIOClass GPIOdir (to_string(dir_pin));
+    GPIOdir.export_gpio();
     GPIOClass GPIOstep (to_string(step_pin));
+    GPIOstep.export_gpio();
     GPIOClass GPIOenable (to_string(enable_pin));
+    GPIOenable.export_gpio();
 }
 
 /*
@@ -37,16 +42,13 @@ BasicStepperDriver::BasicStepperDriver(short steps, short dir_pin, short step_pi
  */
 void BasicStepperDriver::begin(short rpm, short microsteps){
 
-    GPIOdir.export_gpio();
     GPIOdir.setdir_gpio("out");
     GPIOdir.setval_gpio(1);
 
-    GPIOstep.export_gpio();
     GPIOstep.setdir_gpio("out");
     GPIOstep.setval_gpio(0);
 
     if IS_CONNECTED(enable_pin){
-        GPIOenable.export_gpio();
         GPIOenable.setdir_gpio("out");
         GPIOenable.setval_gpio(1);
     }

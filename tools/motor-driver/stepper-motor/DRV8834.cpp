@@ -27,11 +27,21 @@ DRV8834::DRV8834(short steps, short dir_pin, short step_pin, short enable_pin)
  */
 DRV8834::DRV8834(short steps, short dir_pin, short step_pin, short m0_pin, short m1_pin)
 :BasicStepperDriver(steps, dir_pin, step_pin), m0_pin(m0_pin), m1_pin(m1_pin)
-{}
+{
+    GPIOClass GPIOm1 (to_string(m1_pin));
+    GPIOm1.export_gpio();
+    GPIOClass GPIOm0 (to_string(m0_pin));
+    GPIOm0.export_gpio();                   
+}
 
 DRV8834::DRV8834(short steps, short dir_pin, short step_pin, short enable_pin, short m0_pin, short m1_pin)
 :BasicStepperDriver(steps, dir_pin, step_pin, enable_pin), m0_pin(m0_pin), m1_pin(m1_pin)
-{}
+{
+    GPIOClass GPIOm1 (to_string(m1_pin));
+    GPIOm1.export_gpio();
+    GPIOClass GPIOm0 (to_string(m0_pin));
+    GPIOm0.export_gpio(); 
+}
 
 /*
  * Set microstepping mode (1:divisor)
@@ -59,28 +69,23 @@ short DRV8834::setMicrostep(short microsteps){
      *  Z = high impedance mode (M0 is tri-state)
      */
 
-    GPIOClass GPIOm1 (to_string(m1_pin));
-    GPIOClass GPIOm0 (to_string(m0_pin));
-    GPIOm1.export_gpio();
+
     GPIOm1.setdir_gpio("out");
     GPIOm1.setval_gpio((this->microsteps < 8) ? 0 : 1)
 
     switch(this->microsteps){
     case 1:
     case 8:
-        GPIOm0.export_gpio();
         GPIOm0.setdir_gpio("out");
         GPIOm0.setval_gpio(0);
         break;
     case 2:
     case 16:
-        GPIOm0.export_gpio();
         GPIOm0.setdir_gpio("out");
         GPIOm0.setval_gpio(1);
         break;
     case 4:
     case 32:
-        GPIOm0.export_gpio();
         GPIOm0.setdir_gpio("in");
         break;
     }

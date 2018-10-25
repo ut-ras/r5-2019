@@ -9,7 +9,6 @@
  */
 #ifndef STEPPER_DRIVER_BASE_H
 #define STEPPER_DRIVER_BASE_H
-#include <Arduino.h>
 
 // used internally by the library to mark unconnected pins
 #define PIN_UNCONNECTED -1
