@@ -19,25 +19,36 @@
  */
 BasicStepperDriver::BasicStepperDriver(short steps, short dir_pin, short step_pin)
 :motor_steps(steps), dir_pin(dir_pin), step_pin(step_pin)
-{}
+{
+    GPIOClass GPIOdir (to_string(dir_pin));
+    GPIOClass GPIOstep (to_sting(step_pin));
+}
 
 BasicStepperDriver::BasicStepperDriver(short steps, short dir_pin, short step_pin, short enable_pin)
 :motor_steps(steps), dir_pin(dir_pin), step_pin(step_pin), enable_pin(enable_pin)
-{}
+{
+    GPIOClass GPIOdir (to_string(dir_pin));
+    GPIOClass GPIOstep (to_string(step_pin));
+    GPIOClass GPIOenable (to_string(enable_pin));
+}
 
 /*
  * Initialize pins, calculate timings etc
  */
 void BasicStepperDriver::begin(short rpm, short microsteps){
-    pinMode(dir_pin, OUTPUT);
-    digitalWrite(dir_pin, HIGH);
 
-    pinMode(step_pin, OUTPUT);
-    digitalWrite(step_pin, LOW);
+    GPIOdir.export_gpio();
+    GPIOdir.setdir_gpio("out");
+    GPIOdir.setval_gpio(1);
+
+    GPIOstep.export_gpio();
+    GPIOstep.setdir_gpio("out");
+    GPIOstep.setval_gpio(0);
 
     if IS_CONNECTED(enable_pin){
-        pinMode(enable_pin, OUTPUT);
-        digitalWrite(enable_pin, HIGH); // disable
+        GPIOenable.export_gpio();
+        GPIOenable.setdir_gpio("out");
+        GPIOenable.setval_gpio(1);
     }
 
     this->rpm = rpm;
@@ -262,8 +273,8 @@ long BasicStepperDriver::nextAction(void){
         /*
          * DIR pin is sampled on rising STEP edge, so it is set first
          */
-        digitalWrite(dir_pin, dir_state);
-        digitalWrite(step_pin, HIGH);
+        GPIOdir.setval_gpio(dir_state);
+        GPIOstep.setval_gpio(1);
         unsigned m = micros();
         long pulse = step_pulse; // save value because calcStepPulse() will overwrite it
         calcStepPulse();
@@ -273,7 +284,7 @@ long BasicStepperDriver::nextAction(void){
             delayMicros(step_high_min-m);
             m = step_high_min;
         };
-        digitalWrite(step_pin, LOW);
+        GPIOstep.setval_gpio(0);
         // account for calcStepPulse() execution time; sets ceiling for max rpm on slower MCUs
         last_action_end = micros();
         next_action_interval = (pulse > m) ? pulse - m : 1;
@@ -306,13 +317,13 @@ enum BasicStepperDriver::State BasicStepperDriver::getCurrentState(void){
  */
 void BasicStepperDriver::enable(void){
     if IS_CONNECTED(enable_pin){
-        digitalWrite(enable_pin, LOW);
+        GPIOenable.setval_gpio(0);
     }
 }
 
 void BasicStepperDriver::disable(void){
     if IS_CONNECTED(enable_pin){
-        digitalWrite(enable_pin, HIGH);
+        GPIOenable.setval_gpio(1);
     }
 }
 

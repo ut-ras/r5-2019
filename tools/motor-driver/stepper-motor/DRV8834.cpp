@@ -8,6 +8,7 @@
  * A copy of this license has been included with this distribution in the file LICENSE.
  */
 #include "DRV8834.h"
+#include "GPIOClass.h"
 
 /*
  * Basic connection: only DIR, STEP are connected.
@@ -58,23 +59,29 @@ short DRV8834::setMicrostep(short microsteps){
      *  Z = high impedance mode (M0 is tri-state)
      */
 
-    pinMode(m1_pin, OUTPUT); //FIX
-    digitalWrite(m1_pin, (this->microsteps < 8) ? LOW : HIGH); //FIX
+    GPIOClass GPIOm1 (to_string(m1_pin));
+    GPIOClass GPIOm0 (to_string(m0_pin));
+    GPIOm1.export_gpio();
+    GPIOm1.setdir_gpio("out");
+    GPIOm1.setval_gpio((this->microsteps < 8) ? 0 : 1)
 
     switch(this->microsteps){
     case 1:
     case 8:
-        pinMode(m0_pin, OUTPUT);//FIX
-        digitalWrite(m0_pin, LOW);//FIX
+        GPIOm0.export_gpio();
+        GPIOm0.setdir_gpio("out");
+        GPIOm0.setval_gpio(0);
         break;
     case 2:
     case 16:
-        pinMode(m0_pin, OUTPUT);//FIX
-        digitalWrite(m0_pin, HIGH);//FIX
+        GPIOm0.export_gpio();
+        GPIOm0.setdir_gpio("out");
+        GPIOm0.setval_gpio(1);
         break;
     case 4:
     case 32:
-        pinMode(m0_pin, INPUT); // Z - high impedance//FIX
+        GPIOm0.export_gpio();
+        GPIOm0.setdir_gpio("in");
         break;
     }
     return this->microsteps;
