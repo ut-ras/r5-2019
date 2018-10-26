@@ -109,7 +109,7 @@ class MotionProfile:
 
         extrap = self.end
 
-        if not self.segments:
+        if self.segments:
             endseg = self.segments[len(self.segments) - 1]
             extrap = endseg.state_at(endseg.dur)
 
@@ -138,7 +138,7 @@ class MotionProfile:
 
         extrap = self.end
 
-        if not self.segments:
+        if self.segments:
             endseg = self.segments[len(self.segments) - 1]
             extrap = endseg.state_at(endseg.dur)
 
@@ -262,7 +262,7 @@ class MotionState:
             Time.
         """
 
-        self.x = x, self.v, self.a, self.j, self.t = x, v, a, j, t
+        self.x, self.v, self.a, self.j, self.t = x, v, a, j, t
 
     def state_at(self, t):
         """
