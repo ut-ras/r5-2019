@@ -108,15 +108,13 @@ class AnalogActuator(Subsystem):
         """
 
         # Binding lower
-        if(
-                self.state_lower_bound is not None and
-                self.state < self.state_lower_bound):
+        if (self.state_lower_bound is not None and
+           self.state < self.state_lower_bound):
             self.state = self.state_lower_bound
 
         # Binding upper
-        if(
-                self.state_upper_bound is not None and
-                self.state > self.state_upper_bound):
+        if (self.state_upper_bound is not None and
+           self.state > self.state_upper_bound):
             self.state = self.state_upper_bound
 
     def state_set(self, state):
@@ -192,17 +190,17 @@ class StepperMotor(Motor):
         delta_position = pos - self.state.x
         self.state.x = pos
 
-        # Update velocity
+        # Update velocity; v = dx/dt
         new_velocity = delta_position / timestamp
         delta_velocity = new_velocity - self.state.v
         self.state.v = new_velocity
 
-        # Update acceleration
+        # Update acceleration; a = dv/dt
         new_acceleration = delta_velocity / timestamp
         delta_acceleration = new_acceleration - self.state.a
         self.state.a = new_acceleration
 
-        # Update jerk
+        # Update jerk; j = da/dt
         new_jerk = delta_acceleration / timestamp
         self.state.j = new_jerk
 
