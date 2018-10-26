@@ -69,13 +69,19 @@ short DRV8834::setMicrostep(short microsteps){
      *  Z = high impedance mode (M0 is tri-state)
      */
 
+<<<<<<< HEAD
 
     GPIOm1.setdir_gpio("out");
     GPIOm1.setval_gpio((this->microsteps < 8) ? 0 : 1)
+=======
+    pinMode(m1_pin, OUTPUT);
+    digitalWrite(m1_pin, (this->microsteps < 8) ? LOW : HIGH);
+>>>>>>> parent of 9589fd7... added fix comments to drv file
 
     switch(this->microsteps){
     case 1:
     case 8:
+<<<<<<< HEAD
         GPIOm0.setdir_gpio("out");
         GPIOm0.setval_gpio(0);
         break;
@@ -87,6 +93,19 @@ short DRV8834::setMicrostep(short microsteps){
     case 4:
     case 32:
         GPIOm0.setdir_gpio("in");
+=======
+        pinMode(m0_pin, OUTPUT);
+        digitalWrite(m0_pin, LOW);
+        break;
+    case 2:
+    case 16:
+        pinMode(m0_pin, OUTPUT);
+        digitalWrite(m0_pin, HIGH);
+        break;
+    case 4:
+    case 32:
+        pinMode(m0_pin, INPUT); // Z - high impedance
+>>>>>>> parent of 9589fd7... added fix comments to drv file
         break;
     }
     return this->microsteps;

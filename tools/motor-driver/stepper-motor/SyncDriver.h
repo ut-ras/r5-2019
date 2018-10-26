@@ -8,7 +8,7 @@
  */
 #ifndef SYNC_DRIVER_H
 #define SYNC_DRIVER_H
-#include <Arduino.h> //FIX
+#include <Arduino.h>
 #include "MultiDriver.h"
 
 /*
