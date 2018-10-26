@@ -107,14 +107,18 @@ class MotionProfile:
             This profile.
         """
 
+        # Look for the extrapolated state at the endmost point in the profile
         extrap = self.end
 
+        # If the profile is not empty, extrap is derived by extrapolating the state at the end of the final segment
         if self.segments:
             endseg = self.segments[len(self.segments) - 1]
             extrap = endseg.state_at(endseg.dur)
 
+        # Construct a new state based off of extrap with the new acceleration and add it to the profile
         state = MotionState(extrap.x, extrap.v, acc, 0, extrap.t)
         self.segments.append(MotionSegment(state, t))
+        # Update the endmost state
         self.end = self.segments[len(self.segments) - 1].state
 
         return self
@@ -136,14 +140,18 @@ class MotionProfile:
             This profile.
         """
 
+        # Look for the extrapolated state at the endmost point in the profile
         extrap = self.end
 
+        # If the profile is not empty, extrap is derived by extrapolating the state at the end of the final segment
         if self.segments:
             endseg = self.segments[len(self.segments) - 1]
             extrap = endseg.state_at(endseg.dur)
 
+        # Construct a new state based off of extrap with the new jerk and add it to the profile
         state = MotionState(extrap.x, extrap.v, extrap.a, jerk, extrap.t)
         self.segments.append(MotionSegment(state, t))
+        # Update the endmost state
         self.end = self.segments[len(self.segments) - 1].state
 
         return self
@@ -201,16 +209,19 @@ class MotionProfile:
             State at time t.
         """
 
+        # If the specified time occurs before this profile, return the initial state
         if t < 0:
             return self.start
 
         elapsed = 0
 
+        # Look through the segments and find which one contains the specified time
         for seg in self.segments:
             if elapsed <= t < elapsed + seg.dur:
                 return seg.state_at(t - elapsed)
             elapsed += seg.dur
 
+        # If we got this far, the time occurs after this profile; return the final state
         return self.end_state()
 
     def end_state(self):
