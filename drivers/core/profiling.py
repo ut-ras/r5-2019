@@ -14,7 +14,7 @@ Some notes:
 
 import math
 import numpy as np
-from .robotmotion import *
+from .robotmotion import MotionState, MotionProfile
 
 
 def make_trap(start, end, constraints):
@@ -40,22 +40,22 @@ def make_trap(start, end, constraints):
     """
 
     totaldisp = end.x - start.x
-    dir = np.sign(totaldisp)
+    direction = np.sign(totaldisp)
 
     # Acceleration segment
-    accdisp = (constraints.v * constraints.v - start.v * start.v) / (2 * constraints.a * dir)
-    acctime = math.fabs(2 * accdisp / (start.v + constraints.v * dir))
+    accdisp = (constraints.v * constraints.v - start.v * start.v) / (2 * constraints.a * direction)
+    acctime = math.fabs(2 * accdisp / (start.v + constraints.v * direction))
 
     # Deceleration segment
-    decdisp = (end.v * end.v - constraints.v * constraints.v) / (2 * -constraints.a * dir)
-    dectime = math.fabs(2 * decdisp / (constraints.v * dir + end.v))
+    decdisp = (end.v * end.v - constraints.v * constraints.v) / (2 * -constraints.a * direction)
+    dectime = math.fabs(2 * decdisp / (constraints.v * direction + end.v))
 
     # Cruising segment
     cruisedisp = totaldisp - accdisp - decdisp
-    cruisetime = math.fabs(cruisedisp / constraints.v * dir)
+    cruisetime = math.fabs(cruisedisp / constraints.v * direction)
 
     return MotionProfile(start, constraints).\
-        append_acc(constraints.a * dir, acctime).append_acc(0, cruisetime).append_acc(-constraints.a * dir, dectime).\
+        append_acc(constraints.a * direction, acctime).append_acc(0, cruisetime).append_acc(-constraints.a * direction, dectime).\
         clean()
 
 
@@ -84,10 +84,10 @@ def make_scurve(start, end, constraints):
     """
 
     totaldisp = end.x - start.x
-    dir = np.sign(totaldisp)
+    direction = np.sign(totaldisp)
 
     # Segment 1 - jerk from init acc to max acc
-    seg1vel = (constraints.a * constraints.a - start.a * start.a) / (2 * constraints.j * dir)
+    seg1vel = (constraints.a * constraints.a - start.a * start.a) / (2 * constraints.j * direction)
 
     # Preclusion check - if the jerk segment accumulates more than maxvel/2, a new jerk constraint is required. This
     # is calculated by increasing the jerk constraint in 25% increments until either the value is satisfactory or
@@ -95,44 +95,44 @@ def make_scurve(start, end, constraints):
     increments = 1000
     while math.fabs(seg1vel) > constraints.v / 2 and increments > 0:
         constraints.j *= 1.25
-        seg1vel = (constraints.a * constraints.a - start.a * start.a) / (2 * constraints.j * dir)
+        seg1vel = (constraints.a * constraints.a - start.a * start.a) / (2 * constraints.j * direction)
         increments -= 1
 
-    seg1time = math.fabs((2 * seg1vel) / (start.a + constraints.a * dir))
+    seg1time = math.fabs((2 * seg1vel) / (start.a + constraints.a * direction))
 
     # Segment 3 - jerk from max acc to 0 acc
-    seg3vel = (-constraints.a * constraints.a) / (2 * -constraints.j * dir)
+    seg3vel = (-constraints.a * constraints.a) / (2 * -constraints.j * direction)
     seg3time = math.fabs((2 * seg3vel) / constraints.a)
 
     # Segment 2 - constraint acc to max vel
-    seg2vel = constraints.v * dir - seg1vel - seg3vel - start.v
+    seg2vel = constraints.v * direction - seg1vel - seg3vel - start.v
     seg2time = math.fabs(seg2vel / constraints.a)
 
     # Segment 5 - jerk from 0 acc to max neg acc
-    seg5vel = (constraints.a * constraints.a) / (2 * -constraints.j * dir)
-    seg5time = math.fabs((2 * seg5vel) / (-constraints.a * dir))
+    seg5vel = (constraints.a * constraints.a) / (2 * -constraints.j * direction)
+    seg5time = math.fabs((2 * seg5vel) / (-constraints.a * direction))
 
     # Segment 7 - jerk from neg max acc to 0 acc
-    seg7vel = (end.a * end.a - constraints.a * constraints.a) / (2 * constraints.j * dir)
-    seg7time = math.fabs((2 * seg7vel) / (-constraints.a * dir + end.a))
+    seg7vel = (end.a * end.a - constraints.a * constraints.a) / (2 * constraints.j * direction)
+    seg7time = math.fabs((2 * seg7vel) / (-constraints.a * direction + end.a))
 
     # Segment 6 - constraint dec to final vel
-    seg6vel = constraints.v * dir + seg5vel + seg7vel - end.v
+    seg6vel = constraints.v * direction + seg5vel + seg7vel - end.v
     seg6time = math.fabs(seg6vel / constraints.a)
 
     # Total distance traveled by each S-curve
-    seg1state = MotionState(0, start.v, start.a, constraints.j * dir, 0)
+    seg1state = MotionState(0, start.v, start.a, constraints.j * direction, 0)
     seg2state = seg1state.state_at(seg1time)
-    seg2stateadj = MotionState(seg2state.x, seg2state.v, constraints.a * dir, 0, seg2state.t)
+    seg2stateadj = MotionState(seg2state.x, seg2state.v, constraints.a * direction, 0, seg2state.t)
     seg3state = seg2stateadj.state_at(seg2time)
-    seg3stateadj = MotionState(seg3state.x, seg3state.v, seg3state.a, -constraints.j * dir, seg3state.t)
+    seg3stateadj = MotionState(seg3state.x, seg3state.v, seg3state.a, -constraints.j * direction, seg3state.t)
     acc_curve_endpoint = seg3stateadj.state_at(seg3time)
 
-    seg5state = MotionState(0, constraints.v * dir, 0, -constraints.j * dir, 0)
+    seg5state = MotionState(0, constraints.v * direction, 0, -constraints.j * direction, 0)
     seg6state = seg5state.state_at(seg5time)
-    seg6stateadj = MotionState(seg6state.x, seg6state.v, -constraints.a * dir, 0, seg6state.t)
+    seg6stateadj = MotionState(seg6state.x, seg6state.v, -constraints.a * direction, 0, seg6state.t)
     seg7state = seg6stateadj.state_at(seg6time)
-    seg7stateadj = MotionState(seg7state.x, seg7state.v, seg7state.a, constraints.j * dir, seg7state.t)
+    seg7stateadj = MotionState(seg7state.x, seg7state.v, seg7state.a, constraints.j * direction, seg7state.t)
     dec_curve_endpoint = seg7stateadj.state_at(seg7time)
 
     # Segment 4 - Cruising
@@ -140,7 +140,7 @@ def make_scurve(start, end, constraints):
     cruisetime = math.fabs(cruisedisp / constraints.v)
 
     return MotionProfile(start, constraints).\
-        append_jerk(constraints.j * dir, seg1time).append_acc(constraints.a * dir, seg2time).\
-        append_jerk(-constraints.j * dir, seg3time).append_acc(0, cruisetime).\
-        append_jerk(-constraints.j * dir, seg5time).append_acc(-constraints.a * dir, seg6time).\
-        append_jerk(constraints.j * dir, seg7time).clean()
+        append_jerk(constraints.j * direction, seg1time).append_acc(constraints.a * direction, seg2time).\
+        append_jerk(-constraints.j * direction, seg3time).append_acc(0, cruisetime).\
+        append_jerk(-constraints.j * direction, seg5time).append_acc(-constraints.a * direction, seg6time).\
+        append_jerk(constraints.j * direction, seg7time).clean()
