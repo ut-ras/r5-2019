@@ -23,6 +23,13 @@
 
 
 
+# -- Module drivers/core -------------------------------------------------------
+
+drivers/.idea
+drivers/core/__pychache__
+drivers/core/test.py
+
+
 # -- OSX -----------------------------------------------------------------------
 
 # General
