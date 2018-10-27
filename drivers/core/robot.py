@@ -76,11 +76,11 @@ class RobotFrame(Subsystem, threading.Thread):
         frame_times = []
 
         # Check for main thread alive and quit flag not set
-        while threading.main_thread.is_alive() and not self.done:
+        while threading.main_thread().is_alive() and not self.done:
 
             # Init timer
             if len(frame_times) > self.frame_avg:
-                self.frame_times.pop(0)
+                frame_times.pop(0)
             start = time.time()
 
             self.loop()
