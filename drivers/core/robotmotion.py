@@ -89,6 +89,7 @@ class MotionProfile:
         self.end = start
         self.constraints = constraints
         self.segments = []
+        self.duration = 0
 
     def append_acc(self, acc, t):
         """
@@ -120,6 +121,8 @@ class MotionProfile:
         self.segments.append(MotionSegment(state, t))
         # Update the endmost state
         self.end = self.segments[len(self.segments) - 1].state
+
+        self.duration += t
 
         return self
 
@@ -153,6 +156,8 @@ class MotionProfile:
         self.segments.append(MotionSegment(state, t))
         # Update the endmost state
         self.end = self.segments[len(self.segments) - 1].state
+
+        self.duration += t
 
         return self
 
