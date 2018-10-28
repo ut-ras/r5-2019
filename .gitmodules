@@ -4,9 +4,3 @@
 [submodule "tools/ssh-manage"]
 	path = tools/ssh-manage
 	url = https://github.com/thetianshuhuang/ssh-manage
-[submodule "tools/motor-driver/DRV8834"]
-	path = tools/motor-driver/DRV8834
-	url = https://github.com/laurb9/StepperDriver
-[submodule "tools/motor-driver/DRV8833"]
-	path = tools/motor-driver/DRV8833
-	url = https://github.com/TheArduinist/DRV8833
