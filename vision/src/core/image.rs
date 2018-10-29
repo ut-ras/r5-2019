@@ -153,6 +153,23 @@ impl Image {
         }
     }
 
+    /// # Iterate over pixels
+    ///
+    /// ## Parameters
+    ///
+    /// - f : function to call on all pixels. Works the same as iter_pixls,
+    ///     except with additional x and y arguments.
+    /// - border : number of pixels along the edges to exclude.
+    pub fn enum_pixels(&mut self, f: &Fn(&mut Pixel, u32, u32), border: u32) {
+        for x in border .. self.width - border {
+            for y in border .. self.height - border {
+                let mut p = self.unpack((y * self.width + x) as usize);
+                f(&mut p, x, y);
+                self.pack(&mut p, x as usize);
+            }
+        }
+    }
+
     /// # Convert color spaces.
     ///
     /// ## Parameters
