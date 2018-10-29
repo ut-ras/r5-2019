@@ -101,10 +101,10 @@ impl Image {
     fn unpack(&self, idx: usize) -> Pixel {
         let packed = self.data[idx];
         Pixel {
-            h: (packed & 0xF000 >> 24) as i32,
-            s: (packed & 0x0F00 >> 16) as i32,
-            v: (packed & 0x00F0 >> 8 ) as i32,
-            mask: (packed & 0x000F)    as i32,
+            h: (packed & 0xFF000000 >> 24) as i32,
+            s: (packed & 0x00FF0000 >> 16) as i32,
+            v: (packed & 0x0000FF00 >> 8 ) as i32,
+            mask: (packed & 0x000000FF)    as i32,
         }
     }
 
@@ -150,6 +150,23 @@ impl Image {
             let mut p = self.unpack(x as usize);
             f(&mut p);
             self.pack(&mut p, x as usize);
+        }
+    }
+
+    /// # Iterate over pixels
+    ///
+    /// ## Parameters
+    ///
+    /// - f : function to call on all pixels. Works the same as iter_pixls,
+    ///     except with additional x and y arguments.
+    /// - border : number of pixels along the edges to exclude.
+    pub fn enum_pixels(&mut self, f: &Fn(&mut Pixel, u32, u32), border: u32) {
+        for x in border .. self.width - border {
+            for y in border .. self.height - border {
+                let mut p = self.unpack((y * self.width + x) as usize);
+                f(&mut p, x, y);
+                self.pack(&mut p, x as usize);
+            }
         }
     }
 
