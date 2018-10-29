@@ -101,10 +101,10 @@ impl Image {
     fn unpack(&self, idx: usize) -> Pixel {
         let packed = self.data[idx];
         Pixel {
-            h: (packed & 0xF000 >> 24) as i32,
-            s: (packed & 0x0F00 >> 16) as i32,
-            v: (packed & 0x00F0 >> 8 ) as i32,
-            mask: (packed & 0x000F)    as i32,
+            h: (packed & 0xFF000000 >> 24) as i32,
+            s: (packed & 0x00FF0000 >> 16) as i32,
+            v: (packed & 0x0000FF00 >> 8 ) as i32,
+            mask: (packed & 0x000000FF)    as i32,
         }
     }
 
