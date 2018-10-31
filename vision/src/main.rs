@@ -1,6 +1,7 @@
 //! Test documentation
 
 pub mod core;
+pub mod erode_dilate;
 
 
 /// Test function
