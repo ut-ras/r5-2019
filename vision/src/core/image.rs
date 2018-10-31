@@ -40,6 +40,18 @@ pub struct Image {
 }
 
 
+/// Hue offset
+pub const H_OFFSET: u32 = 24;
+/// Saturation offset
+pub const S_OFFSET: u32 = 16;
+/// Value offset
+pub const V_OFFSET: u32 = 8;
+/// Mask offset
+pub const M_OFFSET: u32 = 0;
+/// Single byte mask
+pub const BYTE_MASK: u32 = 0x000000FF;
+
+
 /// # Convert RGB pixel to HSV pixel
 ///
 /// ## Parameters
@@ -101,10 +113,10 @@ impl Image {
     fn unpack(&self, idx: usize) -> Pixel {
         let packed = self.data[idx];
         Pixel {
-            h: (packed & 0xFF000000 >> 24) as i32,
-            s: (packed & 0x00FF0000 >> 16) as i32,
-            v: (packed & 0x0000FF00 >> 8 ) as i32,
-            mask: (packed & 0x000000FF)    as i32,
+            h:      ((packed >> H_OFFSET) & BYTE_MASK) as i32,
+            s:      ((packed >> S_OFFSET) & BYTE_MASK) as i32,
+            v:      ((packed >> V_OFFSET) & BYTE_MASK) as i32,
+            mask:   ((packed >> M_OFFSET) & BYTE_MASK) as i32,
         }
     }
 
@@ -115,8 +127,11 @@ impl Image {
     /// - input : pixel value to pack and store
     /// - idx : destination to store to
     fn pack(&mut self, input: &Pixel, idx: usize) {
-        self.data[idx] =
-            (input.h << 24 | input.s << 16 | input.v << 8 | input.mask) as u32;
+        self.data[idx] = (
+            input.h     << H_OFFSET |
+            input.s     << S_OFFSET |
+            input.v     << V_OFFSET |
+            input.mask  << M_OFFSET) as u32;
     }
 
     /// # Access and unpack an image pixel
