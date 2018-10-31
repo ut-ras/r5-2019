@@ -76,7 +76,7 @@ impl Image {
         }
     }
 
-    /// # Iterate over pixels
+    /// # Iterate over pixels, with coordinates
     ///
     /// ## Parameters
     ///
@@ -88,6 +88,26 @@ impl Image {
             for y in border .. self.height - border {
                 let mut p = self.unpack((y * self.width + x) as usize);
                 f(&mut p, x, y);
+                self.pack(&mut p, x as usize);
+            }
+        }
+    }
+
+    /// # Iterate over pixels, with borrowing
+    ///
+    /// ## Parameters
+    ///
+    /// - f : function to call on all pixels. Same as enum_pixels, except
+    ///   with additional image borrowing argument.
+    /// - border : number of pixels along the edges to exclude.
+    pub fn enum_borrow(
+            &mut self,
+            f: &Fn(&mut Pixel, u32, u32, &mut Image),
+            border: u32) {
+        for x in border .. self.width - border {
+            for y in border .. self.height - border {
+                let mut p = self.unpack((y * self.width + x) as usize);
+                f(&mut p, x, y, self);
                 self.pack(&mut p, x as usize);
             }
         }
