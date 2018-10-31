@@ -24,7 +24,7 @@ pub const TMP_MASK: u32 = 0x000000FF;
 /// Number of values within B_1(x, y) that match, including (x, y) in the
 /// infinity norm.
 fn check_adjacent(
-		image: &mut core::Image,
+		image: &core::Image,
 		x: u32, y: u32, tgt: u32, intermediate: u32) -> u32 {
 
 	let mut res = 0;
@@ -56,7 +56,7 @@ pub fn erode(image: &mut core::Image, tgt: u32, default: u32) {
 	debug_assert!(default & core::BYTE_MASK == default);
 
 	// Closure to run erosion
-	let check = |p: &mut core::Pixel, x: u32, y: u32, img: &mut core::Image| {
+	let check = |p: &mut core::Pixel, x: u32, y: u32, img: &core::Image| {
 		if check_adjacent(img, x, y, tgt, TMP_MASK) != 9 {
 			p.mask = TMP_MASK;
 		}
@@ -79,7 +79,7 @@ pub fn erode(image: &mut core::Image, tgt: u32, default: u32) {
 pub fn dilate(image: &mut core::Image, tgt: u32) {
 
 	// Closure to run dilation
-	let check = |p: &mut core::Pixel, x: u32, y:u32, img: &mut core::Image| {
+	let check = |p: &mut core::Pixel, x: u32, y:u32, img: &core::Image| {
 		if check_adjacent(img, x, y, tgt, tgt) > 0 && p.mask != tgt {
 			p.mask = TMP_MASK;
 		}
