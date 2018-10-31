@@ -93,7 +93,7 @@ impl Image {
         }
     }
 
-    /// # Iterate over pixels, with borrowing
+    /// # Iterate over pixels, with (immutable) borrowing
     ///
     /// ## Parameters
     ///
@@ -102,12 +102,12 @@ impl Image {
     /// - border : number of pixels along the edges to exclude.
     pub fn enum_borrow(
             &mut self,
-            f: &Fn(&mut Pixel, u32, u32, &mut Image),
+            f: &Fn(&mut Pixel, u32, u32, &Image),
             border: u32) {
         for x in border .. self.width - border {
             for y in border .. self.height - border {
                 let mut p = self.unpack((y * self.width + x) as usize);
-                f(&mut p, x, y, self);
+                f(&mut p, x, y, &self);
                 self.pack(&mut p, x as usize);
             }
         }
