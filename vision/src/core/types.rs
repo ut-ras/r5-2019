@@ -21,10 +21,10 @@ pub enum ColorSpace { RGB, HSV }
 /// - v: 'value' (lightness)
 /// - mask: mask membership indicator
 pub struct Pixel {
-    pub h: i32,
-    pub s: i32,
-    pub v: i32,
-    pub mask: i32
+    pub h: u32,
+    pub s: u32,
+    pub v: u32,
+    pub mask: u32
 }
 
 
