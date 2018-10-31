@@ -1,19 +1,39 @@
+//!
+//! # Erosion and dilation
+//!
 
-use core::image;
+
+use core;
 
 
+/// Temporary reserved mask value; 0x000000FF for now.
 pub const TMP_MASK: u32 = 0x000000FF;
 
 
-fn checkAdjacent(
-		image: &mut image::Image,
-		x: u32, y: u32, tgt: u32, intermediate: u32) {
+/// # Count the number of adjacent pixels matching given mask values
+///
+/// ## Parameters
+///
+/// - x : target x coordinate
+/// - y : target y coordinate
+/// - tgt : target mask to count
+/// - intermediate : secondary mask value to count
+///
+/// ## Returns
+///
+/// Number of values within B_1(x, y) that match, including (x, y) in the
+/// infinity norm.
+fn check_adjacent(
+		image: &mut core::Image,
+		x: u32, y: u32, tgt: u32, intermediate: u32) -> u32 {
 
 	let mut res = 0;
 
 	for i in x-1..x+1 {
 		for j in y-1..y+1 {
-			let mask = (image.data[y * image.width + x] >> image::M_OFFSET) & image::BYTE_MASK;
+			let mask =
+				(image.data[(i * image.width + j) as usize] >> core::M_OFFSET) &
+				core::BYTE_MASK;
 			if mask == tgt || mask == intermediate {
 				res += 1;
 			}
@@ -24,43 +44,51 @@ fn checkAdjacent(
 }
 
 
-fn erode(&mut image: image::Image, tgt: u32, default: u32) {
+/// # Erode an image mask by 1 pixel
+///
+/// ## Parameters
+///
+/// - image : image to erode
+/// - tgt : target mask to erode
+/// - default : mask value to replace eroded pixels with
+pub fn erode(image: &mut core::Image, tgt: u32, default: u32) {
 
-	let tmp = TMP_MASK;
+	debug_assert!(default & core::BYTE_MASK == default);
 
-	debug_assert!(default & image::BYTE_MASK == default);
-
-	// Run erosion
-	for x in 1..image.width - 1 {
-		for y in 1..image.height - 1 {
-			if checkAdjacent(image, x, y, tgt, tmp) != 9 {
-				let idx = y * image.width + x;
-				image[idx] = (image[idx] & 0xFFFFFF00) | tmp;
-			}
+	// Closure to run erosion
+	let erode_check = |p: &mut core::Pixel, x: u32, y: u32| {
+		if check_adjacent(image, x, y, tgt, TMP_MASK) != 9 {
+			p.mask = TMP_MASK;
 		}
-	}
+	};
+	image.enum_pixels(&erode_check, 1);
 
 	// Closure to turn tmp mask into default
-	let unify = |p: &mut image::Pixel| { if p.mask == tmp { p.mask = default; }};
-
-	image.iter_pixels(&unify)
+	let unify = |p: &mut core::Pixel| {
+		if p.mask == TMP_MASK { p.mask = default; }
+	};
+	image.iter_pixels(&unify);
 }
 
 
-fn dilate(image: &mut image::Image, tgt: u32, default: u32) {
+/// # Dilate an image mask by 1 pixel
+///
+/// ## Parameters
+/// - image : image to dilate
+/// - tgt : target mask to dilate
+pub fn dilate(image: &mut core::Image, tgt: u32) {
 
-	let tmp = TMP_MASK;
-
-	for x in 1..image.width - 1 {
-		for y in 1..image.height - 1 {
-			if checkAdjacent(image, x, y, tgt, tgt) > 0 {
-				let idx = y * image.width + x;
-				image[idx] = (image[idx] & 0xFFFFFF00) | tmp;
-			}
+	// Closure to run dilation
+	let dilate_check = |p: &mut core::Pixel, x: u32, y:u32| {
+		if check_adjacent(image, x, y, tgt, tgt) > 0 && p.mask != tgt {
+			p.mask = TMP_MASK;
 		}
-	}
+	};
+	image.enum_pixels(&erode_check, 1);
 
-	let unify = |p: &mut image::Pixel| { if p.mask == tmp { p.mask = tgt; }};
-
+    // Closure to turn tmp mask to default
+	let unify = |p: &mut core::Pixel| {
+		if p.mask == TMP_MASK { p.mask = tgt; }
+	};
 	image.iter_pixels(&unify);
 }
