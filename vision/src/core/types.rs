@@ -3,6 +3,12 @@
 //!
 
 
+/// Image width; must be constant
+pub const IMAGE_WIDTH: usize = 400;
+/// Image height; must be constant
+pub const IMAGE_HEIGHT: usize = 300;
+
+
 /// # Color Space
 ///
 /// ## Members
@@ -20,11 +26,15 @@ pub enum ColorSpace { RGB, HSV }
 /// - s: saturation value
 /// - v: 'value' (lightness)
 /// - mask: mask membership indicator
+/// - x: x coordinate
+/// - y: y coordinate
 pub struct Pixel {
     pub h: u32,
     pub s: u32,
     pub v: u32,
-    pub mask: u32
+    pub mask: u32,
+    pub x: usize,
+    pub y: usize,
 }
 
 
@@ -37,9 +47,9 @@ pub struct Pixel {
 /// - data: flattened image vector. Each row in the image is appended
 ///     horizontally.
 pub struct Image {
-    pub width: u32,
-    pub height: u32,
-    pub data: Vec<u32>
+    pub width: usize,
+    pub height: usize,
+    pub data: [[u32; IMAGE_HEIGHT]; IMAGE_WIDTH],
 }
 
 
