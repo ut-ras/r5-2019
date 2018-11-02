@@ -25,14 +25,14 @@ pub const TMP_MASK: u32 = 0x000000FF;
 /// infinity norm.
 fn check_adjacent(
 		image: &core::Image,
-		x: u32, y: u32, tgt: u32, intermediate: u32) -> u32 {
+		x: usize, y: usize, tgt: u32, intermediate: u32) -> u32 {
 
 	let mut res = 0;
 
-	for row in &image.data[y-1 .. y+1] {
-		for pixel in row[x-1 .. x+1] {
-			let mask = pixel && core::BYTE_MASK;
-			if mask == tgt || mask == intermediate {
+	for row in image.data[y-1 .. y+1].iter() {
+		for pixel in row[x-1 .. x+1].iter() {
+			let mask = pixel & core::BYTE_MASK;
+			if (mask == tgt) || (mask == intermediate) {
 				res += 1;
 			}
 		}
@@ -54,12 +54,12 @@ pub fn erode(image: &mut core::Image, tgt: u32, default: u32) {
 	debug_assert!(default & core::BYTE_MASK == default);
 
 	// Closure to run erosion
-	let check = |p: &mut core::Pixel, x: u32, y: u32, img: &core::Image| {
-		if check_adjacent(img, x, y, tgt, TMP_MASK) != 9 {
+	let check = |p: &mut core::Pixel, img: &core::Image| {
+		if check_adjacent(img, p.x, p.y, tgt, TMP_MASK) != 9 {
 			p.mask = TMP_MASK;
 		}
 	};
-	image.enum_borrow(&check, 1);
+	image.iter_borrow(&check, 1);
 
 	// Closure to turn tmp mask into default
 	let unify = |p: &mut core::Pixel| {
@@ -77,12 +77,12 @@ pub fn erode(image: &mut core::Image, tgt: u32, default: u32) {
 pub fn dilate(image: &mut core::Image, tgt: u32) {
 
 	// Closure to run dilation
-	let check = |p: &mut core::Pixel, x: u32, y:u32, img: &core::Image| {
-		if check_adjacent(img, x, y, tgt, tgt) > 0 && p.mask != tgt {
+	let check = |p: &mut core::Pixel, img: &core::Image| {
+		if check_adjacent(img, p.x, p.y, tgt, tgt) > 0 && p.mask != tgt {
 			p.mask = TMP_MASK;
 		}
 	};
-	image.enum_borrow(&check, 1);
+	image.iter_borrow(&check, 1);
 
     // Closure to turn tmp mask to default
 	let unify = |p: &mut core::Pixel| {
