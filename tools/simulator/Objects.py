@@ -46,41 +46,48 @@ class Item(object):
 # This class represents the dowells + ping pong balls on the field
 class Obstacle(object):
     def __init__(self,xCoord,yCoord,radius,objList):
-        if not self.checkCollision(xCoord,yCoord,radius,objList):
-            print("Collision. xCoord:" + str(xCoord) + "\tyCoord:" + str(yCoord))
-            xCoord = random.randrange(0,width-radius,1)
-            yCoord = random.randrange(0,length-radius,1)
+        print("Collision. xCoord:" + str(xCoord) + "\tyCoord:" + str(yCoord))
+        xCoord = random.randrange(0,width-radius,1)
+        yCoord = random.randrange(0,length-radius,1)
         self.xCoord = xCoord
         self.yCoord = yCoord
         self.radius = radius
         self.displayObstacles()
 
-    def checkCollision(self,xCoord,yCoord,rad,objList):
-        for obj in objList:
-            if abs(xCoord+rad-obj.xCoord) < rad or abs(yCoord+rad-obj.yCoord):
-                return False
-        return True
     def displayObstacles(self):
-            pygame.draw.circle(screen,red,(obst1.xCoord,obst1.yCoord),obst1.radius,0)
+            pygame.draw.circle(screen,red,(self.xCoord,self.yCoord),self.radius,0)
 
 
 class Robot(Item):
     robotCount = 0
     def __init__(self,width,length,height,xCoord,yCoord,xVel,yVel):
-        Item.__init__(self,width,length,height,xCoord,yCoord,xVel,yVel)
-        # This prevents us from creating more than 6 robots
+         # This prevents us from creating more than 6 robots
         if Robot.robotCount <= 5:
+            Item.__init__(self,width,length,height,xCoord,yCoord,xVel,yVel)
             self.priority  = Robot.robotCount
             Robot.robotCount+=1
+        else:
+            print("There are already 6 robots!")
 
     def printAttributes(self):
         Item.printAttributes(self)
+        
+    def checkCollision(self,xCoord,yCoord,obstList):
+        for obst in obstList:
+            print(obst.xCoord)
+            print(obst.radius)
+            if (self.xCoord + self.width) < (obst.xCoord - obst.raidus):
+                return False
+        return True
 
     def move(self):
         self.xCoord += self.xVel
         self.yCoord += self.yVel
 
     def changeSpeed(self,x,y):
+##        if Robot.checkCollision(self,self.xCoord,self.yCoord,obstList):
+##            self.xVel = x
+##            self.yVel = y
         self.xVel = x
         self.yVel = y
 
@@ -101,9 +108,11 @@ class Robot(Item):
         if self.yCoord <= 0:
             Robot.changeSpeed(self,0,0)
             #Robot.changeDirection(self,1,-1)
+            
 
 # Initialize the objects on the field
 objList = []
+obstList = []
 
 robot1 = Robot(50,50,60,200,200,0,0)
 objList.append(robot1)
@@ -115,16 +124,19 @@ objY = random.randrange(0,length-obsRad,1)
 
 obst1 = Obstacle(objX,objY,obsRad, objList)
 objList.append(obst1)
+obstList.append(obst1)
 
 objX = random.randrange(0,width-obsRad,1)
 objY = random.randrange(0,length-obsRad,1)
 obst2 = Obstacle(objX,objY,obsRad, objList)
 objList.append(obst2)
+obstList.append(obst2)
 
 objX = random.randrange(0,width-obsRad,1)
 objY = random.randrange(0,length-obsRad,1)
 obst3 = Obstacle(objX,objY,obsRad, objList)
 objList.append(obst3)
+obstList.append(obst3)
 
 
 while(1):
@@ -141,6 +153,8 @@ while(1):
                 robot1.changeSpeed(0,-simSpeed)
             if event.key == pygame.K_DOWN:
                 robot1.changeSpeed(0,simSpeed)
+            if event.key == pygame.K_SPACE:
+                robot1.changeSpeed(0,0)
 
     #Black out the screen then draw the updated robots
     screen.fill(black)
