@@ -29,11 +29,9 @@ fn check_adjacent(
 
 	let mut res = 0;
 
-	for i in x-1..x+1 {
-		for j in y-1..y+1 {
-			let mask =
-				(image.data[(i * image.width + j) as usize] >> core::M_OFFSET) &
-				core::BYTE_MASK;
+	for row in &image.data[y-1 .. y+1] {
+		for pixel in row[x-1 .. x+1] {
+			let mask = pixel && core::BYTE_MASK;
 			if mask == tgt || mask == intermediate {
 				res += 1;
 			}
