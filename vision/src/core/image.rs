@@ -71,9 +71,9 @@ impl Image {
     /// ## Parameters
     ///
     /// - f : function to call; same as iter_pixels
-    pub fn iter_borrow(&mut self, f: &Fn(&mut Pixel, &Image)) {
-        for x in 0..self.width {
-            for y in 0..self.height {
+    pub fn iter_borrow(&mut self, f: &Fn(&mut Pixel, &Image), border: usize) {
+        for x in border .. self.width - border {
+            for y in border .. self.height - border {
                 let mut p = self.get(x, y);
                 f(&mut p, &self);
                 self.set(&mut p);
