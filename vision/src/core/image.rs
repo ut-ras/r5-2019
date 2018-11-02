@@ -66,6 +66,21 @@ impl Image {
         }
     }
 
+    /// # Iterate over pixels, with borrowing
+    ///
+    /// ## Parameters
+    ///
+    /// - f : function to call; same as iter_pixels
+    pub fn iter_borrow(&mut self, f: &Fn(&mut Pixel, &Image)) {
+        for x in 0..self.width {
+            for y in 0..self.height {
+                let mut p = self.get(x, y);
+                f(&mut p, &self);
+                self.set(&mut p);
+            }
+        }
+    }
+
     /// # Convert color spaces.
     ///
     /// ## Parameters
