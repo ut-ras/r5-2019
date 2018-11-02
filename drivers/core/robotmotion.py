@@ -53,7 +53,7 @@ class MotionSegment:
             String rep.
         """
 
-        return "{state=" + str(self.state) + ", dur=" + str(self.dur) + "}"
+        return "[state=" + str(self.state) + ", dur=" + str(self.dur) + "]"
 
 
 class MotionProfileType(Enum):
@@ -252,7 +252,10 @@ class MotionProfile:
             String rep.
         """
 
-        return "{segs=" + "\n".join([str(seg) for seg in self.segments]) + "}"
+        return "{start=" + str(self.start) + "\n" +\
+               "end=" + str(self.end) + "\n" +\
+               "segs=\n" + "\n".join(str(seg)for seg in self.segments) + "\n" +\
+               "final=" + str(self.end_state()) + "}"
 
 
 class MotionState:

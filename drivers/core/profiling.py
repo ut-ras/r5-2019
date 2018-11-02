@@ -14,7 +14,8 @@ Some notes:
 
 import math
 import numpy as np
-from .robotmotion import MotionState, MotionProfile
+from .robotmotion import MotionConstraints, MotionState, MotionProfile
+import warnings
 
 
 def make_trap(start, end, constraints):
@@ -40,31 +41,49 @@ def make_trap(start, end, constraints):
     """
 
     # Calculate the total displacement and the direction it occurs in
-    totaldisp = end.x - start.x
-    direction = np.sign(totaldisp)
+    total_disp = end.x - start.x
+    midpoint = total_disp / 2
+    direction = np.sign(total_disp)
 
     # Acceleration segment
+
     # d = (vf^2 - v0^2) / (2 * a)
-    accdisp = (constraints.v * constraints.v - start.v * start.v) / (2 * constraints.a * direction)
+    seg1acc = constraints.a
+    seg1disp = (constraints.v * constraints.v - start.v * start.v) / (2 * seg1acc * direction)
+
+    # Preclusion check--if the acceleration segment overshot the midpoint, we need a new acceleration constraint.
+    # In this case, we calculate the precise acceleration that will bring the object to the midpoint at the instant
+    # it reaches peak velocity (effectively turning the trapezoid into a triangle).
+    if math.fabs(seg1disp) > math.fabs(midpoint):
+        # a = (vf^2 - v0^2) / (2 * d)
+        seg1acc = math.fabs((constraints.v * constraints.v - start.v * start.v) / (2 * midpoint))
+        seg1disp = midpoint
+
+        warnings.warn("Preclusion event 0 triggered; trapezoid segment 1 will violate acceleration constraint with" +
+                      str(seg1acc) + " u/s/s/s")
+
     # t = |2 * d / (v0 + vf)|
-    acctime = math.fabs(2 * accdisp / (start.v + constraints.v * direction))
+    seg1time = math.fabs(2 * seg1disp / (start.v + constraints.v * direction))
 
     # Deceleration segment
+
+    # Borrow the acceleration from segment 1 which may have been recalculated
+    seg3acc = seg1acc
     # d = (vf^2 - v0^2) / (2 * a)
-    decdisp = (end.v * end.v - constraints.v * constraints.v) / (2 * -constraints.a * direction)
+    seg3disp = (end.v * end.v - constraints.v * constraints.v) / (2 * -seg3acc * direction)
     # t = |2 * d / (v0 + vf)|
-    dectime = math.fabs(2 * decdisp / (constraints.v * direction + end.v))
+    seg3time = math.fabs(2 * seg3disp / (constraints.v * direction + end.v))
 
     # Calculate the distance that the cruising segment needs to travel
     # d_cruise = d_total - d_acc_seg - d_dec_seg
-    cruisedisp = totaldisp - accdisp - decdisp
+    seg2disp = total_disp - seg1disp - seg3disp
     # t = |d / v|
-    cruisetime = math.fabs(cruisedisp / constraints.v * direction)
+    seg2time = math.fabs(seg2disp / constraints.v * direction)
 
     return MotionProfile(start, constraints).\
-        append_acc(constraints.a * direction, acctime).\
-        append_acc(0, cruisetime).\
-        append_acc(-constraints.a * direction, dectime).\
+        append_acc(seg1acc * direction, seg1time).\
+        append_acc(0, seg2time).\
+        append_acc(-seg3acc * direction, seg3time).\
         clean()
 
 
