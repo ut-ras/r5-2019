@@ -17,7 +17,7 @@ DENSITY = 10
 HEIGHT = 0
 WIDTH = 0
 
-def merge_ref(mask, obj_id, corr_map, position):
+def merge_ref(mask, found_id, corr_map, position):
     """
     Merges the ids that are congruent to each other in the corr_map
 
@@ -25,25 +25,29 @@ def merge_ref(mask, obj_id, corr_map, position):
     ----------
     mask : int[][]
         Binary mask - modified by searchRef such that pixel now equals obj_id
-    obj_id : int
-        id of the object to check
+    found_id : int[]
+        ids to update
     corr_map : int[][2]
         reference to array that holds [obj_id, corr_obj_id]
     position : int[2]
         x, y integer coordinates of the pixel
     """
+    new_value = min(found_id)
     for ele in corr_map:
         #if object reference is found
-        if ele[0] == obj_id:
+        # if ele[0] != new_value:
+        if (foundid.contains(ele[0]))
+            ele[1] = new_value
+
             #if obj_id matches its reference (corr_obj_id), pixel val = obj_id
-            if ele[0] = ele[1]:
-                mask[position[0]][position[1]] = obj_id
-            #if obj_id references another object
-            else:
-                obj_id = ele[1]
-                searchRef(mask, obj_id, corr_map, position)
-            #exit for loop
-            break;
+            # if ele[0] == ele[1]:
+            #     mask[position[0]][position[1]] = obj_id
+            # #if obj_id references another object
+            # else:
+            #     obj_id = ele[1]
+            #     searchRef(mask, obj_id, corr_map, position)
+            # #exit for loop
+            # break;
 
 def in_bounds(row,col):
     """
@@ -92,15 +96,16 @@ def DB_SCAN(mask, radius, density):
                     #if pixel pos < ball radius & within the picture & not black
                     if in_bounds(r,c) and mask[row][col] != O and r*r + c*c <= radius*radius:
                         count = count + 1
-                        #if not _____, add to list
-                        if mask[row][col] != -1:
-                            foundid.append([row, col])
+                        #if not unidentified, add to list
+                        if mask[r][c] != -1:
+                            found_id.append([r, c])
             #if total number of found related pixels > density
             if(count > density):
-                num_ids = len(found_id)
-                #if nothing is found, set pixel as noise (0)
+                num_ids = #number of UNIQUE IDS (found_id)
+                #if nothing is found, set pixel as new id (part of new object)
                 if num_ids == 0:
-                    mask[row][col] = 0     #previously id
+                    mask[row][col] = id
+                    id = id++
                 elif num_ids == 1:
                     mask[row][col] = found_id[0]
                 #possibly break this case off and put into another check to
