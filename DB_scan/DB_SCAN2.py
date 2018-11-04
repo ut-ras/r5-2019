@@ -1,8 +1,10 @@
 #!/usr/bin/python3
-#Author: Matthew Yu and Timothy Bertotti
+#Authors:   Matthew Yu
+#           Kiran Raja
+#           Tony Li
+#           Timothy Bertotti
+#Last modified: 11/4/18
 #DBSCAN
-#TODO: clarify lines 45-52, write merge function and related data structures
-
 
 #imports
 import cv2
@@ -12,42 +14,34 @@ import sys
 #global consts
 MASK_NAME = null
 MASK = null
-BALL_RAD = 5
-DENSITY = 10
+BALL_RAD = 1
+DENSITY = 2
 HEIGHT = 0
 WIDTH = 0
 
-def merge_ref(mask, found_id, corr_map, position):
+def merge_ref(mask, found_id, position):
     """
-    Merges the ids that are congruent to each other in the corr_map
+    Merges the ids that are congruent to each other in the mask
 
     Parameters
     ----------
     mask : int[][]
-        Binary mask - modified by searchRef such that pixel now equals obj_id
+        Binary mask - mask to edit
     found_id : int[]
-        ids to update
-    corr_map : int[][2]
-        reference to array that holds [obj_id, corr_obj_id]
+        list of objects to merge
     position : int[2]
-        x, y integer coordinates of the pixel
-    """
-    new_value = min(found_id)
-    for ele in corr_map:
-        #if object reference is found
-        # if ele[0] != new_value:
-        if (foundid.contains(ele[0]))
-            ele[1] = new_value
+        x, y integer coordinates of the pixel. Also, the pixel to halt merging at.
 
-            #if obj_id matches its reference (corr_obj_id), pixel val = obj_id
-            # if ele[0] == ele[1]:
-            #     mask[position[0]][position[1]] = obj_id
-            # #if obj_id references another object
-            # else:
-            #     obj_id = ele[1]
-            #     searchRef(mask, obj_id, corr_map, position)
-            # #exit for loop
-            # break;
+    Note: side effect of merge_ref leaves pixels of the mask skipping IDs if merged
+    """
+    min_id = min(found_id)
+    for row in range(0, height):
+        for col in range(0, width):
+            if mask[row][col] in found_id:
+                mask[row][col] = whole_id
+            #break after current pixel is reached
+            if row == position[0] and col == position[1]:
+                return
 
 def in_bounds(row,col):
     """
@@ -85,8 +79,7 @@ def DB_SCAN(mask, radius, density):
         density threshold
     """
     id = 1
-    corr_map = []
-    #for pixel in mask
+    #mask[row][col] - pixel to transform
     for row in range(0, height):
         for col in range(0, width):
             count = 0       #number of object pixels in radius
@@ -94,6 +87,7 @@ def DB_SCAN(mask, radius, density):
             #for a neighbor pixel in the ball radius
             for r in range(row - radius, row + radius):
                 for c in range(col - radius, col + radius):
+                    #mask[r][c] - neighbor pixel (including center pixel)
                     #if pixel pos < ball radius & within the picture & not black
                     if in_bounds(r,c) and mask[r][c] != O and r*r + c*c <= radius*radius:
                         count = count + 1
@@ -113,7 +107,7 @@ def DB_SCAN(mask, radius, density):
                     mask[row][col] = found_id[0]
                 #if there are more than one objects in the vicinity, merge
                 else:
-                    merge_ref(mask, found_id, corr_map, [row, col])
+                    merge_ref(mask, found_id, [row, col])
     return mask
 
 #main
