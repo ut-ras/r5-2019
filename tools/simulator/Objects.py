@@ -24,6 +24,9 @@ white = (255,255,255)
 black = (0,0,0)
 pink = (255,200,200)
 
+def dist(pos1, pos2):
+    return sqrt(pow(pos1[0]-pos2[0], 2) + pow(pos1[1]-pos2[2], 2))
+
 #Item is the overarching class
 class Item(object):
     def __init__(self,width,length,height,xCoord,yCoord,xVel,yVel):
@@ -43,19 +46,41 @@ class Item(object):
         print("xVel:" + str(self.xVel))
         print("yVel: " + str(self.yVel))
 
+    def returnPos(self):
+        return [self.xCoord, self.yCoord]
+
 # This class represents the dowells + ping pong balls on the field
 class Obstacle(object):
-    def __init__(self,xCoord,yCoord,radius,objList):
-        print("Collision. xCoord:" + str(xCoord) + "\tyCoord:" + str(yCoord))
-        xCoord = random.randrange(0,width-radius,1)
-        yCoord = random.randrange(0,length-radius,1)
-        self.xCoord = xCoord
-        self.yCoord = yCoord
-        self.radius = radius
+    def __init__(self,objList,radius=6):#6in is default distance between obj and edge of field
+        colliding = True
+        #generate position until not in radius of any object
+        while colliding:
+            xCoord = random.randrange(0, width-radius, 1)
+            yCoord = random.randrange(0, length-radius, 1)
+            sPos = [xCoord, yCoord]
+            if not objList:
+                colliding = False
+            else:
+                for obj in objList:
+                    oPos = obj.returnPos()
+                    if dist(sPos, oPos) > radius:
+                        colliding = False
+                    else:
+                        colliding = True
+
+        # print("Collision. xCoord:" + str(xCoord) + "\tyCoord:" + str(yCoord))
+        # xCoord = random.randrange(0,width-radius,1)
+        # yCoord = random.randrange(0,length-radius,1)
+        self.radius = 1.5
+        self.xCoord = sPos[0]
+        self.yCoord = sPos[1]
         self.displayObstacles()
 
     def displayObstacles(self):
-            pygame.draw.circle(screen,red,(self.xCoord,self.yCoord),self.radius,0)
+        pygame.draw.circle(screen,red,(self.xCoord,self.yCoord),self.radius,0)
+
+    def returnPos(self):
+        return [self.xCoord, self.yCoord]
 
 
 class Robot(Item):
@@ -71,7 +96,7 @@ class Robot(Item):
 
     def printAttributes(self):
         Item.printAttributes(self)
-        
+
     def checkCollision(self,xCoord,yCoord,obstList):
         for obst in obstList:
             print(obst.xCoord)
@@ -108,7 +133,7 @@ class Robot(Item):
         if self.yCoord <= 0:
             Robot.changeSpeed(self,0,0)
             #Robot.changeDirection(self,1,-1)
-            
+
 
 # Initialize the objects on the field
 objList = []
@@ -117,23 +142,13 @@ obstList = []
 robot1 = Robot(50,50,60,200,200,0,0)
 objList.append(robot1)
 
-obsRad = 5
-objX = random.randrange(0,width-obsRad,1)
-objY = random.randrange(0,length-obsRad,1)
-
-
-obst1 = Obstacle(objX,objY,obsRad, objList)
+obsRad = 6
+obst1 = Obstacle(obsRad, objList)
 objList.append(obst1)
 obstList.append(obst1)
-
-objX = random.randrange(0,width-obsRad,1)
-objY = random.randrange(0,length-obsRad,1)
 obst2 = Obstacle(objX,objY,obsRad, objList)
 objList.append(obst2)
 obstList.append(obst2)
-
-objX = random.randrange(0,width-obsRad,1)
-objY = random.randrange(0,length-obsRad,1)
 obst3 = Obstacle(objX,objY,obsRad, objList)
 objList.append(obst3)
 obstList.append(obst3)
