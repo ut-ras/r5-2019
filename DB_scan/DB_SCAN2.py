@@ -72,6 +72,7 @@ def DB_SCAN(mask, radius, density):
     Take a binary mask and convert it into a list of objects.
     id : int
         reserved values include - 0 (no object), -1 (unidentified object)
+        1 to N - object IDs
 
     Parameters
     ----------
@@ -88,28 +89,29 @@ def DB_SCAN(mask, radius, density):
     #for pixel in mask
     for row in range(0, height):
         for col in range(0, width):
-            count = 0
-            found_id = []
+            count = 0       #number of object pixels in radius
+            found_id = []   #list of unique ids in radius
             #for a neighbor pixel in the ball radius
             for r in range(row - radius, row + radius):
                 for c in range(col - radius, col + radius):
                     #if pixel pos < ball radius & within the picture & not black
-                    if in_bounds(r,c) and mask[row][col] != O and r*r + c*c <= radius*radius:
+                    if in_bounds(r,c) and mask[r][c] != O and r*r + c*c <= radius*radius:
                         count = count + 1
-                        #if not unidentified, add to list
+                        #if an identified value
                         if mask[r][c] != -1:
-                            found_id.append([r, c])
+                            if mask[r][c] not in found_id:
+                                found_id.append([r, c])
             #if total number of found related pixels > density
             if(count > density):
-                num_ids = #number of UNIQUE IDS (found_id)
-                #if nothing is found, set pixel as new id (part of new object)
+                num_ids = len(found_id)
+                #part of new object
                 if num_ids == 0:
                     mask[row][col] = id
                     id = id++
+                #part of same object
                 elif num_ids == 1:
                     mask[row][col] = found_id[0]
-                #possibly break this case off and put into another check to
-                #determine whether objects should be merged
+                #if there are more than one objects in the vicinity, merge
                 else:
                     merge_ref(mask, found_id, corr_map, [row, col])
     return mask
