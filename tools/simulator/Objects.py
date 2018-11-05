@@ -97,10 +97,13 @@ class Robot(Item):
         Item.printAttributes(self)
 
     def checkCollision(self,xCoord,yCoord,obstList):
-        collided = False
+        robotRange = [[xCoord, xCoord+width], [yCoord, yCoord+length]]
         for obst in obstList:
-            if (self.xCoord + self.width) == (obst.xCoord - radius):
-                collided = True
+            objRange = [[obst.xCoord - obst.radius, obst.xCoord + obst.radius], [obst.yCoord - obst.radius, obst.yCoord + obst.radius]]
+            if (objRange[0][0] < robotRange[0][1]) or (objRange[0][1] > robotRange[0][0]):
+                if (objRange[1][0] < robotRange[1][1]) or (objRange[1][1] > robotRange[1][0]):
+                    return True
+        return False
 
     def move(self):
         self.xCoord += self.xVel
@@ -178,7 +181,7 @@ while(1):
     robot1.move()
     robot1.checkBoundaries()
 
-    robot.drawRobot()
+    robot1.drawRobot()
     for obstacle in obstList:
         obstacle.displayObstacles()
 
