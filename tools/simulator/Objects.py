@@ -5,6 +5,7 @@ import pygame
 import sys
 import random
 import time
+import math
 
 pygame.init()
 pygame.mixer.init()
@@ -25,7 +26,7 @@ black = (0,0,0)
 pink = (255,200,200)
 
 def dist(pos1, pos2):
-    return sqrt(pow(pos1[0]-pos2[0], 2) + pow(pos1[1]-pos2[2], 2))
+    return math.sqrt(math.pow(pos1[0]-pos2[0], 2) + math.pow(pos1[1]-pos2[1], 2))
 
 #Item is the overarching class
 class Item(object):
@@ -55,9 +56,7 @@ class Obstacle(object):
         colliding = True
         #generate position until not in radius of any object
         while colliding:
-            xCoord = random.randrange(0, width-radius, 1)
-            yCoord = random.randrange(0, length-radius, 1)
-            sPos = [xCoord, yCoord]
+            sPos = [random.randrange(radius, width-radius, 1), random.randrange(radius, length-radius, 1)]
             if not objList:
                 colliding = False
             else:
@@ -71,7 +70,7 @@ class Obstacle(object):
         # print("Collision. xCoord:" + str(xCoord) + "\tyCoord:" + str(yCoord))
         # xCoord = random.randrange(0,width-radius,1)
         # yCoord = random.randrange(0,length-radius,1)
-        self.radius = 1.5
+        self.radius = 2
         self.xCoord = sPos[0]
         self.yCoord = sPos[1]
         self.displayObstacles()
@@ -98,23 +97,22 @@ class Robot(Item):
         Item.printAttributes(self)
 
     def checkCollision(self,xCoord,yCoord,obstList):
+        collided = False
         for obst in obstList:
-            print(obst.xCoord)
-            print(obst.radius)
-            if (self.xCoord + self.width) < (obst.xCoord - obst.raidus):
-                return False
-        return True
+            if (self.xCoord + self.width) == (obst.xCoord - radius):
+                collided = True
 
     def move(self):
         self.xCoord += self.xVel
         self.yCoord += self.yVel
 
     def changeSpeed(self,x,y):
-##        if Robot.checkCollision(self,self.xCoord,self.yCoord,obstList):
-##            self.xVel = x
-##            self.yVel = y
-        self.xVel = x
-        self.yVel = y
+        if Robot.checkCollision(self,self.xCoord,self.yCoord,obstList):
+            self.xVel = 0
+            self.yVel = 0
+        else:
+            self.xVel = x
+            self.yVel = y
 
     def changeDirection(self,x,y):
         self.xVel *= x
@@ -134,6 +132,10 @@ class Robot(Item):
             Robot.changeSpeed(self,0,0)
             #Robot.changeDirection(self,1,-1)
 
+    def drawRobot(self):
+        pygame.draw.rect(screen,white,(self.xCoord,self.yCoord,self.width,self.length),0)
+
+
 
 # Initialize the objects on the field
 objList = []
@@ -141,15 +143,14 @@ obstList = []
 
 robot1 = Robot(50,50,60,200,200,0,0)
 objList.append(robot1)
-
 obsRad = 6
-obst1 = Obstacle(obsRad, objList)
+obst1 = Obstacle(objList, obsRad)
 objList.append(obst1)
 obstList.append(obst1)
-obst2 = Obstacle(objX,objY,obsRad, objList)
+obst2 = Obstacle(objList, obsRad)
 objList.append(obst2)
 obstList.append(obst2)
-obst3 = Obstacle(objX,objY,obsRad, objList)
+obst3 = Obstacle(objList, obsRad)
 objList.append(obst3)
 obstList.append(obst3)
 
@@ -173,9 +174,13 @@ while(1):
 
     #Black out the screen then draw the updated robots
     screen.fill(black)
-    pygame.draw.rect(screen,white,(robot1.xCoord,robot1.yCoord,robot1.width,robot1.length),0)
+
     robot1.move()
     robot1.checkBoundaries()
-    pygame.draw.circle(screen,red,(obst1.xCoord,obst1.yCoord),obst1.radius,0)
+
+    robot.drawRobot()
+    for obstacle in obstList:
+        obstacle.displayObstacles()
+
     pygame.display.flip()
     time.sleep(.003)
