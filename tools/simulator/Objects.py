@@ -108,7 +108,6 @@ class Robot(Item):
         for obj in objList:
             if pygame.sprite.collide_mask(self, obj) != None:
                 return True
-        
     def move(self):
         self.xCoord += self.xVel
         self.yCoord += self.yVel
