@@ -30,33 +30,40 @@ def dist(pos1, pos2):
 
 #Item is the overarching class
 class Item(pygame.sprite.Sprite):
-    def __init__(self,width,length,height,xCoord,yCoord,xVel,yVel):
+    def __init__(self, width, length, height, xCoord, yCoord, color):
         pygame.sprite.Sprite.__init__(self)
         self.width = width
         self.length = length
         self.height = height
         self.xCoord = xCoord
         self.yCoord = yCoord
-        self.xVel = xVel
-        self.yVel = yVel
-    def printAttributes(self):
-        print("Width: " + str(self.width))
-        print("Length: " + str(self.length))
-        print("Height: " + str(self.height))
-        print("xCoord: " + str(self.xCoord))
-        print("yCoord: " + str(self.yCoord))
-        print("xVel:" + str(self.xVel))
-        print("yVel: " + str(self.yVel))
+        self.color = color
+        self.image = pygame.Surface([width, length])
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+    def __init__(self, radius, height, xCoord, yCoord, color):
+        self.radius = radius
+        self.height = height
+        self.xCoord = xCoord
+        self.yCoord = yCoord
+        self.color = color
+        self.image = pygame.Surface([radius, radius])
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+    # def printAttributes(self):
+    #     print("Width: " + str(self.width))
+    #     print("Length: " + str(self.length))
+    #     print("Height: " + str(self.height))
+    #     print("xCoord: " + str(self.xCoord))
+    #     print("yCoord: " + str(self.yCoord))
+    #     print("xVel:" + str(self.xVel))
+    #     print("yVel: " + str(self.yVel))
     def returnPos(self):
         return [self.xCoord, self.yCoord]
 
 # This class represents the dowells + ping pong balls on the field
 class Obstacle(Item):
-    def __init__(self,objList,radius=6):#6in is default distance between obj and edge of field
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface([radius, radius])
-        self.image.fill(red)
-        self.rect = self.image.get_rect()
+    def __init__(self,objList,radius=6, height=4):#6in is default distance between obj and edge of field
         colliding = True
         #generate position until not in radius of any object
         while colliding:
@@ -77,6 +84,8 @@ class Obstacle(Item):
         self.radius = 2
         self.xCoord = sPos[0]
         self.yCoord = sPos[1]
+        #init sprite properties
+        super().__init__(self, radius, height, self.xCoord, self.yCoord, red)
         self.displayObstacles()
 
     def displayObstacles(self):
@@ -91,11 +100,9 @@ class Robot(Item):
     def __init__(self,width,length,height,xCoord,yCoord,xVel,yVel):
          # This prevents us from creating more than 6 robots
         if Robot.robotCount <= 5:
-            pygame.sprite.Sprite.__init__(self)
-            Item.__init__(self,width,length,height,xCoord,yCoord,xVel,yVel)
-            self.image = pygame.Surface([width, height])
-            self.image.fill(white)
-            self.rect = self.image.get_rect()
+            super().__init__(self, width, length, height, xCoord, yCoord, white)
+            self.xVel = xVel
+            self.yVel = yVel
             self.priority  = Robot.robotCount
             Robot.robotCount+=1
         else:
