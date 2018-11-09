@@ -41,6 +41,7 @@ class Item(pygame.sprite.Sprite):
         self.yCoord = yCoord
         self.color = color
         self.image = pygame.Surface([width, length])
+        self.mask = pygame.mask.from_surface(screen)
         self.image.fill(color)
         self.rect = self.image.get_rect()
     def __initObst__(self, radius, height, xCoord, yCoord, color):
@@ -50,6 +51,7 @@ class Item(pygame.sprite.Sprite):
         self.yCoord = yCoord
         self.color = color
         self.image = pygame.Surface([radius, radius])
+        self.mask = pygame.mask.from_surface(screen)
         self.image.fill(color)
         self.rect = self.image.get_rect()
     # def printAttributes(self):
@@ -115,19 +117,19 @@ class Robot(Item):
 
     def checkCollision(self,objList):
         for obj in objList:
-            if pygame.sprite.collide_mask(self, obj) != None:
+            if pygame.sprite.collide_mask(self, obj) is not None:
+                print("COLLIDE")
                 return True
     def move(self):
+        if Robot.checkCollision(self, objList):
+            self.xVel = 0
+            self.yVel = 0
         self.xCoord += self.xVel
         self.yCoord += self.yVel
 
     def changeSpeed(self,x,y):
-        if Robot.checkCollision(self,objList):
-            self.xVel = 0
-            self.yVel = 0
-        else:
-            self.xVel = x
-            self.yVel = y
+        self.xVel = x
+        self.yVel = y
 
     def changeDirection(self,x,y):
         self.xVel *= x
