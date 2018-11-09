@@ -30,7 +30,9 @@ def dist(pos1, pos2):
 
 #Item is the overarching class
 class Item(pygame.sprite.Sprite):
-    def __init__(self, width, length, height, xCoord, yCoord, color):
+    def __init__(self):
+        self.none = 0
+    def __initRect__(self, width, length, height, xCoord, yCoord, color):
         pygame.sprite.Sprite.__init__(self)
         self.width = width
         self.length = length
@@ -41,7 +43,7 @@ class Item(pygame.sprite.Sprite):
         self.image = pygame.Surface([width, length])
         self.image.fill(color)
         self.rect = self.image.get_rect()
-    def __init__(self, radius, height, xCoord, yCoord, color):
+    def __initObst__(self, radius, height, xCoord, yCoord, color):
         self.radius = radius
         self.height = height
         self.xCoord = xCoord
@@ -85,7 +87,7 @@ class Obstacle(Item):
         self.xCoord = sPos[0]
         self.yCoord = sPos[1]
         #init sprite properties
-        super().__init__(self, radius, height, self.xCoord, self.yCoord, red)
+        super().__initObst__(radius, height, self.xCoord, self.yCoord, red)
         self.displayObstacles()
 
     def displayObstacles(self):
@@ -100,7 +102,7 @@ class Robot(Item):
     def __init__(self,width,length,height,xCoord,yCoord,xVel,yVel):
          # This prevents us from creating more than 6 robots
         if Robot.robotCount <= 5:
-            super().__init__(self, width, length, height, xCoord, yCoord, white)
+            super().__initRect__(width, length, height, xCoord, yCoord, white)
             self.xVel = xVel
             self.yVel = yVel
             self.priority  = Robot.robotCount
