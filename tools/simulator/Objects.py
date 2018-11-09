@@ -29,8 +29,9 @@ def dist(pos1, pos2):
     return math.sqrt(math.pow(pos1[0]-pos2[0], 2) + math.pow(pos1[1]-pos2[1], 2))
 
 #Item is the overarching class
-class Item(object):
+class Item(pygame.sprite.Sprite):
     def __init__(self,width,length,height,xCoord,yCoord,xVel,yVel):
+        pygame.sprite.Sprite.__init__(self)
         self.width = width
         self.length = length
         self.height = height
@@ -46,13 +47,16 @@ class Item(object):
         print("yCoord: " + str(self.yCoord))
         print("xVel:" + str(self.xVel))
         print("yVel: " + str(self.yVel))
-
     def returnPos(self):
         return [self.xCoord, self.yCoord]
 
 # This class represents the dowells + ping pong balls on the field
-class Obstacle(object):
+class Obstacle(Item):
     def __init__(self,objList,radius=6):#6in is default distance between obj and edge of field
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([radius, radius])
+        self.image.fill(red)
+        self.rect = self.image.get_rect()
         colliding = True
         #generate position until not in radius of any object
         while colliding:
@@ -87,7 +91,11 @@ class Robot(Item):
     def __init__(self,width,length,height,xCoord,yCoord,xVel,yVel):
          # This prevents us from creating more than 6 robots
         if Robot.robotCount <= 5:
+            pygame.sprite.Sprite.__init__(self)
             Item.__init__(self,width,length,height,xCoord,yCoord,xVel,yVel)
+            self.image = pygame.Surface([width, height])
+            self.image.fill(white)
+            self.rect = self.image.get_rect()
             self.priority  = Robot.robotCount
             Robot.robotCount+=1
         else:
@@ -96,18 +104,17 @@ class Robot(Item):
     def printAttributes(self):
         Item.printAttributes(self)
 
-    def checkCollision(self,xCoord,yCoord,obstList):
-        collided = False
-        for obst in obstList:
-            if (self.xCoord + self.width) == (obst.xCoord - radius):
-                collided = True
-
+    def checkCollision(self,objList):
+        for obj in objList:
+            if pygame.sprite.collide_mask(self, obj) != None:
+                return True
+        
     def move(self):
         self.xCoord += self.xVel
         self.yCoord += self.yVel
 
     def changeSpeed(self,x,y):
-        if Robot.checkCollision(self,self.xCoord,self.yCoord,obstList):
+        if Robot.checkCollision(self,objList):
             self.xVel = 0
             self.yVel = 0
         else:
@@ -178,7 +185,7 @@ while(1):
     robot1.move()
     robot1.checkBoundaries()
 
-    robot.drawRobot()
+    robot1.drawRobot()
     for obstacle in obstList:
         obstacle.displayObstacles()
 
