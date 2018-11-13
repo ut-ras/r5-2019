@@ -16,10 +16,11 @@ import sys
 import copy
 
 #global consts
+font = cv2.FONT_HERSHEY_SIMPLEX
 SOURCE_ROOT = ".Test_Images/"
 MASK_NAME = "test0.png"
-BALL_RAD = 4
-DENSITY = 2     #k*n^2, where k is a experimental fractional constant of the ball radius
+BALL_RAD = 3
+DENSITY = 10     #k*n^2, where k is a experimental fractional constant of the ball radius
 HEIGHT = 0
 WIDTH = 0
 
@@ -59,7 +60,7 @@ def color(mask):
     for row in range(0, HEIGHT):
         for col in range(0, WIDTH):
                 mask[row][col] = (mask[row][col] * color_delta)
-    return mask
+    return mask, num_id
 
 def merge_ref(mask, found_id, position):
     """
@@ -121,6 +122,8 @@ def DB_SCAN(mask, radius, density):
         density threshold
     """
     id = 1
+    rm = []
+    radius = radius - 1
     #mask[row][col] - pixel to transform
     for row in range(0, HEIGHT):
         for col in range(0, WIDTH):
@@ -143,7 +146,7 @@ def DB_SCAN(mask, radius, density):
             # print(mask[row][col], " count: ", count)
             # if count > 0:
             #     print("found_ids: ", found_id)
-            if(count > density and mask[row][col] != 0):
+            if(count >= density and mask[row][col] != 0):
                 num_ids = len(found_id)
                 #part of new object
                 if num_ids == 0:
@@ -156,18 +159,30 @@ def DB_SCAN(mask, radius, density):
                 else:
                     merge_ref(mask, found_id, [row, col])
                 # print("new id: ", mask[row, col])
+            #remove noise
+            if (count < density and mask[row][col] != 0):
+                rm.append([row,col])
+    #print(rm)
+    for elem in rm:
+        mask[elem[0], elem[1]] = 0
     return mask
 
 #main
 MASK_NAME = sys.argv[1]
+BALL_RAD = int(sys.argv[2])
+DENSITY = int(sys.argv[3])
 MASK = cv2.imread(MASK_NAME,0)
 WIDTH, HEIGHT = np.shape(MASK)
 print("width:\t",WIDTH,"\theight:\t",HEIGHT)
 ret,MASK = cv2.threshold(MASK,127,255,cv2.THRESH_BINARY)
 #MASK = preprocess(MASK)
 MASK = DB_SCAN(MASK, BALL_RAD, DENSITY)
-ret = color(MASK)
+ret, ids = color(MASK)
+cv2.putText(ret, "Width: " + str(WIDTH) + " Height: " + str(HEIGHT), (5, 10), font, .25, (255, 255, 255), 1)
+cv2.putText(ret, "Ball Rad: " + str(BALL_RAD) + " Density: " + str(DENSITY), (5, 20), font, .25, (255, 255, 255), 1)
+cv2.putText(ret, "IDs found: " + str(ids), (5, 30), font, .25, (255, 255, 255), 1)
+
 cv2.imshow(MASK_NAME.split(".", 1)[0], ret)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-cv2.imwrite(MASK_NAME.split(".", 1)[0] + '_tested.png', ret)
+cv2.imwrite(MASK_NAME.split(".", 1)[0] + '_r' + sys.argv[2] + 'd' + sys.argv[3] + '.png', ret)
