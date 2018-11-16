@@ -40,20 +40,25 @@ class Item(pygame.sprite.Sprite):
         self.xCoord = xCoord
         self.yCoord = yCoord
         self.color = color
-        self.image = pygame.Surface([width, length])
+        self.image = pygame.Surface((width, length))
         self.mask = pygame.mask.from_surface(screen)
         self.image.fill(color)
         self.rect = self.image.get_rect()
+        print("X: ", self.xCoord, "Y: ", self.yCoord)
+        print(self.rect)
     def __initObst__(self, radius, height, xCoord, yCoord, color):
         self.radius = radius
         self.height = height
         self.xCoord = xCoord
         self.yCoord = yCoord
         self.color = color
-        self.image = pygame.Surface([radius, radius])
+        self.image = pygame.Surface((radius, radius))
         self.mask = pygame.mask.from_surface(screen)
         self.image.fill(color)
         self.rect = self.image.get_rect()
+        print(self.rect)
+        print("X: ", self.xCoord, "Y: ", self.yCoord)
+
     # def printAttributes(self):
     #     print("Width: " + str(self.width))
     #     print("Length: " + str(self.length))
@@ -159,14 +164,18 @@ objList = []
 obstList = []
 
 robot1 = Robot(50,50,60,200,200,0,0)
+print("Robot 1:")
 objList.append(robot1)
 obsRad = 6
+print("Obst 1:")
 obst1 = Obstacle(objList, obsRad)
 objList.append(obst1)
 obstList.append(obst1)
+print("Obst 2:")
 obst2 = Obstacle(objList, obsRad)
 objList.append(obst2)
 obstList.append(obst2)
+print("Obst 3:")
 obst3 = Obstacle(objList, obsRad)
 objList.append(obst3)
 obstList.append(obst3)
