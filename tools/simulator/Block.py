@@ -19,7 +19,15 @@ class Block(pygame.sprite.Sprite):
         screen.blit(self.image,self.pos)
 
     def pick_up(self):
+        """
+        Changes object color when robot interacts with it.
+        TODO: sync position with robot when picked up
+        """
         self.image.fill(green)
 
     def put_down(self):
+        """
+        Changes object color when robot stops interacting with it.
+        TODO: change position of block when put down
+        """
         self.image.fill(red)
