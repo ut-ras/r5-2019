@@ -39,25 +39,18 @@ class Item(pygame.sprite.Sprite):
         self.height = height
         self.xCoord = xCoord
         self.yCoord = yCoord
-        self.color = color
-        self.image = pygame.Surface((width, length))
-        self.mask = pygame.mask.from_surface(screen)
+        self.image = pygame.Surface([width, height])
         self.image.fill(color)
         self.rect = self.image.get_rect()
-        print("X: ", self.xCoord, "Y: ", self.yCoord)
-        print(self.rect)
+
     def __initObst__(self, radius, height, xCoord, yCoord, color):
         self.radius = radius
         self.height = height
         self.xCoord = xCoord
         self.yCoord = yCoord
-        self.color = color
-        self.image = pygame.Surface((radius, radius))
-        self.mask = pygame.mask.from_surface(screen)
+        self.image = pygame.Surface([radius, radius])
         self.image.fill(color)
         self.rect = self.image.get_rect()
-        print(self.rect)
-        print("X: ", self.xCoord, "Y: ", self.yCoord)
 
     # def printAttributes(self):
     #     print("Width: " + str(self.width))
@@ -120,15 +113,19 @@ class Robot(Item):
     def printAttributes(self):
         Item.printAttributes(self)
 
-    def checkCollision(self,objList):
-        for obj in objList:
-            if pygame.sprite.collide_mask(self, obj) is not None:
-                print("COLLIDE")
-                return True
-    def move(self):
-        if Robot.checkCollision(self, objList):
+    def checkCollision(self,group):
+        collided = False
+        for sprite in group:
+            collide_sprite = pygame.sprite.groupcollide(self, sprite, False, False)
+            for x in collide_sprite:
+                collided = True
+        return collided
+
+    def move(self, group):
+        if Robot.checkCollision(self, group):
             self.xVel = 0
             self.yVel = 0
+
         self.xCoord += self.xVel
         self.yCoord += self.yVel
 
@@ -201,7 +198,7 @@ while(1):
     #Black out the screen then draw the updated robots
     screen.fill(black)
 
-    robot1.move()
+    robot1.move(objList)
     robot1.checkBoundaries()
 
     robot1.drawRobot()
