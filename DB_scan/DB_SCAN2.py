@@ -27,7 +27,6 @@ WIDTH = 0
 def preprocess(mask):
     """
     Takes the mask, and changes all white value to -1 (working!) for DB_SCAN
-
     Parameters
     ----------
     mask : int[][]
@@ -44,7 +43,6 @@ def color(mask):
     Takes the mask, finds the number of unique objects, and colors in each object
     based on that color by changing the ID value (also pixel value).
     For debugging purposes.
-
     Parameters
     ----------
     mask : int[][]
@@ -65,7 +63,6 @@ def color(mask):
 def merge_ref(mask, found_id, position):
     """
     Merges the ids that are congruent to each other in the mask
-
     Parameters
     ----------
     mask : int[][]
@@ -74,7 +71,6 @@ def merge_ref(mask, found_id, position):
         list of objects to merge
     position : int[2]
         x, y integer coordinates of the pixel. Also, the pixel to halt merging at.
-
     Note: side effect of merge_ref leaves pixels of the mask skipping IDs if merged
     """
     min_id = min(found_id)
@@ -89,14 +85,12 @@ def merge_ref(mask, found_id, position):
 def in_bounds(row,col):
     """
     Checks whether the position of the pixel (row, col) is in bounds of the img
-
     Parameters
     ----------
     row : int
         row (Y) coordinate of the img
     col : int
         col (X) coordinate of the img
-
     Returns
     -------
     bool
@@ -110,7 +104,6 @@ def DB_SCAN(mask, radius, density):
     id : int
         reserved values include - 0 (no object), -1 (unidentified object)
         1 to N - object IDs
-
     Parameters
     ----------
     mask : int[][]
