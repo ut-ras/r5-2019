@@ -9,14 +9,14 @@ green = (0,255,0)
 
 class Block(pygame.sprite.Sprite):
     def __init__(self, xPos, yPos, width, height):
-        pygame.sprite.Sprite.__init__(self)
+        super(Block, self).__init__()
         self.image = pygame.Surface([width, height])
         self.image.fill(red)
-        self.rect = self.image.get_rect()
-        self.pos = [xPos, yPos]
+        self.rect = [xPos, yPos]
+        self.mask = pygame.mask.from_surface(self.image)
 
     def display(self, screen):
-        screen.blit(self.image,self.pos)
+        screen.blit(self.image,self.rect)
 
     def pick_up(self):
         """

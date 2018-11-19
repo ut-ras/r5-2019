@@ -34,7 +34,7 @@ group = pygame.sprite.Group()
 #object initialisations
 block = Block(50, 50, 50, 50)
 objList.append(block)
-robot = Robot(650, 450, 100, 100)
+robot = Robot(50, 450, 100, 100)
 objList.append(robot)
 
 #main loop
