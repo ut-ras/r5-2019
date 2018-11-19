@@ -10,6 +10,7 @@ Authors:
 * Tianshu Huang
 Last modified: 11/18/18
 * 11/18 - code cleanup and syntactical rewrite, added separate output functions
+* 11/19 - reverted merge_ref function since it wasn't outputting correctly
 """
 
 import cv2
@@ -34,7 +35,7 @@ def preprocess(mask):
     for y, row in enumerate(mask):
         for x, elem in enumerate(row):
             if(elem == 255):
-                mask[row][col] = -1
+                mask[y][x] = -1
     return mask
 
 def color(mask):
@@ -53,6 +54,7 @@ def color(mask):
     found_id = list(set([
         mask[row][col] for row in range(0, HEIGHT) for col in range(0, WIDTH)
         ]))
+    # print("IDs in img: {found_id}". format(found_id=found_id))
 
     num_id = len(found_id)
     color_delta = 255/num_id
@@ -82,6 +84,7 @@ def separate(mask):
     found_id = list(set([
         mask[row][col] for row in range(0, HEIGHT) for col in range(0, WIDTH)
         ]))
+    # print("IDs in img: {found_id}". format(found_id=found_id))
 
     # pull the object corresponding to each id and put it in a separate mask
     masks = []
@@ -116,9 +119,16 @@ def merge_ref(mask, found_id, position):
     TODO: optimize by splitting into a equivalency list and passing merge_ref at end
     """
     min_id = min(found_id)
-    for i in range(position[0] * WIDTH + position[1]):
-        if mask[i / WIDTH][i % WIDTH]:
-            mask[i / WIDTH][i % WIDTH] = min_id
+    for row in range(0, HEIGHT):
+        for col in range(0, WIDTH):
+            if mask[row][col] in found_id:
+                mask[row][col] = min_id
+            #break after current pixel is reached
+            if row == position[0] and col == position[1]:
+                return
+    # for i in range(position[0] * WIDTH + position[1]):
+    #     if mask[int(i / WIDTH)][i % WIDTH]:
+    #         mask[int(i / WIDTH)][i % WIDTH] = min_id
 
 def in_bounds(row,col):
     """
@@ -183,8 +193,8 @@ def DB_SCAN(mask, radius, density):
 
             # if total number of found related pixels > density
             if count >= density and elem != 0:
-                print("{x}, {y}: {ct}".format(x=x, y=y, ct=count))
-                print(found_id)
+                # print("{x}, {y}: {ct}".format(x=x, y=y, ct=count))
+                # print(found_id)
 
                 num_ids = len(found_id)
                 # part of new object
@@ -197,10 +207,13 @@ def DB_SCAN(mask, radius, density):
                 # if there are more than one objects in the vicinity, merge
                 else:
                     merge_ref(mask, found_id, [y, x])
+                    # print("Merging: ", end = "\t")
+                    # print(found_id)
 
             # identify noise for removal
-            if count < density and elem != 0:
+            if (count < density and elem == -1) or mask[y][x] == 255:
                 rm.append([y,x])
+
     # post-pass: remove noise
     for elem in rm:
         mask[elem[0], elem[1]] = 0
@@ -255,13 +268,16 @@ if __name__ == "__main__":
     MASK_NAME = sys.argv[1]
     BALL_RAD = int(sys.argv[2])
     DENSITY = int(sys.argv[3])
+    OPTION = int(sys.argv[4])
     MASK = cv2.imread(MASK_NAME,0)
     WIDTH, HEIGHT = np.shape(MASK)
     print("width:\t",WIDTH,"\theight:\t",HEIGHT)
     ret,MASK = cv2.threshold(MASK,127,255,cv2.THRESH_BINARY)
-    # MASK = preprocess(MASK)
+    MASK = preprocess(MASK)
     MASK = DB_SCAN(MASK, BALL_RAD, DENSITY)
 
     # output individual for other vision tasks, single for debugging
-    output_single(MASK)
-    output_individual(MASK)
+    if OPTION is 0:
+        output_single(MASK)
+    if OPTION is 1:
+        output_individual(MASK)
