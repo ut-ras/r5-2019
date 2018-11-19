@@ -1,5 +1,6 @@
 """DBScan Implementation
 Version 3.0
+Note: Max density should be around ~ pi*ball_rad^2
 
 Authors:
 * Matthew Yu
