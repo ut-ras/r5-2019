@@ -1,0 +1,56 @@
+color:
+
+found_id = []
+found_id = [mask[row][col]
+    for row in range(0, HEIGHT)
+    for col in range(0, WIDTH)
+    if mask[row][col] not in found_id]
+
+# for row in range(0, HEIGHT):
+#     for col in range(0, WIDTH):
+#         if mask[row][col] not in found_id:
+#             found_id.append(mask[row][col])
+
+merge_ref:
+# for row in range(0, HEIGHT):
+#     for col in range(0, WIDTH):
+#         if mask[row][col] in found_id:
+#             mask[row][col] = min_id
+#         #break after current pixel is reached
+#         if row == position[0] and col == position[1]:
+#             mask[row][col] = min_id
+#             return
+
+separate:
+
+masks = []
+for id in found_id:
+    mask = []
+    for y, row in enumerate(mask):
+        for x, col in enumerate(row):
+            if col == id:
+                mask[y][x] = 255
+            else:
+                mask[y][x] = 0
+    masks.append(mask)
+
+
+[255 if col == id else 0 for x in range(0, WIDTH)] for y in range(0, HEIGHT)
+
+
+defunct preprocess:
+def preprocess(mask):
+    """
+    Takes the mask, and changes all white value to -1 (unidentified object)
+    for DB_SCAN
+
+    Parameters
+    ----------
+    mask : int[][]
+        Binary mask - mask to edit
+    """
+    for y, row in enumerate(mask):
+        for x, elem in enumerate(row):
+            if(elem == 255):
+                mask[y][x] = -1
+    return mask

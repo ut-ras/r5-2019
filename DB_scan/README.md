@@ -1,27 +1,21 @@
 # Guide for R5 DB_SCAN
 ### Testing:
-input: python3 DB_SCAN2.py img_name BALL_RADIUS DENSITY
-output: result with labeled parameters
+Test images are in Test_Images folder.
+
+__input: python3 DB_SCAN3.py img_name BALL_RADIUS DENSITY OPTION__
+__output__:
+* 0: a single colored mask of all found objects
+* 1: a set of masks for each individual found object
+* 2: both 0 and 1
+* 3: returns the time taken to process the image (for testing purposes)
 
 ### Suggested BALL_RADIUS, DENSITY Ratios
-Density > 60% of BALL_AREA
-| BALL_RADIUS   | BALL_AREA |
+Density << PI * BALL_RAD ^ 2
+| BALL_RADIUS   | DENSITY |
 | --------------|-----------|
-| N/A           | N/A       |
-| N/A           | N/A       |
-| N/A           | N/A       |
-| N/A           | N/A       |
-| N/A           | N/A       |
-| N/A           | N/A       |
-
-
-##### Testing a flat circle object on a black canvas:
-max density to display 1(2?) objects
-| BALL_RADIUS   | DENSITY   |Theoretical Max Density?|
-| --------------|-----------|------------------------|
-| 3             | 11        |7^2 * k                 |
-| 4             | 27        |9^2 * k                 |
-| 5             | 47        |11^2 * k                |
-
-Where k is a constant of proportionality of a circle
-inside a square (adjusted for discrete circle)
+| 1           | N/A       |
+| 2           | N/A       |
+| 3           | N/A       |
+| 4           | N/A       |
+| 5           | 40        |
+| 6           | N/A       |
