@@ -1,6 +1,6 @@
 import convexhull
 import cv2
-import numpy as np
+
 
 img = cv2.imread('../convexHullTests/corner_test_2.png', 0)
 
