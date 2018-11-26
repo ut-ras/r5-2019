@@ -192,5 +192,7 @@ def _find_corner(image, corner):
 
     for outer in range(*ranges[corner][0]):
         for inner in range(*ranges[corner][1]):
-            if image[outer, inner] == 0:
-                return (inner, outer) if ranges[corner][2] else (outer, inner)
+            if ranges[corner][2] and image[outer, inner] == 0:
+                return (inner, outer)
+            elif not ranges[corner][2] and image[inner, outer] == 0:
+                return (outer, inner)                
