@@ -15,6 +15,7 @@ Last modified: 11/27/18
 * 11/22 - removed dependencies on global variables, black-boxed everything into
 *   a modular output_module function that can be exported.
 * 11/27 - split into multiple files and created module; optimizations
+*   Modified output single/multiple to draw text and save on a copy, not original
 """
 
 import numpy as np

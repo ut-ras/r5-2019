@@ -5,6 +5,7 @@ import sys
 import timeit
 import numpy as np
 import cv2
+import copy
 
 from mask_utils import color, separate
 from db_scan import db_scan
@@ -31,7 +32,8 @@ def output_single(mask, mask_name, ball_rad, density):
         num of neighbors for the pixel to be considered an object
     """
     width, height = np.shape(mask)
-    ret, ids = color(mask)
+    mask, ids = color(mask)
+    ret = copy.copy(mask)
 
     cv2.putText(
         ret, "Width: {w} Height: {h}".format(w=width, h=height),
@@ -68,16 +70,17 @@ def output_individual(mask, mask_name, ball_rad, density):
     masks = separate(mask)
 
     for idx in range(1, len(masks)):
+        ret = copy.copy(masks[idx])
         cv2.putText(
-            masks[idx],
+            ret,
             "Width: {w} Height: {h}".format(w=width, h=height),
             (5, 10), _FONT, .25, (255, 255, 255), 1)
         cv2.putText(
-            masks[idx],
+            ret,
             "Ball Rad: {b_r} Density: {d}".format(b_r=ball_rad, d=density),
             (5, 20), _FONT, .25, (255, 255, 255), 1)
         cv2.putText(
-            masks[idx],
+            ret,
             "ID: " + str(idx),
             (5, 30), _FONT, .25, (255, 255, 255), 1)
 
@@ -85,10 +88,10 @@ def output_individual(mask, mask_name, ball_rad, density):
             "{m_n}_V3_{id}_r{b_r}d{d}.png".format(
                 m_n=mask_name.split(".", 1)[0],
                 id=idx, b_r=ball_rad, d=density),
-            masks[idx])
+            ret)
 
 
-def test(MASK_NAME, BALL_RAD, DENSITY, OPTION):
+def test(MASK_NAME, BALL_RAD, DENSITY, OPTION, db_type=0):
     """
     Uses passed in arguments (probably from a main file) instead of command
     line arguments to run the program.
@@ -169,7 +172,6 @@ if __name__ == "__main__":
             ret = test(
                 sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4])
             print("Execution time: {t}".format(t=ret))
-
         else:
             print(profile(
                 test,
