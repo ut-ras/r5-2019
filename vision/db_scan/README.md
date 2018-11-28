@@ -2,7 +2,7 @@
 ### Testing:
 Test images are in Test_Images folder.
 
-__input: python3 DB_SCAN.py img_name BALL_RADIUS DENSITY OPTION__
+__input: python3 db_scan.py img_name BALL_RADIUS DENSITY OPTION__
 __output__:
 * single: a single colored mask of all found objects
 * separate: a set of masks for each individual found object
@@ -12,7 +12,7 @@ __output__:
 ### Suggested BALL_RADIUS, DENSITY Ratios
 Density << PI * BALL_RAD ^ 2
 | BALL_RADIUS   | DENSITY |
-| --------------|-----------|
+| ------------|-----------|
 | 1           | N/A       |
 | 2           | N/A       |
 | 3           | N/A       |

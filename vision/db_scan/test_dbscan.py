@@ -91,7 +91,7 @@ def output_individual(mask, mask_name, ball_rad, density):
             ret)
 
 
-def test(MASK_NAME, BALL_RAD, DENSITY, OPTION, db_type=0):
+def test(MASK_NAME, BALL_RAD, DENSITY, OPTION):
     """
     Uses passed in arguments (probably from a main file) instead of command
     line arguments to run the program.
