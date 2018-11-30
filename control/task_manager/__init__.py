@@ -23,7 +23,10 @@ Creating a remote task server::
         RemoteServer("192.168.0.101:8000", post="", get=""))
 
     # Send new task
-    manager.put(Task())
+    manager.put(Task(label="TypeA", data=[1,2,3]))
+
+    # get a new task
+    new = manager.get()
 """
 
 # Exceptions
