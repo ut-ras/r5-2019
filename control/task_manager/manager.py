@@ -1,15 +1,16 @@
 
 """Task Manager classes
 
-Both LocalTaskManager and RemoteTaskManager have the same API, and can be used
+Both HostTaskManager and RemoteTaskManager have the same API, and can be used
 interchangeably by other subroutines.
 """
 
+from .tasks import Task
 import queue
 
 
-class LocalTaskManager:
-    """Local task manager; maintains multiple queues, with one for each label.
+class HostTaskManager:
+    """Host task manager; maintains multiple queues, with one for each label.
     """
 
     def __init__(self):
@@ -62,6 +63,9 @@ class RemoteTaskManager:
 
     def __init__(self, remote=None):
 
+        assert hasattr(remote, "post"), "Server Object must have `post` method"
+        assert hasattr(remote, "get"), "Server Object must have `get` method"
+
         self.remote = remote
 
     def put(self, task):
@@ -84,4 +88,4 @@ class RemoteTaskManager:
             Next task in the queue; if the queue is empty, None is returned.
         """
 
-        return self.remote.get()
+        return Task(self.remote.get())
