@@ -90,7 +90,7 @@ class HostServer(threading.Thread):
 
     def __init__(self, port=8000, handler=BaseHTTPRequestHandler):
 
-        self.httpd = HTTPServer(("localhost", port), handler)
+        self.httpd = HTTPServer(("", port), handler)
 
         super().__init__()
 
