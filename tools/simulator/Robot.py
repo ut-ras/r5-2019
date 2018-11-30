@@ -20,6 +20,25 @@ class Robot(pygame.sprite.Sprite):
     def display(self, screen):
         screen.blit(self.image,self.rect)
 
+    def collision(self, sprite):
+        top = self.rect[1]
+        bottom = self.rect[1] + self.dim[1]
+        left = self.rect[0]
+        right = self.rect[0] + self.dim[0]
+        corners = [
+            [sprite.rect[0], sprite.rect[1]],
+            [sprite.rect[0] + self.dim[0], sprite.rect[1]],
+            [sprite.rect[0], sprite.rect[1] + self.dim[1]],
+            [sprite.rect[0] + self.dim[0], sprite.rect[1] + self.dim[1]]]
+        
+        for corner in corners:
+            if  corner[0] > top and corner[0] < bottom:
+                if corner[1] > left and corner[1] < right:
+                    return True
+        return False
+        
+
+
     def checkCollision(self, group):
         """
         Checks whether robot has collided with any other obstacle or robot.
@@ -48,25 +67,7 @@ class Robot(pygame.sprite.Sprite):
                 # print("offset: {xoffset}:{yoffset}".
                 #     format(xoffset = sprite.rect[0] - self.rect[0],
                 #     yoffset = sprite.rect[1] - self.rect[1]))
-
-                xoffset = sprite.rect[0] - self.rect[0]
-                yoffset = sprite.rect[1] - self.rect[1]
-                try:
-                    leftmask = self.mask
-                except AttributeError:
-                    leftmask = from_surface(self.image)
-                try:
-                    rightmask = sprite.mask
-                except AttributeError:
-                    rightmask = from_surface(sprite.image)
-                # TODO:implemnt overlap function since mask.py most likely doesn't exist in bin 
-                collision =  leftmask.overlap(rightmask, (xoffset, yoffset))
-
-                print("Collision: {collision}". format(collision=collision))
-                if collision is not None:
-                    # print("collision! {collision}" .format(collision=collision))
-                    not_collided = False
-
+                not_collided =  collision(sprite)
         return not_collided
 
     def checkBoundaries(self):

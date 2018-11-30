@@ -57,11 +57,11 @@ def collision(robots,obstacles,blocks):
 while(True):
     #keyboard input
     for event in pygame.event.get():
-##        group.empty()
-####        for obj in objList:
-####            group.add(obj)
+        group.empty()
+        for obj in objList:
+            group.add(obj)
         if event.type == pygame.KEYDOWN:
-            print(collision(robotGroup,obstacleGroup,blockGroup))
+            #print(collision(robotGroup,obstacleGroup,blockGroup))
             if event.key == pygame.K_q:
                 pygame.quit()
             if event.key == pygame.K_LEFT:

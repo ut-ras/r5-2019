@@ -42,6 +42,7 @@ class Obstacle(pygame.sprite.Sprite):
         self.image = pygame.Surface([radius, height])
         self.image.fill(black)
         self.rect = [xPos, yPos]
+        self.dim = [radius, radius]
         self.mask = pygame.mask.from_surface(self.image)
 
     def display(self,screen):
