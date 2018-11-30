@@ -39,9 +39,13 @@ block1 = Block(50, 50, 50, 50)
 blockGroup.add(block1)
 objList.append(block1)
 
-robot1 = Robot(50, 450, 100, 100)
+robot1 = Robot(50, 250, 100, 100)
 robotGroup.add(robot1)
 objList.append(robot1)
+
+robot2 = Robot(150, 150, 100, 100)
+robotGroup.add(robot2)
+objList.append(robot2)
 
 obst1 = Obstacle(400,400)
 obstacleGroup.add(obst1)

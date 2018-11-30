@@ -20,7 +20,7 @@ def dist(pos1, pos2):
 
 # This class represents the dowells + ping pong balls on the field
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self,xPos,yPos,radius=6, height=4):#6in is default distance between obj and edge of field
+    def __init__(self,xPos,yPos,radius=50, height=4):#6in is default distance between obj and edge of field
 ##        colliding = True
 ##        #generate position until not in radius of any object
 ##        while colliding:
@@ -39,7 +39,7 @@ class Obstacle(pygame.sprite.Sprite):
 ##        self.yCoord = sPos[1]
 ##        #init sprite properties
         super(Obstacle, self).__init__()
-        self.image = pygame.Surface([radius, height])
+        self.image = pygame.Surface([radius, radius])
         self.image.fill(black)
         self.rect = [xPos, yPos]
         self.dim = [radius, radius]
@@ -50,5 +50,3 @@ class Obstacle(pygame.sprite.Sprite):
 
     def returnPos(self):
         return [self.xCoord, self.yCoord]
-
-

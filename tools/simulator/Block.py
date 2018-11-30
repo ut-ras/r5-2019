@@ -14,6 +14,7 @@ class Block(pygame.sprite.Sprite):
         self.image.fill(red)
         self.rect = [xPos, yPos]
         self.mask = pygame.mask.from_surface(self.image)
+        self.dim = [width, height]
 
     def display(self, screen):
         screen.blit(self.image,self.rect)

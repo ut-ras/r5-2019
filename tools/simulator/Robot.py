@@ -27,17 +27,15 @@ class Robot(pygame.sprite.Sprite):
         right = self.rect[0] + self.dim[0]
         corners = [
             [sprite.rect[0], sprite.rect[1]],
-            [sprite.rect[0] + self.dim[0], sprite.rect[1]],
-            [sprite.rect[0], sprite.rect[1] + self.dim[1]],
-            [sprite.rect[0] + self.dim[0], sprite.rect[1] + self.dim[1]]]
+            [sprite.rect[0] + sprite.dim[0], sprite.rect[1]],
+            [sprite.rect[0], sprite.rect[1] + sprite.dim[1]],
+            [sprite.rect[0] + sprite.dim[0], sprite.rect[1] + sprite.dim[1]]]
 
         for corner in corners:
             if  corner[0] > top and corner[0] < bottom:
                 if corner[1] > left and corner[1] < right:
                     return True
         return False
-
-
 
     def checkCollision(self, group):
         """
@@ -58,23 +56,18 @@ class Robot(pygame.sprite.Sprite):
         """
 
         # print("Group: {group}". format(group=group))
-        not_collided = True
         # check robot against all other objects in the group
         for sprite in group:
             if sprite is not self:
-                print("Robot Pos: {x}:{y}". format(x=self.rect[0], y=self.rect[1]))
-                print("Sprite Pos: {x}:{y}". format(x=sprite.rect[0], y=sprite.rect[1]))
-                print("offset: {xoffset}:{yoffset}".
-                    format(xoffset = sprite.rect[0] - self.rect[0],
-                    yoffset = sprite.rect[1] - self.rect[1]))
-
                 # print("Robot Pos: {x}:{y}". format(x=self.rect[0], y=self.rect[1]))
                 # print("Sprite Pos: {x}:{y}". format(x=sprite.rect[0], y=sprite.rect[1]))
                 # print("offset: {xoffset}:{yoffset}".
                 #     format(xoffset = sprite.rect[0] - self.rect[0],
                 #     yoffset = sprite.rect[1] - self.rect[1]))
-                not_collided =  collision(sprite)
-        return not_collided
+                collided =  self.collision(sprite)
+                if collided:
+                    return True
+        return False
 
     def checkBoundaries(self):
         """
@@ -115,7 +108,8 @@ class Robot(pygame.sprite.Sprite):
         self.rect[0] += xChange
         self.rect[1] += yChange
         #check boundaries and check collision amongst objects
-        move = self.checkBoundaries() and self.checkCollision(group)
+        move = (self.checkBoundaries() and not self.checkCollision(group))
+        print(move)
 
         #then move
         if move is False:
