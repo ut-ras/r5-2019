@@ -5,8 +5,10 @@ Both HostTaskManager and RemoteTaskManager have the same API, and can be used
 interchangeably by other subroutines.
 """
 
-from .tasks import Task
+import unittest
 import queue
+
+from .tasks import Task, InvalidTaskException
 
 
 class HostTaskManager:
@@ -35,7 +37,7 @@ class HostTaskManager:
 
         self.tasks[task.label].put(task)
 
-    def get(self):
+    def get(self, label=None):
         """Get the next task, and set the state to "in_progress".
 
         Returns
@@ -45,7 +47,7 @@ class HostTaskManager:
         """
 
         try:
-            task = self.tasks.get_nowait()
+            task = self.tasks[label].get_nowait()
             task.state = "in_progress"
             return task
         except queue.Empty:
@@ -79,8 +81,13 @@ class RemoteTaskManager:
 
         self.remote.post(task.json())
 
-    def get(self):
+    def get(self, label=None):
         """Get the next task
+
+        Parameters
+        ----------
+        label : str
+            Label to fetch
 
         Returns
         -------
@@ -88,4 +95,30 @@ class RemoteTaskManager:
             Next task in the queue; if the queue is empty, None is returned.
         """
 
-        return Task(self.remote.get())
+        try:
+            return Task(self.remote.get(label))
+        except InvalidTaskException:
+            return None
+
+
+class Tests(unittest.TestCase):
+
+    def test_manager(self):
+
+        manager = HostTaskManager()
+
+        x = Task("test", {}, 1)
+        manager.put(x)
+        manager.put(Task(None, {}, 2))
+        manager.put(Task(None, {}, 3))
+        manager.put(Task("test", {}, 4))
+
+        self.assertEqual(x.state, "queued")
+        y = manager.get("test")
+        self.assertEqual(y.data, x.data)
+        self.assertEqual(y.state, "in_progress")
+
+        self.assertEqual(manager.get().data, 2)
+        self.assertEqual(manager.get("test").data, 4)
+        self.assertEqual(manager.get().data, 3)
+        self.assertEqual(manager.get(), None)

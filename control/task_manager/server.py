@@ -1,5 +1,5 @@
 
-"""HTTP interface routines"""
+"""Server interface routines"""
 
 import requests
 import threading
@@ -28,8 +28,8 @@ class RemoteServer:
 
     def __init__(self, ip, post=None, get=None, auth=None, schema="http"):
         self.ip = ip
-        self.post = post
-        self.get = get
+        self.post_addr = post
+        self.get_addr = get
         self.auth = auth
         self.schema = schema
 
@@ -40,11 +40,15 @@ class RemoteServer:
             .format(
                 schema=self.schema,
                 ip=self.ip,
-                port=self.port,
                 endpoint=url))
 
-    def get(self):
+    def get(self, label=None):
         """Send a GET request.
+
+        Parameters
+        ----------
+        label : str
+            Sets the 'Label' header.
 
         Returns
         -------
@@ -55,17 +59,20 @@ class RemoteServer:
         if self.get is None:
             raise ServerException("No GET endpoint defined.")
         else:
-            return requests.get(
-                self.__get_addr(self.get), auth=self.auth).text
+            addr = self.__get_addr(self.get_addr)
+            if label is not None:
+                addr += label
+            return requests.get(addr, auth=self.auth).text
 
-    def post(self):
+    def post(self, data):
         """Send a POST request."""
 
         if self.post is None:
             raise ServerException("No POST endpoint defined.")
         else:
+            print(self.__get_addr(self.post_addr))
             return requests.post(
-                self.__get_addr(self.post), auth=self.auth).json()
+                self.__get_addr(self.post_addr), json=data, auth=self.auth)
 
 
 class HostServer(threading.Thread):
@@ -83,20 +90,11 @@ class HostServer(threading.Thread):
 
     def __init__(self, port=8000, handler=BaseHTTPRequestHandler):
 
-        self.httpd = HTTPServer(("", port), handler)
-        self.running = False
+        self.httpd = HTTPServer(("localhost", port), handler)
+
+        super().__init__()
 
     def run(self):
-        """Run the server. Called by HostServer.start (from threading.Thread)
+        """Run the server. Called by HostServer.start."""
 
-        Will run until the main thread is terminated, or until the "running"
-        flag is set to False.
-        """
-
-        self.running = True
-
-        while self.running and threading.main_thread().is_alive():
-            self.httpd.handle_request()
-
-        self.running = False
-        self.server_close()
+        self.httpd.serve_forever()

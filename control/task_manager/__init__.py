@@ -31,15 +31,14 @@ Creating a remote task server::
 
 # Exceptions
 from .tasks import InvalidTaskException
-from .http import ServerException
+from .server import ServerException
 from .image import BadImageException
 
 # Manager
 from .tasks import Task
-from .http import RemoteServer
+from .server import RemoteServer
 from .manager import HostTaskManager, RemoteTaskManager
 from .task_server import TaskServer
-
 
 __all__ = [
     "InvalidTaskException",

@@ -1,12 +1,19 @@
 
 """Task Manager classes"""
 
+import unittest
 import sys
 import time
 import numpy as np
 import json
 
-import imagedb
+try:
+    import imagedb
+except ImportError:
+    class imagedb:
+        store = None
+        Image = None
+
 from .image import encode, decode
 
 SIZE_THRESHOLD = 1000
@@ -84,8 +91,8 @@ class Task:
         self.__init_args(
             d.get("label"),
             d.get("meta"),
-            d.get("meta"),
-            d.get("time") if t is None else t)
+            d.get("data"),
+            t=d.get("time") if t is None else t)
 
     def __init_json(self, s, t):
         """JSON-type initializer"""
@@ -98,14 +105,14 @@ class Task:
         if "data" in d and d.get("type") == "image":
             d["data"] = decode(d["data"])
 
-        self.__init_dict(d)
+        self.__init_dict(d, t)
 
     def delete(self):
         """Delete data associated with this class if deletion is
         necessary.
         """
 
-        if hasattr(self.data, "delete"):
+        if hasattr(self, "data") and hasattr(self.data, "delete"):
             self.data.delete()
 
     def json(self):
@@ -133,3 +140,25 @@ class Task:
         return "Task {label} @ {time}".format(
             label=self.label,
             time=time.strftime("%H:%M:%S", time.localtime(self.time)))
+
+
+class Tests(unittest.TestCase):
+
+    def test_create_delete(self):
+
+        class Foo:
+            def __init__(self):
+                self.deleted = False
+
+            def delete(self):
+                self.deleted = True
+
+        data = Foo()
+        bar = Task("test", {}, data)
+        bar.delete()
+        self.assertTrue(data.deleted)
+
+        d = {"label": "asdf", "meta": {}, "time": 0, "data": [1, 2, 3]}
+
+        self.assertEqual(
+            Task("asdf", {}, [1, 2, 3], t=0).json(), json.dumps(d))
