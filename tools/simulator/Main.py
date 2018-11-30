@@ -10,6 +10,7 @@
 import pygame
 from Block import Block
 from Robot import Robot
+from Obstacles import Obstacle
 #from Obstacle import Obstacle
 #from Motherhip import Mothership
 pygame.init()
@@ -30,31 +31,47 @@ pink = (255,200,200)
 
 
 objList = []
-group = pygame.sprite.Group()
+blockGroup = pygame.sprite.Group()
+robotGroup = pygame.sprite.Group()
+obstacleGroup = pygame.sprite.Group()
 #object initialisations
-block = Block(50, 50, 50, 50)
-objList.append(block)
-robot = Robot(50, 450, 100, 100)
-objList.append(robot)
+block1 = Block(50, 50, 50, 50)
+blockGroup.add(block1)
+objList.append(block1)
+
+robot1 = Robot(50, 450, 100, 100)
+robotGroup.add(robot1)
+objList.append(robot1)
+
+obst1 = Obstacle(400,400)
+obstacleGroup.add(obst1)
+objList.append(obst1)
+
+def collision(robots,obstacles,blocks):
+    if pygame.sprite.groupCollide(robots,obstacles,False,False) or pygame.sprite.groupCollide(robots,blocks,False,False):
+       return True
+    return False
+    
 
 #main loop
 while(True):
     #keyboard input
     for event in pygame.event.get():
-        group.empty()
-        for obj in objList:
-            group.add(obj)
+##        group.empty()
+####        for obj in objList:
+####            group.add(obj)
         if event.type == pygame.KEYDOWN:
+            print(collision(robotGroup,obstacleGroup,blockGroup))
             if event.key == pygame.K_q:
                 pygame.quit()
             if event.key == pygame.K_LEFT:
-                robot.move(-5, 0, group)
+                robot1.move(-5, 0, robotGroup)
             if event.key == pygame.K_RIGHT:
-                robot.move(5, 0, group)
+                robot1.move(5, 0, robotGroup)
             if event.key == pygame.K_UP:
-                robot.move(0, -5, group)
+                robot1.move(0, -5, robotGroup)
             if event.key == pygame.K_DOWN:
-                robot.move(0, 5, group)
+                robot1.move(0, 5, robotGroup)
 
     screen.fill(white)
     for obj in objList:
