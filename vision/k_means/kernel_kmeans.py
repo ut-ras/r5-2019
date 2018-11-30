@@ -1,6 +1,7 @@
 # kernel_kmeans.py
 #
 # Implementation of the kernel k-means clustering algorithm
+#
 # Written by Stefan deBruyn and Cyrus Mahdavi
 # November 2018
 #
@@ -18,7 +19,7 @@ def kernel_kmeans(X, K, k, e, func="gauss"):
 
     Parameters
     ----------
-    X: set
+    X: list
         Set of data point vectors.
     K: np.array
         Kernel matrix.
@@ -35,11 +36,10 @@ def kernel_kmeans(X, K, k, e, func="gauss"):
         Set of clusters, where each cluster is a set of the data points in that cluster.
     """
 
-    t = 0
-    centroids = [list() for r in k]
+    # Establish k centroids and distribute data across them arbitrarily
+    centroids = [list() for r in range(k)]
 
-    # Distribute the data points across the centroids
-    for x, x_ind in enumerate(X):
+    for x_ind, x in enumerate(X):
         centroids[x_ind % k].append(x)
 
     diff = e
@@ -49,20 +49,20 @@ def kernel_kmeans(X, K, k, e, func="gauss"):
         # Compute the squared norm of cluster means
         d = [0] * k
 
-        for c, c_ind in enumerate(centroids):
+        for c_ind, c in enumerate(centroids):
             d[c_ind] = squared_norm(c, K)
 
         # Compute the average kernel values
         u = np.zeros(len(X), k)
 
-        for x, x_ind in enumerate(X):
-            for c, c_ind in enumerate(centroids):
+        for x_ind, x in enumerate(X):
+            for c_ind, c in enumerate(centroids):
                 u[x_ind][c_ind] = avg_kernel(c, x, k, func=func)
 
         # Assign every point to a new centroid
         centroids_new = [list() for r in range(k)]
 
-        for x, x_ind in enumerate(X):
+        for x_ind, x in enumerate(X):
             # Find the closest centroid to x
             centroid = -1
             min_dist = -1
@@ -89,7 +89,7 @@ def squared_norm(X, k, func="gauss"):
 
     Parameters
     ----------
-    X: set
+    X: list
         Set of data point vectors, usually a cluster.
     k: int
         Number of clusters.
@@ -117,7 +117,7 @@ def avg_kernel(c, x, k, func="gauss"):
 
     Parameters
     ----------
-    c: set
+    c: list
         Set of data point vectors, usually a cluster.
     x: list
         Singular data point vector.
@@ -186,3 +186,46 @@ def k_gauss(x, y, k):
     """
 
     pass
+
+
+def sym_diff(a, b):
+    """
+    Computes the symmetric difference of two lists. Because Python native lists (which are being used to represent data
+    points) are not hashable, the native set.symmetric_difference(set) does not suit our purposes.
+
+    Parameters
+    ----------
+    a: list
+        Left hand side.
+    b: list
+        Right hand side.
+
+    Returns
+    -------
+    list
+        Symmetric difference between a and b.
+    """
+
+    lhs = []
+
+    for e in a:
+        if e not in b:
+            lhs.append(e)
+
+    rhs = []
+
+    for e in b:
+        if e not in a:
+            rhs.append(e)
+
+    diff = []
+
+    for e in lhs:
+        if e not in rhs:
+            diff.append(e)
+
+    for e in rhs:
+        if e not in lhs:
+            diff.append(e)
+
+    return diff
