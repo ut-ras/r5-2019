@@ -43,11 +43,11 @@ class Robot(pygame.sprite.Sprite):
         # check robot against all other objects in the group
         for sprite in group:
             if sprite is not self:
-                # print("Robot Pos: {x}:{y}". format(x=self.rect[0], y=self.rect[1]))
-                # print("Sprite Pos: {x}:{y}". format(x=sprite.rect[0], y=sprite.rect[1]))
-                # print("offset: {xoffset}:{yoffset}".
-                #     format(xoffset = sprite.rect[0] - self.rect[0],
-                #     yoffset = sprite.rect[1] - self.rect[1]))
+                print("Robot Pos: {x}:{y}". format(x=self.rect[0], y=self.rect[1]))
+                print("Sprite Pos: {x}:{y}". format(x=sprite.rect[0], y=sprite.rect[1]))
+                print("offset: {xoffset}:{yoffset}".
+                    format(xoffset = sprite.rect[0] - self.rect[0],
+                    yoffset = sprite.rect[1] - self.rect[1]))
 
                 xoffset = sprite.rect[0] - self.rect[0]
                 yoffset = sprite.rect[1] - self.rect[1]
@@ -59,7 +59,7 @@ class Robot(pygame.sprite.Sprite):
                     rightmask = sprite.mask
                 except AttributeError:
                     rightmask = from_surface(sprite.image)
-                # TODO:implemnt overlap function since mask.py most likely doesn't exist in bin 
+                # TODO:implemnt overlap function since mask.py most likely doesn't exist in bin
                 collision =  leftmask.overlap(rightmask, (xoffset, yoffset))
 
                 print("Collision: {collision}". format(collision=collision))
