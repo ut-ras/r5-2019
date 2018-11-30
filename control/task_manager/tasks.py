@@ -4,21 +4,27 @@
 import sys
 import time
 import numpy as np
-import queue
+import json
 
 import imagedb
-
+from .image import encode, decode
 
 SIZE_THRESHOLD = 1000
 
 
-class Task:
+class InvalidTaskException(Exception):
+    """Exception raised when an invalid task is intialized."""
+    pass
 
+
+class Task:
     """Abstract class type
 
     Stores a label, meta, and data; if data is an image, and has size
     larger than SIZE_THRESHOLD, the image is stored on disk with the imagedb
     module.
+
+    Initialize with either label, meta, and data, with json, or with d.
 
     Parameters
     ----------
@@ -29,10 +35,35 @@ class Task:
         task.
     data : arbitrary type
         Data to be associated with the task.
+    json : str
+        Stringified JSON to initialize from.
+    d : dict
+        Dictionary to initialize task from.
+
+    Keyword Args
+    ------------
     t : float
         Timestamp of the task
     """
-    def __init__(self, label, meta, data, t=None):
+
+    def __init__(self, *args, t=None):
+
+        if len(args) == 3:
+            self.__init_args(*args, t)
+
+        elif len(args) == 1 and type(args[0]) == str:
+            self.__init_json(args[0], t)
+
+        elif len(args) == 1 and type(args[0]) == dict:
+            self.__init_dict(args[0], t)
+
+        else:
+            raise InvalidTaskException(
+                "Invalid task initialization. "
+                "Initializer must be [label, meta, data], json, or dict.")
+
+    def __init_args(self, label, meta, data, t=None):
+        """label, meta, data style initializer for Task object"""
 
         self.time = time.time() if t is None else t
         self.label = label
@@ -47,6 +78,28 @@ class Task:
         else:
             self.data = data
 
+    def __init_dict(self, d, t):
+        """Dict-type initializer"""
+
+        self.__init_args(
+            d.get("label"),
+            d.get("meta"),
+            d.get("meta"),
+            d.get("time") if t is None else t)
+
+    def __init_json(self, s, t):
+        """JSON-type initializer"""
+
+        try:
+            d = json.loads(s)
+        except json.decoder.JSONDecodeError:
+            raise InvalidTaskException("Bad JSON input")
+
+        if "data" in d and d.get("type") == "image":
+            d["data"] = decode(d["data"])
+
+        self.__init_dict(d)
+
     def delete(self):
         """Delete data associated with this class if deletion is
         necessary.
@@ -55,6 +108,24 @@ class Task:
         if hasattr(self.data, "delete"):
             self.data.delete()
 
+    def json(self):
+        """Save the task as a JSON string."""
+
+        d = {
+            "label": self.label,
+            "meta": self.meta,
+            "time": self.time,
+        }
+
+        if type(self.data) == np.array:
+            d["data"] = encode(self.data)
+        elif type(self.data) == imagedb.Image:
+            d["data"] = encode(self.data.load())
+        else:
+            d["data"] = self.data
+
+        return json.dumps(d)
+
     def __del__(self):
         self.delete()
 
@@ -62,41 +133,3 @@ class Task:
         return "Task {label} @ {time}".format(
             label=self.label,
             time=time.strftime("%H:%M:%S", time.localtime(self.time)))
-
-
-class TaskList:
-    """Task list class; maintains multiple queues, with one for each label.
-    """
-
-    def __init__(self):
-
-        self.tasks = {}
-
-    def put(self, task):
-        """Add a task to the appropriate queue.
-
-        Sets the added task to the state "queued"
-        """
-
-        task.state = "queued"
-
-        if task.label not in self.tasks:
-            self.tasks[task.label] = queue.Queue()
-
-        self.tasks[task.label].put(task)
-
-    def get(self):
-        """Get the next task, and set the state to "in_progress".
-
-        Returns
-        -------
-        Task or None
-            Next task in the queue; if the queue is empty, None is returned.
-        """
-
-        try:
-            task = self.tasks.get_nowait()
-            task.state = "in_progress"
-            return task
-        except queue.Empty:
-            return None
