@@ -1,0 +1,8 @@
+
+# Vision
+numpy
+opencv-python
+matplotlib
+
+# Networking
+requests
