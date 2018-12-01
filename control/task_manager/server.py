@@ -56,7 +56,7 @@ class RemoteServer:
             Returned file (should be JSON).
         """
 
-        if self.get is None:
+        if self.get_addr is None:
             raise ServerException("No GET endpoint defined.")
         else:
             addr = self.__get_addr(self.get_addr)
@@ -67,7 +67,7 @@ class RemoteServer:
     def post(self, data):
         """Send a POST request."""
 
-        if self.post is None:
+        if self.post_addr is None:
             raise ServerException("No POST endpoint defined.")
         else:
             print(self.__get_addr(self.post_addr))
