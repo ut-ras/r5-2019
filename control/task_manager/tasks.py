@@ -8,7 +8,7 @@ import numpy as np
 import json
 
 try:
-    import imagedb
+    from .. import imagedb
 except ImportError:
     class imagedb:
         store = None

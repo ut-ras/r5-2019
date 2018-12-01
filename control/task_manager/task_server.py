@@ -2,13 +2,12 @@
 """Task Server Class"""
 
 import unittest
+import json
 from http.server import BaseHTTPRequestHandler
 
 from .tasks import Task
 from .manager import HostTaskManager
 from .server import HostServer
-
-import json
 
 
 class RequestHandler(BaseHTTPRequestHandler):
