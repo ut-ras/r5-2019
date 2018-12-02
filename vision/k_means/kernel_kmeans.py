@@ -13,19 +13,19 @@ import math
 import numpy as np
 
 
-def kernel_kmeans(X, K, k, e, func="gauss"):
+def kernel_kmeans(X, K, k, epsilon, func="gauss"):
     """
     Performs k means clustering on a data set using the kernel trick.
 
     Parameters
     ----------
-    X: list
+    X: np.array
         Set of data point vectors.
     K: np.array
         Kernel matrix.
     k: int
         Number of clusters.
-    e: float
+    epsilon: float
         Convergence parameter.
     func: str
         Kernel function identifier. See topmost docstring for valid identifiers.
@@ -37,21 +37,20 @@ def kernel_kmeans(X, K, k, e, func="gauss"):
     """
 
     # Establish k centroids and distribute data across them arbitrarily
-    centroids = [list() for r in range(k)]
+    centroids = np.array([np.array([]) for r in range(k)])
 
     for x_ind, x in enumerate(X):
         centroids[x_ind % k].append(x)
 
-    diff = e
+    diff = -1
 
     # Iterate until the change in centroids falls below the threshold
-    while diff >= e * len(X):
+    while diff == -1 or diff >= epsilon * len(X):
         # Compute the squared norm of cluster means
         d = [0] * k
 
         for c_ind, c in enumerate(centroids):
             d[c_ind] = squared_norm(c, K)
-
         # Compute the average kernel values
         u = np.zeros(len(X), k)
 
@@ -77,7 +76,7 @@ def kernel_kmeans(X, K, k, e, func="gauss"):
             centroids_new[centroid].append(x)
 
         # Recalculate the change between centroid sets via symmetric difference
-        diff = sym_diff(centroids, centroids_new)
+        diff = len(sym_diff(centroids, centroids_new))
         centroids = centroids_new
 
     return centroids
@@ -89,7 +88,7 @@ def squared_norm(X, k, func="gauss"):
 
     Parameters
     ----------
-    X: list
+    X: np.array
         Set of data point vectors, usually a cluster.
     k: int
         Number of clusters.
@@ -117,7 +116,7 @@ def avg_kernel(c, x, k, func="gauss"):
 
     Parameters
     ----------
-    c: list
+    c: np.array
         Set of data point vectors, usually a cluster.
     x: list
         Singular data point vector.
@@ -146,9 +145,9 @@ def k_func(x, y, k, func):
 
     Parameters
     ----------
-    x: list
+    x: np.array
         Data point vector.
-    y: list
+    y: np.array
         Data point vector.
     k: int
         Number of clusters.
@@ -172,9 +171,9 @@ def k_gauss(x, y, k):
 
     Parameters
     ----------
-    x: list
+    x: np.array
         Data point vector.
-    y: list
+    y: np.array
         Data point vector.
     k: int
         Number of clusters.
@@ -185,13 +184,16 @@ def k_gauss(x, y, k):
         Data point vector.
     """
 
-    pass
+    norm = np.linalg.norm(x - y)
+
+    return math.exp(-k * (norm * norm))
 
 
 def sym_diff(a, b):
     """
     Computes the symmetric difference of two lists. Because Python native lists (which are being used to represent data
     points) are not hashable, the native set.symmetric_difference(set) does not suit our purposes.
+    TODO: Speed this up
 
     Parameters
     ----------
@@ -228,4 +230,11 @@ def sym_diff(a, b):
         if e not in lhs:
             diff.append(e)
 
-    return diff
+    return np.array(diff)
+
+
+n = 10
+m = 10
+x = [[np.random.uniform(0, 5) for a in range(m)] for b in range(n)]
+c = kernel_kmeans(x, None, 3, 0.05)
+print(c)
