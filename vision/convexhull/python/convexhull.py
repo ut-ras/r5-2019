@@ -1,17 +1,42 @@
 """Convex Hull
 
-Module docstring goes here
+For finding the convex hull points of a binary openCV image or 2D numpy array.
 """
 
-
-def slope(a, b, flip):
-    """returns slope between two pixels
+def convex_hull(image):
+    """Finds the convex hull vertices for a binary image.
 
     Parameters
     ----------
-    a : tuple of ints
+    image : numpy.array
+        binary image to perform convexhull on
+
+    Returns
+    -------
+    [(int)]
+        clockwise vertecies of convex hull
+    """
+
+    corners = find_corners(image)
+
+
+    vertices = [corners[0]]
+
+    for i in range(len(corners)):
+        vertices.extend(
+            _convex_hull_side(
+                image, corners[i], corners[(i + 1) % len(corners)]))
+
+    return vertices
+
+def slope(point_a, point_b, flip):
+    """Slope between two pixels.
+
+    Parameters
+    ----------
+    a : \(int\)
         (x, y) coordinate of first pixel
-    b : tuple of ints
+    b : \(int\)
         (x, y) coordinate of second pixel
     flip : bool
         true if slope is needed from a flipped x and y axes
@@ -22,76 +47,61 @@ def slope(a, b, flip):
         slope between pixels
     """
 
-    ax, ay = a
-    bx, by = b
+    x_a, y_a = point_a
+    x_b, y_b = point_b
 
-    dx = bx - ax
-    dy = by - ay
+    dx = x_b - x_a
+    dy = y_b - y_a
 
     return -dx / dy if flip else dy / dx
 
-
-def convex_hull(image):
-    """finds the convex hull vertecies for a binary image
-
-    Parameters
-    ----------
-    image : binary opencv image
-        image to perform convexhull on
-
-    Returns
-    -------
-    list of tuples of ints
-        clockwise vertecies of convex hull
-    """
-
-    corners = find_corners(image)
-
-    print("Corners:", corners)
-
-    vertices = [corners[0]]
-
-    for i in range(len(corners)):
-        print("Convex hulling points: ", corners[i], corners[(i + 1) % len(corners)])
-        vertices.extend(
-            _convex_hull_side(
-                image, corners[i], corners[(i + 1) % len(corners)]))
-
-    return vertices
-
-
 def _convex_hull_side(image, start, end):
-    """performs convex hull algorihim on rectanglar subset of an image from one direction
+    """Convex hull  on rectanglar subset of an image from one direction.
 
     Parameters
     ----------
-    image : binary opencv image
-        image to be processed
-    start : tuple of ints
+    image : numpy.array
+        binary image to be processed
+    start : (int)
         top left corner of subset in current orientation
-    end : tuple of ints
+    end : (int)
         bottom right corner of subset in current orientation
 
     Returns
     -------
-    list of tuples of ints
+    [(int)]
         convex hull set of vertecies not including the starting point
     """
 
     convex_points = [start]
 
-    x1, y1 = start
-    x2, y2 = end
+    x_start, y_start = start
+    x_end, y_end = end
 
-    side = (x1 <= x2, y1 <= y2)
+    side = (x_start <= x_end, y_start <= y_end)
 
-    print(side)
 
     ranges = {
-        (True, True): [[x1 + 1, x2 + 1], [y1, y2 + 1], False],
-        (False, True): [[y1 + 1, y2 + 1], [x1, x2 - 1, -1], True],
-        (False, False): [[x1 - 1, x2 - 1, -1], [y1, y2 - 1, -1], False],
-        (True, False): [[y1 - 1, y2 - 1, -1], [x1, x2 + 1], True]
+        (True, True): [
+            [x_start + 1, x_end + 1],
+            [y_start, y_end + 1],
+            False
+            ],
+        (False, True): [
+            [y_start + 1, y_end + 1],
+            [x_start, x_end - 1, -1],
+            True
+            ],
+        (False, False): [
+            [x_start - 1, x_end - 1, -1],
+            [y_start, y_end - 1, -1],
+            False
+            ],
+        (True, False): [
+            [y_start - 1, y_end - 1, -1],
+            [x_start, x_end + 1],
+            True
+            ]
     }
 
     prev = 0
@@ -101,10 +111,6 @@ def _convex_hull_side(image, start, end):
         curr_pixel = None
 
         for inner in range(*ranges[side][1]):
-            '''if ranges[side][2]:
-                print(inner, outer)
-            else:
-                print(outer, inner)'''
             if ranges[side][2] and image[outer, inner] == 0:
                 curr_pixel = (inner, outer)
                 break
@@ -115,8 +121,6 @@ def _convex_hull_side(image, start, end):
         if curr_pixel is None:
             continue
 
-        print(f"Tst: {curr_pixel}")
-
         while True:
             # slope infinite for first point
             prev_slope = (
@@ -126,15 +130,16 @@ def _convex_hull_side(image, start, end):
                     convex_points[prev],
                     ranges[side][2]))
 
-            print(f"Slp: {prev_slope} : {slope(convex_points[prev], curr_pixel, ranges[side][2])}")
-
             # remove previous point if it yields concave segment
-            if prev_slope > slope(convex_points[prev], curr_pixel, ranges[side][2]):
-                print(f"Del: {convex_points.pop(prev)}")
+            if prev_slope > slope(
+                                convex_points[prev],
+                                curr_pixel,
+                                ranges[side][2]
+                                ):
+                convex_points.pop(prev)
                 prev -= 1
             # add point to hull if it yields convex segment
             else:
-                print(f"Add: {curr_pixel}")
                 convex_points.append(curr_pixel)
                 prev += 1
                 break
@@ -143,17 +148,18 @@ def _convex_hull_side(image, start, end):
 
 
 def find_corners(image):
-    """finds the four exteme pixels of a binary image
+    """Finds the four exteme pixels of a binary image.
 
     Parameters
     ----------
-    image : binary opencv image
+    image : numpy.array
         image of which to find corners of
 
     Returns
     -------
-    list of tuples of ints
-        most top left, top right, bottom right, and bottom left pixels of the image
+    [(int)]
+        most top left, top right, bottom right, and bottom left pixels of the
+        image
     """
 
     corners = []
@@ -164,18 +170,18 @@ def find_corners(image):
 
 
 def _find_corner(image, corner):
-    """finds the extreme pixel of a binary image in a given direction
+    """Finds the extreme pixel of a binary image in a given direction.
 
     Parameters
     ----------
-    image : binary opencv image
-        image to find corner in
+    image : numpy.array
+        binary image to find corner in
     corner : int
         0 for top right, 1 for top left, 2 for bottom right, 3 for bottom left
 
     Returns
     -------
-    tuple of ints
+    (int)
         corner pixel in corner direction
     """
 
@@ -195,4 +201,4 @@ def _find_corner(image, corner):
             if ranges[corner][2] and image[outer, inner] == 0:
                 return (inner, outer)
             elif not ranges[corner][2] and image[inner, outer] == 0:
-                return (outer, inner)                
+                return (outer, inner)

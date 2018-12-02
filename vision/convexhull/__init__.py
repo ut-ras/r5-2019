@@ -1,2 +1,2 @@
 
-from python import *
+from .python import *
