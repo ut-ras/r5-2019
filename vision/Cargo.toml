@@ -1,0 +1,6 @@
+[package]
+name = "regionv_vision"
+version = "0.0.1"
+authors = ["sanjayyepuri","benbelov"]
+
+[dependencies]

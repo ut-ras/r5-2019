@@ -14,7 +14,7 @@ def convex_hull(image):
     Returns
     -------
     [(int)]
-        clockwise vertecies of convex hull
+        clockwise vertices of convex hull
     """
 
     corners = find_corners(image)
@@ -34,9 +34,9 @@ def slope(point_a, point_b, flip):
 
     Parameters
     ----------
-    a : \(int\)
+    a : (int)
         (x, y) coordinate of first pixel
-    b : \(int\)
+    b : (int)
         (x, y) coordinate of second pixel
     flip : bool
         true if slope is needed from a flipped x and y axes

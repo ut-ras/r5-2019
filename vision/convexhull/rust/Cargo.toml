@@ -1,6 +1,0 @@
-[package]
-name = "convexhull"
-version = "0.1.0"
-authors = ["sanjayyepuri"]
-
-[dependencies]
