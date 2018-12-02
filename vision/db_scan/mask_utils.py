@@ -24,7 +24,7 @@ def color(mask):
     ]))
 
     num_id = len(found_id) - 1
-    color_delta = 255 / num_id
+    color_delta = 255 if num_id == 0 else 255 / num_id
 
     # color each pixel in proportion to its id
     for y, row in enumerate(mask):
