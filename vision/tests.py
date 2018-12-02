@@ -46,7 +46,7 @@ DBScan:
 
 Examples
 --------
-python tester.py db_scan r=3 d=5
+python tester.py db_scan 1.png r=3 d=5
 """
 
 
