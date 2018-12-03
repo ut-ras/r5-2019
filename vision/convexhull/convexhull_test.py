@@ -7,7 +7,6 @@ import convexhull
 
 
 
-THICKNESS = 3
 COLOR = (0, 0, 255) #BGR
 
 def pairwise(iterable):
@@ -30,7 +29,7 @@ def pairwise(iterable):
     next(b, None)
     return zip(a, b)
 
-def convexhull_test(image):
+def test(image, thicc=3):
     """Colored visiualization of the convex hulll of the image.
 
     Parameters
@@ -53,6 +52,6 @@ def convexhull_test(image):
 
 
     for point_a, point_b in pairwise(result):
-        cv2.line(image, point_a, point_b, COLOR, THICKNESS)
+        cv2.line(image, point_a, point_b, COLOR, int(thicc))
 
     return image
