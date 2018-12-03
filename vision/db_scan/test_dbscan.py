@@ -1,21 +1,19 @@
 
 """Tests for DBScan"""
 
-import sys
-import timeit
 import numpy as np
 import cv2
 import copy
 
-from mask_utils import color, separate
-from db_scan import db_scan
+from .mask_utils import color, separate
+from .db_scan import db_scan
 
 
 # Tester font
 _FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 
-def output_single(mask, mask_name, ball_rad, density):
+def output_single(mask, ball_rad, density):
     """
     Take processed mask and output it as a single colored mask.
 
@@ -24,12 +22,15 @@ def output_single(mask, mask_name, ball_rad, density):
     mask : int[][]
         Binary mask - modified by DB_SCAN such that pixels that are part of an
         object hold the integer value of the object ID.
-    mask_name : str
-        name of mask - original file name
     ball_rad : int
         radius of the ball to find objects
     density : int
         num of neighbors for the pixel to be considered an object
+
+    Returns
+    -------
+    np.array
+        Image output
     """
     width, height = np.shape(mask)
     mask, ids = color(mask)
@@ -44,13 +45,10 @@ def output_single(mask, mask_name, ball_rad, density):
     cv2.putText(
         ret, "IDs found: " + str(ids), (5, 30), _FONT, .25, (255, 255, 255), 1)
 
-    cv2.imwrite(
-        "{m_n}_V3_r{b_r}d{d}.png".format(
-            m_n=mask_name.split(".", 1)[0], b_r=ball_rad, d=density),
-        ret)
+    return ret
 
 
-def output_individual(mask, mask_name, ball_rad, density):
+def output_individual(mask, ball_rad, density):
     """
     Take processed mask and output it as a set of individual object masks.
 
@@ -59,8 +57,6 @@ def output_individual(mask, mask_name, ball_rad, density):
     mask : int[][]
         Binary mask - modified by DB_SCAN such that pixels that are part of an
         object hold the integer value of the object ID.
-    mask_name : str
-        name of mask - original file name
     ball_rad : int
         radius of the ball to find objects
     density : int
@@ -69,110 +65,59 @@ def output_individual(mask, mask_name, ball_rad, density):
     width, height = np.shape(mask)
     masks = separate(mask)
 
-    for idx in range(1, len(masks)):
-        ret = copy.copy(masks[idx])
+    def label(img, idx):
         cv2.putText(
-            ret,
+            img,
             "Width: {w} Height: {h}".format(w=width, h=height),
             (5, 10), _FONT, .25, (255, 255, 255), 1)
         cv2.putText(
-            ret,
+            img,
             "Ball Rad: {b_r} Density: {d}".format(b_r=ball_rad, d=density),
             (5, 20), _FONT, .25, (255, 255, 255), 1)
         cv2.putText(
-            ret,
+            img,
             "ID: " + str(idx),
             (5, 30), _FONT, .25, (255, 255, 255), 1)
 
-        cv2.imwrite(
-            "{m_n}_V3_{id}_r{b_r}d{d}.png".format(
-                m_n=mask_name.split(".", 1)[0],
-                id=idx, b_r=ball_rad, d=density),
-            ret)
+    return [label(img, idx) for idx, img in enumerate(masks)]
 
 
-def test(MASK_NAME, BALL_RAD, DENSITY, OPTION):
-    """
-    Uses passed in arguments (probably from a main file) instead of command
-    line arguments to run the program.
+def test(img, r=3, d=8, option="single"):
+    """Standardized Tester
 
     Parameters
     ----------
-    MASK_NAME : string
-        Name of the image to be accessed and DB_SCANned
-    BALL_RAD : int
-        radius of the ball to find similar neighbor pixels
-    DENSITY : int
-        how many neighbors must be available for the pixel to not be noise
-    OPTION : str
-        determines output
-        single - single colored mask
-        separate - separated individual masks
-        both - both single and individual masks
-        time - time execution test
+    img : np.array
+        Input binary image to run DBScan on
+
+    Keyword Arguments
+    -----------------
+    r : int
+        Ball radius for DBScan
+    d : int
+        Density threshold; how many neighbors must be present for a point to
+        be clustered
+    option : str
+        "single" or "separate"
+
+    Returns
+    -------
+    np.array or np.array[]
+        Image (if single) or array of images (if separate)
     """
-    MASK = cv2.imread(MASK_NAME, 0)
-    WIDTH, HEIGHT = np.shape(MASK)
-    ret, MASK = cv2.threshold(MASK, 127, 255, cv2.THRESH_BINARY)
 
-    # timing
-    start_time = timeit.default_timer()
-    MASK = db_scan(MASK, BALL_RAD, DENSITY)
-    run_time = timeit.default_timer() - start_time
+    _, mask = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
 
-    # output individual for other vision tasks, single for debugging
-    if OPTION == "single":
-        output_single(MASK, MASK_NAME, BALL_RAD, DENSITY)
-    if OPTION == "separate":
-        output_individual(MASK, MASK_NAME, BALL_RAD, DENSITY)
-    if OPTION == "both":
-        output_single(MASK, MASK_NAME, BALL_RAD, DENSITY)
-        output_individual(MASK, MASK_NAME, BALL_RAD, DENSITY)
-    return run_time
+    r = int(r)
+    d = int(d)
 
+    mask = db_scan(mask, r, d)
 
-def profile(function, *args, **kwargs):
-    """ Returns performance statistics (as a string) for the given function.
-    Taken from
-    https://www.clips.uantwerpen.be/tutorials/python-performance-optimization
-    """
-    def _run():
-        function(*args, **kwargs)
-    import cProfile as profile
-    import pstats
-    import os
-    import sys
-    sys.modules['__main__'].__profile_run__ = _run
-    id = function.__name__ + '()'
-    profile.run('__profile_run__()', id)
-    p = pstats.Stats(id)
-    p.stream = open(id, 'w')
-    p.sort_stats('time').print_stats(20)
-    p.stream.close()
-    s = open(id).read()
-    os.remove(id)
-    return s
-
-
-# Module command line hint
-_HINT = """USAGE:
-------
-test_dbscan takes up to to 4 parameters:
-    [1] MASK_NAME : name of the image to run tests on
-    [2] BALL_RAD : radius of the ball to find similar neighbor pixels
-    [3] DENSITY : how many neighbors must be present for clustering
-    [4] OPTION : output type - single, separate, both, or time"""
-
-# main
-if __name__ == "__main__":
-    if len(sys.argv) < 4:
-        print(_HINT)
+    if option == "single":
+        return output_single(mask, r, d)
+    elif option == "separate":
+        return output_individual(mask, r, d)
     else:
-        if sys.argv[4] != "time":
-            ret = test(
-                sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4])
-            print("Execution time: {t}".format(t=ret))
-        else:
-            print(profile(
-                test,
-                sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]))
+        raise Exception(
+            "Invalid DBScan Option {option}; must be `single` or `separate`"
+            .format(option=option))
