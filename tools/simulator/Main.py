@@ -49,7 +49,7 @@ objList = []
 robot1 = Robot([10, 10])
 objList.append(robot1)
 
-block1 = Block([0, 200])
+block1 = Block([50, 200])
 objList.append(block1)
 
 obst1 = Obstacle([150, 100])

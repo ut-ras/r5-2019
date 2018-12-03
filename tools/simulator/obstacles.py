@@ -1,10 +1,9 @@
-#!/usr/bin/python3
 #Author: Chad Harthan, Matthew Yu
 #Last modified: 12/2/18
 #obstacles.py
 from object import Object
 
-yellow = (255,255,0)
+red = (255,0,0)
 blue = (0,0,255)
 
 
@@ -15,10 +14,20 @@ class Obstacle(Object):
         super().__init__(position, dimensions, blue)
 
     def on_collision(self):
-        self.color = yellow
+        """
+        Changes object color when robot interacts with it.
+        """
+        self.color = red
 
     def off_collision(self):
-        self.color = blue
+        """
+        Changes object color when robot stops interacting with it.
+        """
+        #stay red after collision
+        if self.color is red:
+            self.color = red
+        else:
+            self.color = blue
 
 
 ## spawning??

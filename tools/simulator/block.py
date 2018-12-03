@@ -1,10 +1,9 @@
-#!/usr/bin/python3
 #Author: Chad Harthan, Matthew Yu
 #Last modified: 12/2/18
 #block.py
 from object import Object
 
-red = (255,0,0)
+yellow = (255,255,0)
 green = (0,255,0)
 
 class Block(Object):
@@ -16,7 +15,7 @@ class Block(Object):
         Changes object color when robot interacts with it.
         TODO: sync position with robot when picked up
         """
-        self.color = red
+        self.color = yellow
 
     def off_collision(self):
         """

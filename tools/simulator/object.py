@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #Author: Chad Harthan, Matthew Yu
 #Last modified: 12/2/18
 #Objects.py

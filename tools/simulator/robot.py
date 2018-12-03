@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #Author: Chad Harthan, Matthew Yu
 #Last modified: 12/2/18
 #robot.py
@@ -17,12 +16,32 @@ class Robot(Object):
         super().__init__(position, dimensions, darkBlue)
 
     def on_collision(self):
+        """
+        Changes object color when robot interacts with it.
+        """
         self.color = red
 
     def off_collision(self):
-        self.color = red
+        """
+        Changes object color when robot stops interacting with it.
+        """
+        self.color = darkBlue
 
     def collision(self, sprite):
+        """
+        checks collision between self and a given sprite
+
+        Parameters
+        ----------
+        sprite : Object -> Robot/Obstacle/Block/Mothership
+            Object to compare to
+
+        Returns
+        -------
+        bool
+            True if collides; False otherwise
+
+        """
         top = self.position[1]
         bottom = self.position[1] + self.dimensions[1]
         left = self.position[0]
@@ -46,7 +65,7 @@ class Robot(Object):
         Parameters
         ----------
         group : []
-            list of objects
+            list of Objects
 
         Returns
         ----------
@@ -103,7 +122,8 @@ class Robot(Object):
         move = True
         self.position = [x + v for x, v in zip(self.position, velocity)]
         #check boundaries and check collision amongst objects
-        move = (self.check_bounds() and not self.check_collision(group))
+        collided_obj = self.check_collision(group)
+        move = (self.check_bounds() and not collided_obj)
 
         #then move
         if move is False:
@@ -111,6 +131,13 @@ class Robot(Object):
             self.position = [x - v for x, v in zip(self.position, velocity)]
         else:
             print(self.position[0], ";", self.position[1])
+
+        #adjust obj properties based on collision
+        for object in collided_obj:
+            object.on_collision()
+        for object in set(group)^set(collided_obj):
+            object.off_collision()
+
 
 if __name__ == "__main__":
     print("Hello")
