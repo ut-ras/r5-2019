@@ -19,7 +19,7 @@ def kernel_kmeans(X, K, k, epsilon, func="gauss"):
 
     Parameters
     ----------
-    X: np.array
+    X: list of np.array
         Set of data point vectors.
     K: np.array
         Kernel matrix.
@@ -37,7 +37,7 @@ def kernel_kmeans(X, K, k, epsilon, func="gauss"):
     """
 
     # Establish k centroids and distribute data across them arbitrarily
-    centroids = np.array([np.array([]) for r in range(k)])
+    centroids = [list() for r in range(k)]
 
     for x_ind, x in enumerate(X):
         centroids[x_ind % k].append(x)
@@ -50,9 +50,9 @@ def kernel_kmeans(X, K, k, epsilon, func="gauss"):
         d = [0] * k
 
         for c_ind, c in enumerate(centroids):
-            d[c_ind] = squared_norm(c, K)
+            d[c_ind] = squared_norm(c, k)
         # Compute the average kernel values
-        u = np.zeros(len(X), k)
+        u = np.zeros((len(X), k))
 
         for x_ind, x in enumerate(X):
             for c_ind, c in enumerate(centroids):
@@ -82,13 +82,13 @@ def kernel_kmeans(X, K, k, epsilon, func="gauss"):
     return centroids
 
 
-def squared_norm(X, k, func="gauss"):
+def squared_norm(c, k, func="gauss"):
     """
     Compute the squared norm of a cluster.
 
     Parameters
     ----------
-    X: np.array
+    c: list
         Set of data point vectors, usually a cluster.
     k: int
         Number of clusters.
@@ -103,11 +103,11 @@ def squared_norm(X, k, func="gauss"):
 
     sum = 0
 
-    for a in X:
-        for b in X:
+    for a in c:
+        for b in c:
             sum += k_func(a, b, k, func)
 
-    return sum / len(X) ** 2
+    return sum / len(c) ** 2
 
 
 def avg_kernel(c, x, k, func="gauss"):
@@ -116,9 +116,9 @@ def avg_kernel(c, x, k, func="gauss"):
 
     Parameters
     ----------
-    c: np.array
+    c: list
         Set of data point vectors, usually a cluster.
-    x: list
+    x: np.array
         Singular data point vector.
     k: int
         Number of clusters.
@@ -211,30 +211,31 @@ def sym_diff(a, b):
     lhs = []
 
     for e in a:
-        if e not in b:
+        if not centroid_contains(b, e):
             lhs.append(e)
 
     rhs = []
 
     for e in b:
-        if e not in a:
+        if not centroid_contains(a, e):
             rhs.append(e)
 
     diff = []
 
     for e in lhs:
-        if e not in rhs:
+        if not centroid_contains(rhs, e):
             diff.append(e)
 
     for e in rhs:
-        if e not in lhs:
+        if not centroid_contains(lhs, e):
             diff.append(e)
 
     return np.array(diff)
 
 
-n = 10
-m = 10
-x = [[np.random.uniform(0, 5) for a in range(m)] for b in range(n)]
-c = kernel_kmeans(x, None, 3, 0.05)
-print(c)
+def centroid_contains(c, x):
+    for xa in c:
+        if np.array_equal(xa, x):
+            return True
+
+    return False

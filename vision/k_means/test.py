@@ -1,8 +1,16 @@
-from .kernel_kmeans import kernel_kmeans
+from vision.k_means.kernel_kmeans import kernel_kmeans
+import mnist
 import numpy as np
 
-n = 10
-m = 10
-x = np.array([np.array([np.random.uniform(0, 5) for a in range(m)]) for b in range(n)])
-c = kernel_kmeans(x, None, 3, 0.05)
-print(c)
+images = mnist.train_images()[:1000]
+labels = mnist.train_labels()[:1000]
+
+images = np.array([img for i, img in enumerate(images) if labels[i] in [1, 2]])
+labels = [val for i, val in enumerate(labels) if val in [1, 2]]
+
+c = kernel_kmeans(images, None, 3, 0.05)
+
+ind = 0
+for cluster in c:
+    for x in cluster:
+        print(x)
