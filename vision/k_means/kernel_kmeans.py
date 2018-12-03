@@ -51,6 +51,7 @@ def kernel_kmeans(X, K, k, epsilon, func="gauss"):
 
         for c_ind, c in enumerate(centroids):
             d[c_ind] = squared_norm(c, k)
+
         # Compute the average kernel values
         u = np.zeros((len(X), k))
 
@@ -60,23 +61,27 @@ def kernel_kmeans(X, K, k, epsilon, func="gauss"):
 
         # Assign every point to a new centroid
         centroids_new = [list() for r in range(k)]
+        diff = 0
 
-        for x_ind, x in enumerate(X):
-            # Find the closest centroid to x
-            centroid = -1
-            min_dist = -1
+        for c_ind, c in enumerate(centroids):
+            for x_ind, x in enumerate(c):
+                # Find the closest centroid to x
+                centroid = -1
+                min_dist = -1
 
-            for i in range(k):
-                dist = d[i] - 2 * u[x_ind][i]
+                for i in range(k):
+                    dist = d[i] - 2 * u[x_ind][i]
 
-                if min_dist == -1 or dist < min_dist:
-                    centroid = i
-                    min_dist = dist
+                    if min_dist == -1 or dist < min_dist:
+                        centroid = i
+                        min_dist = dist
 
-            centroids_new[centroid].append(x)
+                if centroid != c_ind:
+                    diff += 1
 
-        # Recalculate the change between centroid sets via symmetric difference
-        diff = len(sym_diff(centroids, centroids_new))
+                centroids_new[centroid].append(x)
+
+        print("relocated", diff, "data points")
         centroids = centroids_new
 
     return centroids
@@ -187,55 +192,3 @@ def k_gauss(x, y, k):
     norm = np.linalg.norm(x - y)
 
     return math.exp(-k * (norm * norm))
-
-
-def sym_diff(a, b):
-    """
-    Computes the symmetric difference of two lists. Because Python native lists (which are being used to represent data
-    points) are not hashable, the native set.symmetric_difference(set) does not suit our purposes.
-    TODO: Speed this up
-
-    Parameters
-    ----------
-    a: list
-        Left hand side.
-    b: list
-        Right hand side.
-
-    Returns
-    -------
-    list
-        Symmetric difference between a and b.
-    """
-
-    lhs = []
-
-    for e in a:
-        if not centroid_contains(b, e):
-            lhs.append(e)
-
-    rhs = []
-
-    for e in b:
-        if not centroid_contains(a, e):
-            rhs.append(e)
-
-    diff = []
-
-    for e in lhs:
-        if not centroid_contains(rhs, e):
-            diff.append(e)
-
-    for e in rhs:
-        if not centroid_contains(lhs, e):
-            diff.append(e)
-
-    return np.array(diff)
-
-
-def centroid_contains(c, x):
-    for xa in c:
-        if np.array_equal(xa, x):
-            return True
-
-    return False

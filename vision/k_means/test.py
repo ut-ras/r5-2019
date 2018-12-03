@@ -8,9 +8,22 @@ labels = mnist.train_labels()[:1000]
 images = np.array([img for i, img in enumerate(images) if labels[i] in [1, 2]])
 labels = [val for i, val in enumerate(labels) if val in [1, 2]]
 
-c = kernel_kmeans(images, None, 3, 0.05)
 
+def get_label(x):
+    for i, xa in enumerate(images):
+        if np.array_equal(x, xa):
+            return labels[i]
+
+    return "NOLABEL"
+
+
+c = kernel_kmeans(images, None, 2, 0.05)
 ind = 0
-for cluster in c:
+
+for ind, cluster in enumerate(c):
+    print("BEGIN CLUSTER", ind)
+
     for x in cluster:
-        print(x)
+        print(get_label(x), end="")
+
+    print()
