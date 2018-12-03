@@ -1,29 +1,58 @@
-import convexhull
-import cv2
-import time
+"""Convex hull tester."""
+
 from itertools import tee
 
-
-img = cv2.imread('../convexHullTests/640x480_test.png', 0)
-start_time = time.time()
-result = convexhull.convex_hull(img)
-print("--- %s seconds ---" % (time.time() - start_time))
-img = cv2.cvtColor(img,cv2.COLOR_GRAY2BGR)
+import cv2
+import convexhull
 
 
+
+THICKNESS = 3
+COLOR = (0, 0, 255) #BGR
 
 def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    """Return paired items from iterable object as such
+       s -> (s0,s1), (s1,s2), (s2, s3), ...
+
+
+    Parameters
+    ----------
+    iterable : iterable object
+        object to iterate over
+
+    Returns
+    -------
+    iterable object
+        iterable with each entry being one adjacent pair
+    """
+
     a, b = tee(iterable)
     next(b, None)
     return zip(a, b)
 
-for a, b in pairwise(result):
-    cv2.line(img,a,b,(0,0,255),5)
+def convexhull_test(image):
+    """Colored visiualization of the convex hulll of the image.
 
-#print(result)
-cv2.namedWindow("corners", cv2.WINDOW_NORMAL)
-cv2.resizeWindow("corners", 120, 120)
-cv2.imshow("corners", img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    Parameters
+    ----------
+    image : numpy.array
+        binary image to be processed
+
+    Returns
+    -------
+    numpy.array
+        BGR image with convex hull drawn over it
+    """
+
+
+
+    result = convexhull.convex_hull(image)
+
+    image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+
+
+    for point_a, point_b in pairwise(result):
+        cv2.line(image, point_a, point_b, COLOR, THICKNESS)
+
+    return image
