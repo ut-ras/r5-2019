@@ -4,18 +4,11 @@
 #Main.py
 
 import pygame
-from block import Block
+from field import Field
 from robot import Robot
-from obstacles import Obstacle
-#from Mothership import Mothership
 
 pygame.init()
 pygame.mixer.init()
-
-#intitialize the screen
-display_width = 800
-display_height = 600
-screen = pygame.display.set_mode((display_width, display_height))
 
 #color inits (can be removed, probably)
 red = (255,0,0)
@@ -26,7 +19,7 @@ white = (255,255,255)
 black = (0,0,0)
 pink = (255,200,200)
 
-def getEvent():
+def getEvent(robot):
     pygame.event.clear()
     while True:
         for event in pygame.event.get():
@@ -34,33 +27,26 @@ def getEvent():
                 if event.key == pygame.K_q:
                     pygame.quit()
                 if event.key == pygame.K_LEFT:
-                    robot1.move([-5, 0], objList)
+                    robot.move([-5, 0], field.objects)
                 if event.key == pygame.K_RIGHT:
-                    robot1.move([5, 0], objList)
+                    robot.move([5, 0], field.objects)
                 if event.key == pygame.K_UP:
-                    robot1.move([0, -5], objList)
+                    robot.move([0, -5], field.objects)
                 if event.key == pygame.K_DOWN:
-                    robot1.move([0, 5], objList)
+                    robot.move([0, 5], field.objects)
                 return
 
+if __name__ == "__main__":
+    print("Hello world")
+    field = Field(0)
+    robot1 = []
+    for object in field.objects:
+        if type(object) is Robot:
+            robot = object
+            break;
 
-objList = []
-#object initialisations
-robot1 = Robot([10, 10])
-objList.append(robot1)
-
-block1 = Block([50, 200])
-objList.append(block1)
-
-obst1 = Obstacle([150, 100])
-objList.append(obst1)
-
-#main loop
-while(True):
-    #keyboard input
-    getEvent()
-
-    screen.fill(white)
-    for obj in objList:
-        obj.draw(screen)
-    pygame.display.update()
+    #main loop
+    while(True):
+        #keyboard input
+        getEvent(robot)
+        field.show_objects()
