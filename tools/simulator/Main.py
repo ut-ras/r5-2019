@@ -7,7 +7,7 @@ import pygame
 from block import Block
 from robot import Robot
 from obstacles import Obstacle
-#from Motherhip import Mothership
+#from Mothership import Mothership
 
 pygame.init()
 pygame.mixer.init()
