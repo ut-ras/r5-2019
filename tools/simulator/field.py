@@ -5,6 +5,8 @@
     manages all Objects on the field (Robots, Obstacles, Blocks, etc).
 """
 import pygame
+import random
+import math
 import settings as s
 from block import Block
 from robot import Robot
@@ -43,17 +45,17 @@ class Field:
             if i is 0:
                 for j in range(0, num_robots):
                     # spawn in center of field based on num_robots
-                    obj = Robot(self.spawn(0))
+                    obj = self.spawn(0)
                     self.objects.append(obj)
             elif i is 1:
                 for j in range(0, num_blocks):
                     # spawn pseudorandomly across field
-                    obj = Block(self.spawn(1))
+                    obj = self.spawn(1)
                     self.objects.append(obj)
             else:
                 for j in range(0, num_obstacles):
                     # spawn pseudorandomly across field
-                    obj = Obstacle(self.spawn(2))
+                    obj = self.spawn(2)
                     self.objects.append(obj)
 
     def spawn(self, type):
@@ -65,36 +67,39 @@ class Field:
                 if obj.__class__.__name__ is "Robot":
                     robotCt += 1
             if robotCt == 1:
-                position = [4*12*s._MULTIPLIER, 4*12*s._MULTIPLIER]
+                position = [s._STARTX,                     s._STARTY]
             elif robotCt == 2:
-                position = [4*12*s._MULTIPLIER+6*s._MULTIPLIER, 4*12*s._MULTIPLIER]
+                position = [s._STARTX+6*s._MULTIPLIER,     s._STARTY]
             elif robotCt == 3:
-                position = [4*12*s._MULTIPLIER+6*s._MULTIPLIER*2, 4*12*s._MULTIPLIER]
+                position = [s._STARTX,                     s._STARTY+4*s._MULTIPLIER]
             elif robotCt == 4:
-                position = [4*12*s._MULTIPLIER, 4*12*s._MULTIPLIER+4*s._MULTIPLIER]
+                position = [s._STARTX+6*s._MULTIPLIER,     s._STARTY+4*s._MULTIPLIER]
             elif robotCt == 5:
-                position = [4*12*s._MULTIPLIER+6*s._MULTIPLIER, 4*12*s._MULTIPLIER+4*s._MULTIPLIER]
+                position = [s._STARTX,                     s._STARTY+4*s._MULTIPLIER*2]
             else:
-                position = [4*12*s._MULTIPLIER+6*s._MULTIPLIER*2, 4*12*s._MULTIPLIER+4*s._MULTIPLIER]
+                position = [s._STARTX+6*s._MULTIPLIER,     s._STARTY+4*s._MULTIPLIER*2]
 
+            return Robot(position)
         elif type is 1: # spawn block
             # spawn pseudo randomly based on already existing objects
-            # 6 in apart from other objects and edge of field
-            # dim:  [1.5, 1.5]
-            for obj in self.objects:
-                if obj.__class__.__name__ is "Block":
-                    print("Block!")
-            position = [3*12*s._MULTIPLIER, 2*12*s._MULTIPLIER]
+            collision = True
+            while collision:
+                block = Block([
+                    random.randint(s._EDGE_OFFSET, int(s._DISPLAY_WIDTH-s._EDGE_OFFSET-s._BLOCK_OFFSET)),
+                    random.randint(s._EDGE_OFFSET, int(s._DISPLAY_HEIGHT-s._EDGE_OFFSET-s._BLOCK_OFFSET))])
+                if not block.check_collision(self.objects, s._SPACING_OFFSET):
+                    collision = False
+            return block
         else: # spawn obstacle
             # spawn pseudo randomly based on already existing objects
-            # 6 in apart from other objects and edge of field
-            # dim:  [1.5, 1.5]
-            for obj in self.objects:
-                if obj.__class__.__name__ is "Obstacle":
-                    print("Obstacle!")
-            position = [5*12*s._MULTIPLIER, 5*12*s._MULTIPLIER]
-
-        return position
+            collision = True
+            while collision:
+                obstacle = Obstacle([
+                    random.randint(s._EDGE_OFFSET, math.floor(s._DISPLAY_WIDTH-s._EDGE_OFFSET-s._OBSTACLE_OFFSET)),
+                    random.randint(s._EDGE_OFFSET, math.floor(s._DISPLAY_HEIGHT-s._EDGE_OFFSET-s._OBSTACLE_OFFSET))])
+                if not obstacle.check_collision(self.objects, s._SPACING_OFFSET):
+                    collision = False
+            return obstacle
 
     def show_objects(self):
         """

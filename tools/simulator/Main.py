@@ -27,18 +27,18 @@ def getEvent(robot):
                 if event.key == pygame.K_q:
                     pygame.quit()
                 if event.key == pygame.K_LEFT:
-                    robot.move([-5, 0], field.objects)
+                    robot.move([-1, 0], field.objects)
                 if event.key == pygame.K_RIGHT:
-                    robot.move([5, 0], field.objects)
+                    robot.move([1, 0], field.objects)
                 if event.key == pygame.K_UP:
-                    robot.move([0, -5], field.objects)
+                    robot.move([0, -1], field.objects)
                 if event.key == pygame.K_DOWN:
-                    robot.move([0, 5], field.objects)
+                    robot.move([0, 1], field.objects)
                 return
 
 if __name__ == "__main__":
     print("Hello world")
-    field = Field(0, 6)
+    field = Field(2, 1)
     robots = []
     for object in field.objects:
         if object.__class__.__name__ is "Robot":
@@ -50,5 +50,7 @@ if __name__ == "__main__":
         #keyboard input
         for robot in robots:
             print(robot,"'s turn:")
+            # robot.color = green
+            field.show_objects()
             getEvent(robot)
             field.show_objects()

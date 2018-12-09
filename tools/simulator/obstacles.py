@@ -30,29 +30,6 @@ class Obstacle(Object):
         else:
             self.color = blue
 
-
-## spawning??
-#        colliding = True
-#        #generate position until not in radius of any object
-#        while colliding:
-#            sPos = [random.randrange(radius, width-radius, 1), random.randrange(radius, length-radius, 1)]
-#            if not objList:
-#                colliding = False
-#            else:
-#                for obj in objList:
-#                    oPos = obj.returnPos()
-#                    if dist(sPos, oPos) > radius:
-#                        colliding = False
-#                    else:
-#                        colliding = True
-#        self.radius = 2
-#        self.xCoord = sPos[0]
-#        self.yCoord = sPos[1]
-#        #init sprite properties
-
-# def dist(pos1, pos2):
-#     return math.sqrt(math.pow(pos1[0]-pos2[0], 2) + math.pow(pos1[1]-pos2[1], 2))
-
 if __name__ == "__main__":
     print("Hello")
     obstacle = Obstacle()
