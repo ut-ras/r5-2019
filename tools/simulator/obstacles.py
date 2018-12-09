@@ -1,6 +1,7 @@
 #Author: Chad Harthan, Matthew Yu
 #Last modified: 12/2/18
 #obstacles.py
+import settings as s
 from object import Object
 
 red = (255,0,0)
@@ -9,7 +10,7 @@ blue = (0,0,255)
 
 # This class represents the dowells + ping pong balls on the field
 class Obstacle(Object):
-    def __init__(self, position=[0, 0], dimensions=[10, 10, 0]):
+    def __init__(self, position=[0, 0], dimensions=[1.5*s._MULTIPLIER, 1.5*s._MULTIPLIER, 0]):
         #6in is default distance between obj and edge of field
         super().__init__(position, dimensions, blue)
 

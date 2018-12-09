@@ -5,15 +5,13 @@
     manages all Objects on the field (Robots, Obstacles, Blocks, etc).
 """
 import pygame
+import settings as s
 from block import Block
 from robot import Robot
 from obstacles import Obstacle
 # from mothership import Mothership
 
-#intitialize the screen
-display_width = 800
-display_height = 600
-screen = pygame.display.set_mode((display_width, display_height))
+screen = pygame.display.set_mode((s._DISPLAY_WIDTH, s._DISPLAY_HEIGHT))
 
 white = (255,255,255)
 
@@ -62,17 +60,39 @@ class Field:
         position = []
         if type is 0: # spawn robot
             # spawn in center based on already existing robot positions
-            position = [50, 50]
+            robotCt = 0
+            for obj in self.objects:
+                if obj.__class__.__name__ is "Robot":
+                    robotCt += 1
+            if robotCt == 1:
+                position = [4*12*s._MULTIPLIER, 4*12*s._MULTIPLIER]
+            elif robotCt == 2:
+                position = [4*12*s._MULTIPLIER+6*s._MULTIPLIER, 4*12*s._MULTIPLIER]
+            elif robotCt == 3:
+                position = [4*12*s._MULTIPLIER+6*s._MULTIPLIER*2, 4*12*s._MULTIPLIER]
+            elif robotCt == 4:
+                position = [4*12*s._MULTIPLIER, 4*12*s._MULTIPLIER+4*s._MULTIPLIER]
+            elif robotCt == 5:
+                position = [4*12*s._MULTIPLIER+6*s._MULTIPLIER, 4*12*s._MULTIPLIER+4*s._MULTIPLIER]
+            else:
+                position = [4*12*s._MULTIPLIER+6*s._MULTIPLIER*2, 4*12*s._MULTIPLIER+4*s._MULTIPLIER]
+
         elif type is 1: # spawn block
             # spawn pseudo randomly based on already existing objects
             # 6 in apart from other objects and edge of field
             # dim:  [1.5, 1.5]
-            position = [100, 100]
+            for obj in self.objects:
+                if obj.__class__.__name__ is "Block":
+                    print("Block!")
+            position = [3*12*s._MULTIPLIER, 2*12*s._MULTIPLIER]
         else: # spawn obstacle
             # spawn pseudo randomly based on already existing objects
             # 6 in apart from other objects and edge of field
             # dim:  [1.5, 1.5]
-            position = [150, 150]
+            for obj in self.objects:
+                if obj.__class__.__name__ is "Obstacle":
+                    print("Obstacle!")
+            position = [5*12*s._MULTIPLIER, 5*12*s._MULTIPLIER]
 
         return position
 

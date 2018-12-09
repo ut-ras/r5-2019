@@ -23,7 +23,7 @@ class Object():
         Draws image on screen
         """
         self.set_color()
-        print(self, self.position)
+        # print(self, self.position)
         screen.blit(self.image, [self.position[0], self.position[1]])
 
 if __name__ == "__main__":

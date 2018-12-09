@@ -38,15 +38,17 @@ def getEvent(robot):
 
 if __name__ == "__main__":
     print("Hello world")
-    field = Field(0)
-    robot1 = []
+    field = Field(0, 6)
+    robots = []
     for object in field.objects:
-        if type(object) is Robot:
-            robot = object
-            break;
+        if object.__class__.__name__ is "Robot":
+            robots.append(object)
+            # break;
 
     #main loop
     while(True):
         #keyboard input
-        getEvent(robot)
-        field.show_objects()
+        for robot in robots:
+            print(robot,"'s turn:")
+            getEvent(robot)
+            field.show_objects()

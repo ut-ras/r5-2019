@@ -1,18 +1,16 @@
 #Author: Chad Harthan, Matthew Yu
 #Last modified: 12/2/18
 #robot.py
+import settings as s
 from object import Object
 from obstacles import Obstacle
 from block import Block
-
-display_width = 800
-display_height = 600
 
 darkBlue = (0,0,128)
 red = (255,0,0)
 
 class Robot(Object):
-    def __init__(self, position=[0, 0], dimensions=[50, 50, 0]):
+    def __init__(self, position=[0, 0], dimensions=[6*s._MULTIPLIER, 4*s._MULTIPLIER, 0]):
         super().__init__(position, dimensions, darkBlue)
 
     def on_collision(self):
@@ -95,11 +93,11 @@ class Robot(Object):
         bool
             True if no boundary has been overstepped, False elsewise
         """
-        if (self.position[0] + self.dimensions[0]) >= display_width:
+        if (self.position[0] + self.dimensions[0]) >= s._DISPLAY_WIDTH:
             return False
         if self.position[0] <= 0:
             return False
-        if (self.position[1] + self.dimensions[1]) >= display_height:
+        if (self.position[1] + self.dimensions[1]) >= s._DISPLAY_HEIGHT:
             return False
         if self.position[1] <= 0:
             return False

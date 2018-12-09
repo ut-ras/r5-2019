@@ -1,13 +1,14 @@
 #Author: Chad Harthan, Matthew Yu
 #Last modified: 12/2/18
 #block.py
+import settings as s
 from object import Object
 
 yellow = (255,255,0)
 green = (0,255,0)
 
 class Block(Object):
-    def __init__(self, position=[0, 0], dimensions=[25, 25, 0]):
+    def __init__(self, position=[0, 0], dimensions=[1.5*s._MULTIPLIER, 1.5*s._MULTIPLIER, 0]):
         super().__init__(position, dimensions, green)
 
     def on_collision(self):
