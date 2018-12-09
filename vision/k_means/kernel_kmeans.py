@@ -13,16 +13,17 @@ import math
 import numpy as np
 
 
-def kernel_kmeans(X, K, k, epsilon, func="gauss"):
+SIGMA = 28 * 28 * 768
+
+
+def kernel_kmeans(X, k, epsilon, func="gauss"):
     """
     Performs k means clustering on a data set using the kernel trick.
 
     Parameters
     ----------
     X: list of np.array
-        Set of data point vectors.
-    K: np.array
-        Kernel matrix.
+        Set of data points.
     k: int
         Number of clusters.
     epsilon: float
@@ -50,14 +51,14 @@ def kernel_kmeans(X, K, k, epsilon, func="gauss"):
         d = [0] * k
 
         for c_ind, c in enumerate(centroids):
-            d[c_ind] = squared_norm(c, k)
+            d[c_ind] = squared_norm(c)
 
         # Compute the average kernel values
         u = np.zeros((len(X), k))
 
         for x_ind, x in enumerate(X):
             for c_ind, c in enumerate(centroids):
-                u[x_ind][c_ind] = avg_kernel(c, x, k, func=func)
+                u[x_ind][c_ind] = avg_kernel(c, x, func=func)
 
         # Assign every point to a new centroid
         centroids_new = [list() for r in range(k)]
@@ -87,16 +88,14 @@ def kernel_kmeans(X, K, k, epsilon, func="gauss"):
     return centroids
 
 
-def squared_norm(c, k, func="gauss"):
+def squared_norm(c, func="gauss"):
     """
     Compute the squared norm of a cluster.
 
     Parameters
     ----------
     c: list
-        Set of data point vectors, usually a cluster.
-    k: int
-        Number of clusters.
+        Set of data points, usually a cluster.
     func: str
         Kernel function identifier. See topmost docstring for valid identifiers.
 
@@ -106,27 +105,28 @@ def squared_norm(c, k, func="gauss"):
         Squared norm of cluster means.
     """
 
+    if len(c) == 0:
+        return 0
+
     sum = 0
 
     for a in c:
         for b in c:
-            sum += k_func(a, b, k, func)
+            sum += k_func(a, b, func)
 
     return sum / len(c) ** 2
 
 
-def avg_kernel(c, x, k, func="gauss"):
+def avg_kernel(c, x, func="gauss"):
     """
     Computer the average kernel value for a data point and a cluster.
 
     Parameters
     ----------
     c: list
-        Set of data point vectors, usually a cluster.
+        Set of data points, usually a cluster.
     x: np.array
-        Singular data point vector.
-    k: int
-        Number of clusters.
+        Singular data point.
     func: str
         Kernel function identifier. See topmost docstring for valid identifiers.
 
@@ -136,26 +136,27 @@ def avg_kernel(c, x, k, func="gauss"):
         Average kernel value of x with respect to the cluster.
     """
 
+    if len(c) == 0:
+        return
+
     sum = 0
 
     for xa in c:
-        sum += k_func(xa, x, k, func)
+        sum += k_func(xa, x, func)
 
     return sum / len(c)
 
 
-def k_func(x, y, k, func):
+def k_func(x, y, func):
     """
     Apply a kernel function to two data points according to some identifier.
 
     Parameters
     ----------
     x: np.array
-        Data point vector.
+        Data point.
     y: np.array
-        Data point vector.
-    k: int
-        Number of clusters.
+        Data point.
     func: str
         Kernel function identifier. See topmost docstring for valid identifiers.
 
@@ -165,23 +166,21 @@ def k_func(x, y, k, func):
     """
 
     if func == "gauss":
-        return k_gauss(x, y, k)
+        return k_gauss(x, y)
     else:
         raise ValueError("Unrecognized kernel function " + func)
 
 
-def k_gauss(x, y, k):
+def k_gauss(x, y):
     """
     Applies the Gaussian kernel function to two data points.
 
     Parameters
     ----------
     x: np.array
-        Data point vector.
+        Data point.
     y: np.array
-        Data point vector.
-    k: int
-        Number of clusters.
+        Data point.
 
     Returns
     -------
@@ -190,5 +189,5 @@ def k_gauss(x, y, k):
     """
 
     norm = np.linalg.norm(x - y)
-
-    return math.exp(-k * (norm * norm))
+    
+    return math.exp(-(norm * norm) / SIGMA)
