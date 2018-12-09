@@ -1,7 +1,7 @@
 #include <pigpio.h>
 #include <iostream>
-#include "../inc/motor.h"
-#include "../inc/pid.h"
+#include "..pb-HAL/inc/motor.h"
+#include "..pb-HAL/inc/pid.h"
 
 int main(void){
     motors[3] = new DRV(15, 14, 17, 18);
