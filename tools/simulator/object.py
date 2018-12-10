@@ -27,7 +27,10 @@ class Object():
         # print(self, self.position)
         screen.blit(self.image, [self.position[0], self.position[1]])
 
-    def collision(self, sprite, offset=0):
+    def change_dim(self):
+        self.image = pygame.Surface([self.dimensions[0], self.dimensions[1]])
+
+    def collision(self, sprite, offset_x=0, offset_y=0):
         """
         checks collision between self and a given sprite
 
@@ -42,10 +45,10 @@ class Object():
             True if collides; False otherwise
 
         """
-        top = self.position[1] - offset
-        bottom = self.position[1] + self.dimensions[1] + offset
-        left = self.position[0] - offset
-        right = self.position[0] + self.dimensions[0] + offset
+        top = self.position[1] - offset_y
+        bottom = self.position[1] + self.dimensions[1] + offset_y
+        left = self.position[0] - offset_x
+        right = self.position[0] + self.dimensions[0] + offset_x
         corners = [
             [sprite.position[0], sprite.position[1]],
             [sprite.position[0] + sprite.dimensions[0], sprite.position[1]],
@@ -58,7 +61,7 @@ class Object():
                     return True
         return False
 
-    def check_collision(self, group, offset=0):
+    def check_collision(self, group, offset_x=0, offset_y=0):
         """
         Checks whether robot has collided with any other obstacle or robot.
 
@@ -82,7 +85,7 @@ class Object():
                 # print("offset: {xoffset}:{yoffset}".
                 #     format(xoffset = sprite.position[0] - self.position[0],
                 #     yoffset = sprite.position[1] - self.position[1]))
-                if self.collision(sprite, offset):
+                if self.collision(sprite, offset_x, offset_y):
                     collided.append(sprite)
         return collided
 

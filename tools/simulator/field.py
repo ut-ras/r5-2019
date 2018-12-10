@@ -87,7 +87,7 @@ class Field:
                 block = Block([
                     random.randint(s._EDGE_OFFSET, int(s._DISPLAY_WIDTH-s._EDGE_OFFSET-s._BLOCK_OFFSET)),
                     random.randint(s._EDGE_OFFSET, int(s._DISPLAY_HEIGHT-s._EDGE_OFFSET-s._BLOCK_OFFSET))])
-                if not block.check_collision(self.objects, s._SPACING_OFFSET):
+                if not block.check_collision(self.objects, s._SPACING_OFFSET, s._SPACING_OFFSET):
                     collision = False
             return block
         else: # spawn obstacle
@@ -97,7 +97,7 @@ class Field:
                 obstacle = Obstacle([
                     random.randint(s._EDGE_OFFSET, math.floor(s._DISPLAY_WIDTH-s._EDGE_OFFSET-s._OBSTACLE_OFFSET)),
                     random.randint(s._EDGE_OFFSET, math.floor(s._DISPLAY_HEIGHT-s._EDGE_OFFSET-s._OBSTACLE_OFFSET))])
-                if not obstacle.check_collision(self.objects, s._SPACING_OFFSET):
+                if not obstacle.check_collision(self.objects, s._SPACING_OFFSET, s._SPACING_OFFSET):
                     collision = False
             return obstacle
 
