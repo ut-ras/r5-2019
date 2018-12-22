@@ -62,8 +62,15 @@ class Robot(Object):
 
     def rotate(self, group=[]):
         rotate = True
+
+        # offset rotates robot around its center of rotation
+        offset = 5
+        # flip offset if rotating from opposite dimensions
+        if self.dimensions[0] is 4*s._MULTIPLIER:
+            offset = -5
+
+        self.position = [self.position[0]+offset, self.position[1]-offset]
         self.dimensions = [self.dimensions[1], self.dimensions[0]]
-        # self.change_pos() = functionToFindOffsets() based off offsets
         collided_obj = self.check_collision(group)
         rotate = (self.check_bounds() and not collided_obj)
 
@@ -71,7 +78,7 @@ class Robot(Object):
         if rotate is False:
             print("Robot collision with obstacle or terrain!")
             self.dimensions = [self.dimensions[1], self.dimensions[0]]
-            # undo self.change_pos()
+            self.position = [self.position[0]-offset, self.position[1]+offset]
             return False
         else:
             print(self.dimensions[0], ";", self.dimensions[1])
