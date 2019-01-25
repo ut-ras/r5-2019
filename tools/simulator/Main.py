@@ -70,13 +70,13 @@ if __name__ == "__main__":
     while(True):
         #keyboard input
         for robot in robots:
-            print(robot,"'s turn:")
+            #print(robot,"'s turn:")
             if len(robots) > 1:
                 robot.color = green
                 field.show_objects()
-            print(robot.dimensions)
+            #Eprint(robot.dimensions)
             KEY_PRESSED = getEvent(KEY_PRESSED)
             pygame.time.wait(s._SIM_SPEED)
-            print(KEY_PRESSED)
+            #print(KEY_PRESSED)
             move(robot, KEY_PRESSED)
             field.show_objects()

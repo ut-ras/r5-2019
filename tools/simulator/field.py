@@ -11,6 +11,7 @@ import settings as s
 from block import Block
 from robot import Robot
 from obstacles import Obstacle
+from motherboard import motherBoard
 # from mothership import Mothership
 
 screen = pygame.display.set_mode((s._DISPLAY_WIDTH, s._DISPLAY_HEIGHT))
@@ -41,7 +42,7 @@ class Field:
         num_obstacles : int
             number of obstacles on the field
         """
-        for i in range(0, 3):
+        for i in range(0, 4):
             if i is 0:
                 for j in range(0, num_robots):
                     # spawn in center of field based on num_robots
@@ -52,11 +53,15 @@ class Field:
                     # spawn pseudorandomly across field
                     obj = self.spawn(1)
                     self.objects.append(obj)
-            else:
+            elif i is 2:
                 for j in range(0, num_obstacles):
                     # spawn pseudorandomly across field
                     obj = self.spawn(2)
                     self.objects.append(obj)
+            else:
+                    obj = self.spawn(3)
+                    self.objects.append(obj)
+                
 
     def spawn(self, type):
         position = []
@@ -90,7 +95,7 @@ class Field:
                 if not block.check_collision(self.objects, s._SPACING_OFFSET, s._SPACING_OFFSET):
                     collision = False
             return block
-        else: # spawn obstacle
+        elif type is 2: # spawn obstacle
             # spawn pseudo randomly based on already existing objects
             collision = True
             while collision:
@@ -100,6 +105,16 @@ class Field:
                 if not obstacle.check_collision(self.objects, s._SPACING_OFFSET, s._SPACING_OFFSET):
                     collision = False
             return obstacle
+        else: #spawn motherboard
+            # spawn pseudo randomly based on already existing objects
+            collision = True
+            while collision:
+                mb = motherBoard([
+                    random.randint(s._EDGE_OFFSET, math.floor(s._DISPLAY_WIDTH-s._EDGE_OFFSET-s._MS_OFFSET)),
+                    random.randint(s._EDGE_OFFSET, math.floor(s._DISPLAY_HEIGHT-s._EDGE_OFFSET-s._MS_OFFSET))])
+                if not mb.check_collision(self.objects, s._SPACING_OFFSET, s._SPACING_OFFSET):
+                    collision = False
+            return mb
 
     def show_objects(self):
         """
