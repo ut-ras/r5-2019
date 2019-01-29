@@ -61,7 +61,7 @@ class Field:
             else:
                     obj = self.spawn(3)
                     self.objects.append(obj)
-                
+
 
     def spawn(self, type):
         position = []
@@ -84,6 +84,7 @@ class Field:
             else:
                 position = [s._STARTX+6*s._MULTIPLIER,     s._STARTY+4*s._MULTIPLIER*2]
 
+            print(position[0], position[1])
             return Robot(position)
         elif type is 1: # spawn block
             # spawn pseudo randomly based on already existing objects

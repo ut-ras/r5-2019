@@ -102,7 +102,8 @@ class RobotFrame(Subsystem, threading.Thread):
         Exception
             This method should never be run.
         """
-
+        # if target_state is not current_state:
+        #     change_state
         raise Exception("The loop method should be overwritten.")
 
     def init(self):

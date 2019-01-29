@@ -2,7 +2,7 @@
 #Last modified: 12/2/18
 #robot.py
 import settings as s
-from RobotFrame import drivers.core.robot
+from drivers.core.robotFrame import RobotFrame
 from object import Object
 from obstacles import Obstacle
 from block import Block
@@ -13,8 +13,8 @@ red = (255,0,0)
 class Robot(Object, RobotFrame):
     #0-(ABS)NORTH, 1-EAST, 2-SOUTH, 3-WEST
     def __init__(self, position=[0, 0], heading=0, velocity=[0,0], dimensions=[6*s._MULTIPLIER, 4*s._MULTIPLIER, 0]):
-        Object.__init__(position, dimensions, black)
-        RobotFrame.__init__("Robot")
+        Object.__init__(self, position, dimensions, black)
+        RobotFrame.__init__(self, "Robot")
         # self.claw = some claw
         self.heading = heading
         self.velocity = velocity
