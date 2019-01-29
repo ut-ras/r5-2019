@@ -26,16 +26,16 @@ KEY_PRESSED = [False, False, False, False]
 def move(robot, KEY_PRESSED):
     if KEY_PRESSED[0] is True:
         if robot.change_orientation(0, field.objects):
-            robot.move([0, -1], field.objects)
+            robot.change_state([0, -1], field.objects)
     elif KEY_PRESSED[1] is True:
         if robot.change_orientation(2, field.objects):
-            robot.move([0, 1], field.objects)
+            robot.change_state([0, 1], field.objects)
     elif KEY_PRESSED[2] is True:
         if robot.change_orientation(3, field.objects):
-            robot.move([-1, 0], field.objects)
+            robot.change_state([-1, 0], field.objects)
     elif KEY_PRESSED[3] is True:
         if robot.change_orientation(1, field.objects):
-            robot.move([1, 0], field.objects)
+            robot.change_state([1, 0], field.objects)
 
 def getEvent(KEY_PRESSED):
     for event in pygame.event.get():
@@ -64,17 +64,17 @@ if __name__ == "__main__":
     for object in field.objects:
         if object.__class__.__name__ is "Robot":
             robots.append(object)
-            # break;
+            object.run()
 
     #main loop
     while(True):
         #keyboard input
         for robot in robots:
             #print(robot,"'s turn:")
-            if len(robots) > 1:
-                robot.color = green
-                field.show_objects()
-            #Eprint(robot.dimensions)
+            # if len(robots) > 1:
+            #     robot.color = green
+            #     field.show_objects()
+            #print(robot.dimensions)
             KEY_PRESSED = getEvent(KEY_PRESSED)
             pygame.time.wait(s._SIM_SPEED)
             #print(KEY_PRESSED)

@@ -2,6 +2,7 @@
 #Last modified: 12/2/18
 #robot.py
 import settings as s
+from RobotFrame import drivers.core.robot
 from object import Object
 from obstacles import Obstacle
 from block import Block
@@ -9,11 +10,14 @@ from block import Block
 black = (0,0,0)
 red = (255,0,0)
 
-class Robot(Object):
+class Robot(Object, RobotFrame):
     #0-(ABS)NORTH, 1-EAST, 2-SOUTH, 3-WEST
-    def __init__(self, position=[0, 0], heading=0, dimensions=[6*s._MULTIPLIER, 4*s._MULTIPLIER, 0]):
-        super().__init__(position, dimensions, black)
+    def __init__(self, position=[0, 0], heading=0, velocity=[0,0], dimensions=[6*s._MULTIPLIER, 4*s._MULTIPLIER, 0]):
+        Object.__init__(position, dimensions, black)
+        RobotFrame.__init__("Robot")
+        # self.claw = some claw
         self.heading = heading
+        self.velocity = velocity
 
     def on_collision(self):
         """
@@ -41,6 +45,8 @@ class Robot(Object):
         TODO: change movement xChange/yChange to be double(?) values based on
             omnidirectional movement (possibly calc'd from a unit circle w/ heading)
         """
+        self.velocity = velocity
+
         move = True
         self.position = [x + v for x, v in zip(self.position, velocity)]
         #check boundaries and check collision amongst objects
@@ -104,6 +110,8 @@ class Robot(Object):
 
         return False
 
+    def change_state(self, velocity):
+        self.velocity = velocity
 
 
 if __name__ == "__main__":
