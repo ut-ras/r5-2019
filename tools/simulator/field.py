@@ -7,6 +7,7 @@
 import pygame
 import random
 import math
+import time
 import settings as s
 from block import Block
 from robot import Robot
@@ -19,7 +20,15 @@ screen = pygame.display.set_mode((s._DISPLAY_WIDTH, s._DISPLAY_HEIGHT))
 white = (255,255,255)
 
 class Field:
+    """
+    Field does the following functions:
+        handle initialization of objects on the field (robots, blocks, etc)
+        manages the drawing of objects on the field
+        gets the time state of the simulation
+    """
     def __init__(self, mode, num_robots=1, num_blocks=0, num_obstacles=0):
+        self.startTime = time.clock()
+        self.currTime = time.time()
         self.objects = []
         if mode is 0:   # round 1 default
             self.initialise(num_robots, 2, 5)
@@ -61,7 +70,6 @@ class Field:
             else:
                     obj = self.spawn(3)
                     self.objects.append(obj)
-
 
     def spawn(self, type):
         position = []
@@ -125,6 +133,18 @@ class Field:
         for obj in self.objects:
             obj.draw(screen)
         pygame.display.update()
+
+    def ping_time(self):
+        """
+        gets the current time passed since initialization start time
+
+        Returns
+        -------
+        time : float
+            elapsed time since field initialization
+        """
+        self.currTime = time.time()
+        return self.currTime - self.startTime
 
 
 if __name__ == "__main__":

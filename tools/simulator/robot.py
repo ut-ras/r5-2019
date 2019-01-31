@@ -11,13 +11,21 @@ black = (0,0,0)
 red = (255,0,0)
 
 class Robot(Object, RobotFrame):
-    #0-(ABS)NORTH, 1-EAST, 2-SOUTH, 3-WEST
-    def __init__(self, position=[0, 0], heading=0, velocity=[0,0], dimensions=[6*s._MULTIPLIER, 4*s._MULTIPLIER, 0]):
+    """
+    Robot does the following functions:
+        handles initialization of the RobotFrame - starting its own thread
+        move and handles collisions
+        changes state based on input (change_state, etc)
+    Each robot instance runs on its own separate thread.
+    All robots manage a shared object list created by the Field.
+    Cannot directly access object properties besides itself.
+    """
+
+    def __init__(self, position=[0, 0], heading=0, dimensions=[6*s._MULTIPLIER, 4*s._MULTIPLIER, 0]):
         Object.__init__(self, position, dimensions, black)
         RobotFrame.__init__(self, "Robot")
-        # self.claw = some claw
+        # self.claw = some claw # - where we get the state of movement
         self.heading = heading
-        self.velocity = velocity
 
     def on_collision(self):
         """
@@ -31,24 +39,19 @@ class Robot(Object, RobotFrame):
         """
         self.color = black
 
-    def move(self, velocity=[0, 0], group=[]):
+    def move(self, group=[]):
         """
         Moves robot position.
 
         Parameters
         ----------
-        velocity: [x, y]
-            x change and y change in position
         group : object
             a list of object to check for collision
-
-        TODO: change movement xChange/yChange to be double(?) values based on
-            omnidirectional movement (possibly calc'd from a unit circle w/ heading)
         """
-        self.velocity = velocity
-
         move = True
-        self.position = [x + v for x, v in zip(self.position, velocity)]
+        #self.position = [x + v for x, v in zip(self.position, velocity)]
+        # change position based on current position, drivetrain state
+
         #check boundaries and check collision amongst objects
         collided_obj = self.check_collision(group)
         move = (self.check_bounds() and not collided_obj)
@@ -56,7 +59,8 @@ class Robot(Object, RobotFrame):
         #then move
         if move is False:
             print("Robot collision with obstacle or terrain!")
-            self.position = [x - v for x, v in zip(self.position, velocity)]
+            # revert position based on drivetrain state
+            #self.position = [x - v for x, v in zip(self.position, velocity)]
         else:
             print(self.position[0], ";", self.position[1])
 
