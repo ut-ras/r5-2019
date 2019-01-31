@@ -16,4 +16,4 @@ class DrivetrainState:
             raise ValueError("invalid state:", state)
 
         self.state = state
-        self.magnitude = 0
+        self.magnitude = magnitude
