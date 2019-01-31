@@ -2,6 +2,7 @@
 #Last modified: 12/2/18
 #robot.py
 import settings as s
+import kinematics as k
 from drivers.core.robotFrame import RobotFrame
 from object import Object
 from obstacles import Obstacle
@@ -24,7 +25,7 @@ class Robot(Object, RobotFrame):
     def __init__(self, position=[0, 0], heading=0, dimensions=[6*s._MULTIPLIER, 4*s._MULTIPLIER, 0]):
         Object.__init__(self, position, dimensions, black)
         RobotFrame.__init__(self, "Robot")
-        # self.claw = some claw # - where we get the state of movement
+        self.drivetrain_state = DrivetrainState() # - where we get the state of movement
         self.heading = heading
 
     def on_collision(self):
@@ -49,11 +50,16 @@ class Robot(Object, RobotFrame):
         group : object
             a list of object to check for collision
         """
+        velocity, self.heading = k.dt_state_to_vel(drivetrain_state, self.heading, s._WHEELS_APART)
         move = True
-        #self.position = [x + v for x, v in zip(self.position, velocity)]
+        self.position = [x + v for x, v in zip(self.position, velocity)]
         # change position based on current position, drivetrain state
 
         #check boundaries and check collision amongst objects
+        """
+            REWRITE TO MANAGE CHECK_COLLISION WITH ROTATION
+            (adjust corner coords based on heading)
+        """
         collided_obj = self.check_collision(group)
         move = (self.check_bounds() and not collided_obj)
 
@@ -61,7 +67,7 @@ class Robot(Object, RobotFrame):
         if move is False:
             print("Robot collision with obstacle or terrain!")
             # revert position based on drivetrain state
-            #self.position = [x - v for x, v in zip(self.position, velocity)]
+            self.position = [x - v for x, v in zip(self.position, velocity)]
         else:
             print(self.position[0], ";", self.position[1])
 
@@ -76,7 +82,7 @@ class Robot(Object, RobotFrame):
     def rotate(self, group=[]):
         rotate = True
 
-        # offset rotates robot around its center of rotation
+        # rotates robot, checks circle around robot longest axis
         offset = 5
         # flip offset if rotating from opposite dimensions
         if self.dimensions[0] is 4*s._MULTIPLIER:
@@ -97,26 +103,6 @@ class Robot(Object, RobotFrame):
             print(self.dimensions[0], ";", self.dimensions[1])
             self.change_dim()
             return True
-
-    ### rebuild
-    def change_orientation(self, direction, group=[]):
-        print("Dir", direction)
-        print("Heading",self.heading)
-        if direction is self.heading:
-            return True
-        elif direction is (self.heading+2)%4:
-            self.heading = direction
-            return True
-        elif direction is (self.heading+1)%4:
-            if self.rotate(group):
-                self.heading = direction
-                return True
-        elif direction is (self.heading+3)%4:
-            if self.rotate(group):
-                self.heading = direction
-                return True
-
-        return False
 
 
 if __name__ == "__main__":
