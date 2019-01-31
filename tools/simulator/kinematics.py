@@ -10,7 +10,7 @@ def dt_state_to_vel(dt_state, heading, track_width):
     dt_state: simulator.robotstate.DrivetrainState
         Robot drivetrain state
     heading: float
-        Robot heading in float
+        Robot heading in radians
     track_width:
         Width of the drive base; distance between the treads
 
