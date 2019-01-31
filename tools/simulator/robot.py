@@ -39,6 +39,7 @@ class Robot(Object, RobotFrame):
         """
         self.color = black
 
+    ### rebuild
     def move(self, group=[]):
         """
         Moves robot position.
@@ -70,6 +71,8 @@ class Robot(Object, RobotFrame):
         for object in set(group)^set(collided_obj):
             object.off_collision()
 
+
+    ### rebuild
     def rotate(self, group=[]):
         rotate = True
 
@@ -95,6 +98,7 @@ class Robot(Object, RobotFrame):
             self.change_dim()
             return True
 
+    ### rebuild
     def change_orientation(self, direction, group=[]):
         print("Dir", direction)
         print("Heading",self.heading)
@@ -113,9 +117,6 @@ class Robot(Object, RobotFrame):
                 return True
 
         return False
-
-    def change_state(self, velocity):
-        self.velocity = velocity
 
 
 if __name__ == "__main__":

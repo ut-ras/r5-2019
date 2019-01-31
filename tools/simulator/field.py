@@ -26,6 +26,7 @@ class Field:
         manages the drawing of objects on the field
         gets the time state of the simulation
     """
+
     def __init__(self, mode, num_robots=1, num_blocks=0, num_obstacles=0):
         self.startTime = time.clock()
         self.currTime = time.time()
@@ -130,11 +131,18 @@ class Field:
         displays the objects on the screen
         """
         screen.fill(white)
+        self.ping_time()
         for obj in self.objects:
             obj.draw(screen)
         pygame.display.update()
 
     def ping_time(self):
+        """
+        updates the global time across the field.
+        """
+        self.currTime = time.time()
+
+    def get_time_elapsed(self):
         """
         gets the current time passed since initialization start time
 
@@ -143,7 +151,6 @@ class Field:
         time : float
             elapsed time since field initialization
         """
-        self.currTime = time.time()
         return self.currTime - self.startTime
 
 
