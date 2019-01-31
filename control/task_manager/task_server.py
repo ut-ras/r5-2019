@@ -11,7 +11,17 @@ from .server import HostServer
 
 
 class RequestHandler(BaseHTTPRequestHandler):
-    """Request Handler for TaskManager server requests"""
+    """Request Handler for TaskManager server requests
+
+    Attributes
+    ----------
+    direct_handler : Task -> None or str
+        Function to handler requests directly. Should return None if not
+        at match (if the request should be enqueued). If direct_handler
+        does not return None, the result is encoded into the response.
+    """
+
+    direct_handler = None
 
     def __handle_task_exception(self, e):
         """Send an error response"""
@@ -41,14 +51,25 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         """POST request -> create new task"""
         try:
-            body = json.loads(
-                self.rfile.read(int(self.headers['Content-Length'])))
-
-            self.manager.put(Task(body))
-
             self.send_response(200)
             self.send_header('Content-type', 'text/json')
             self.end_headers()
+
+            body = Task(
+                json.loads(
+                    self.rfile.read(
+                        int(self.headers['Content-Length']))))
+
+            # check direct_handler function
+            if self.direct_handler is not None:
+                res = self.direct_handler(body)
+                if res is not None:
+                    self.wfile.write(bytes(res, 'utf-8'))
+                    return
+
+            # no direct_handler or direct handler returns None
+            self.manager.put(body)
+
         except Exception as e:
             self.__handle_task_exception(e)
 
@@ -60,14 +81,17 @@ class TaskServer:
     ----------
     port : int
         Server port to use
+    direct_handler : Task -> None or str
+        See docs for RequestHandler.
     """
 
-    def __init__(self, port=80):
+    def __init__(self, port=80, direct_handler=None):
         self.port = port
         self.manager = HostTaskManager()
 
         class TaskRequestHandler(RequestHandler):
             manager = self.manager
+            direct_handler = direct_handler
 
         self.server = HostServer(8000, handler=TaskRequestHandler)
 
