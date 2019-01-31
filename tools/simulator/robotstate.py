@@ -4,8 +4,16 @@
 import settings as s
 from object import Object
 
-class RobotState(Object):
-    def __init__(self, left_vel, right_vel, claw_state):
-        self.left_vel = left_vel
-        self.right_vel = right_vel
-        self.claw_state = claw_state
+TURN_RIGHT = 0
+DRIVE_FORWARD = 1
+TURN_LEFT = 2
+DRIVE_BACKWARD = 3
+VALID_STATES = [TURN_RIGHT, DRIVE_FORWARD, TURN_LEFT, DRIVE_BACKWARD]
+
+class DrivetrainState:
+    def __init__(self, state=None, magnitude=0):
+        if state == None or state not in VALID_STATES:
+            raise ValueError("invalid state:", state)
+
+        self.state = state
+        self.magnitude = 0
