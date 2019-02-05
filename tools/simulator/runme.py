@@ -1,5 +1,5 @@
 import pygame as py  
-
+import time
 # define constants  
 WIDTH = 500  
 HEIGHT = 500  
@@ -31,29 +31,60 @@ image.set_colorkey(BLACK)
 rect = image.get_rect()  
 rect.center = (WIDTH // 2 , HEIGHT // 2)  
 # keep rotating the rectangle until running is set to False  
-running = True  
-while running:  
-    # set FPS  
-    clock.tick(FPS)  
-    # clear the screen every time before drawing new objects  
-    screen.fill(BLACK)  
-    # check for the exit  
-    for event in py.event.get():  
-        if event.type == py.QUIT:  
-            running = False  
+running = True
 
-    # making a copy of the old center of the rectangle  
-    old_center = rect.center  
-    # defining angle of the rotation  
-    rot = (rot + rot_speed) % 360  
-    # rotating the orignal image  
-    new_image = py.transform.rotate(image_orig , rot)  
-    rect = new_image.get_rect()  
-    # set the rotated rectangle to the old center  
-    rect.center = old_center  
-    # drawing the rotated rectangle to the screen  
-    screen.blit(new_image , rect)  
-    # flipping the display after drawing everything  
-    py.display.flip()  
+def rotateLeft(degrees,img,rect,center):
+    amountRotated = 0
+    while amountRotated <= degrees:
+        screen.fill(BLACK)
+        # making a copy of the old center of the rectangle  
+        previous = center
+         # defining angle of the rotation  
+        amountRotated = (amountRotated + 1) % 360
+        #print(amountRotated)
+         # rotating the orignal image 
+        new_image = py.transform.rotate(img , amountRotated)
+        rect = new_image.get_rect()
+        # set the rotated rectangle to the old center  
+        rect.center = previous
+        # drawing the rotated rectangle to the screen  
+        screen.blit(new_image , rect)  
+        # flipping the display after drawing everything  
+        py.display.flip()
+        time.sleep(.01)
+
+def rotateRight(degrees,img,rect,center):
+    degrees = degrees - 360
+    amountRotated = 0
+    while amountRotated <= degrees:
+        screen.fill(BLACK)
+        # making a copy of the old center of the rectangle  
+        previous = center
+         # defining angle of the rotation  
+        amountRotated = (amountRotated + 1) % 360
+        #print(amountRotated)
+         # rotating the orignal image 
+        new_image = py.transform.rotate(img , amountRotated)
+        rect = new_image.get_rect()
+        # set the rotated rectangle to the old center  
+        rect.center = previous
+        # drawing the rotated rectangle to the screen  
+        screen.blit(new_image , rect)  
+        # flipping the display after drawing everything  
+        py.display.flip()
+        time.sleep(.01)
+
+while(running):
+    for event in py.event.get():
+        if event.type == py.KEYDOWN:
+            if event.key == py.K_r:
+                rotateRight(90,image,rect,rect.center)
+            if event.key == py.K_l:
+                rotateLeft(90,image,rect,rect.center)
+        elif event.type == py.QUIT:  
+            running = False
+        
+        
+        
 
 py.quit()  
