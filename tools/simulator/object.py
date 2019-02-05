@@ -30,7 +30,36 @@ class Object():
     def change_dim(self):
         self.image = pygame.Surface([self.dimensions[0], self.dimensions[1]])
 
-    def collision(self, sprite, offset_x=0, offset_y=0):
+    def rotate(self, sprite, theta):
+        """
+        rotates points of the object (robot intended) for collision checking
+
+        Parameters
+        ----------
+        sprite : Object -> Robot/Obstacle/Block/Mothership
+            Object to compare to
+        theta : radians
+
+        Returns
+        -------
+        list : points
+            list of corners for collision checking
+        """
+        c_v = [
+            [sprite.position[0], sprite.position[1]],
+            [sprite.position[0] + sprite.dimensions[0], sprite.position[1]],
+            [sprite.position[0], sprite.position[1] + sprite.dimensions[1]],
+            [sprite.position[0] + sprite.dimensions[0], sprite.position[1] + sprite.dimensions[1]]
+        ]
+
+        return [[
+            c_v[0][0]*cos(theta) - c_v[0][1]*sin(theta), c_v[0][0]*sin(theta) + c_v[0][1]*cos(theta)],
+            c_v[1][0]*cos(theta) - c_v[1][1]*sin(theta), c_v[1][0]*sin(theta) + c_v[1][1]*cos(theta)],
+            c_v[2][0]*cos(theta) - c_v[2][1]*sin(theta), c_v[2][0]*sin(theta) + c_v[2][1]*cos(theta)],
+            c_v[3][0]*cos(theta) - c_v[3][1]*sin(theta), c_v[3][0]*sin(theta) + c_v[3][1]*cos(theta)]
+        ]]
+
+    def collision(self, sprite, theta=0, offset_x=0, offset_y=0):
         """
         checks collision between self and a given sprite
 
@@ -49,17 +78,25 @@ class Object():
         bottom = self.position[1] + self.dimensions[1] + offset_y
         left = self.position[0] - offset_x
         right = self.position[0] + self.dimensions[0] + offset_x
-        corners = [
-            [sprite.position[0], sprite.position[1]],
-            [sprite.position[0] + sprite.dimensions[0], sprite.position[1]],
-            [sprite.position[0], sprite.position[1] + sprite.dimensions[1]],
-            [sprite.position[0] + sprite.dimensions[0], sprite.position[1] + sprite.dimensions[1]]]
+        if theta is 0:
+            corners = [
+                [sprite.position[0], sprite.position[1]],
+                [sprite.position[0] + sprite.dimensions[0], sprite.position[1]],
+                [sprite.position[0], sprite.position[1] + sprite.dimensions[1]],
+                [sprite.position[0] + sprite.dimensions[0], sprite.position[1] + sprite.dimensions[1]]]
 
-        for corner in corners:
-            if corner[1] > top and corner[1] < bottom:
-                if corner[0] > left and corner[0] < right:
-                    return True
-        return False
+            for corner in corners:
+                if corner[1] > top and corner[1] < bottom:
+                    if corner[0] > left and corner[0] < right:
+                        return True
+            return False
+        else:
+            corners = rotate(sprite, theta)
+            for corner in corners:
+                if corner[1] > top and corner[1] < bottom:
+                    if corner[0] > left and corner[0] < right:
+                        return True
+            return False
 
     def check_collision(self, group, offset_x=0, offset_y=0):
         """
