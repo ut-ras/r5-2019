@@ -25,7 +25,8 @@ class RobotFrame(Subsystem, threading.Thread):
             Number of frames to calculate average update rate from
         """
 
-        super().__init__(name)
+        threading.Thread.__init__(self)
+        Subsystem.__init__(self, name)
 
         # Semaphores for asynchronous access
         self.done = False
@@ -87,7 +88,9 @@ class RobotFrame(Subsystem, threading.Thread):
 
             # Average fps
             frame_times.append(time.time() - start)
-            self.fps = 1. * len(frame_times) / sum(frame_times)
+            frame_times_sum = sum(frame_times)
+            if frame_times_sum != 0:
+                self.fps = 1. * len(frame_times) / frame_times_sum
 
         # Set semaphores
         self.done = True

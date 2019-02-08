@@ -163,7 +163,6 @@ def tuple_form_trap(x0, xf, v, a):
     if accel_dist * direction > total_dist / 2:
         v = sqrt(fabs(total_dist * a))  # Rearrangement of vf^2=v0^2+2ad
         accel_dist = v ** 2 / (2 * a * direction)
-        print("v is now", v)
 
     accel_time = fabs(2 * accel_dist / v)  # Rearrangement of d=0.5(v0+vf)t
     cruise_dist = total_dist - accel_dist * 2

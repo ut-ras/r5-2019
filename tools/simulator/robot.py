@@ -1,118 +1,58 @@
-#Author: Chad Harthan, Matthew Yu
-#Last modified: 12/2/18
-#robot.py
-import settings as s
-import kinematics as k
-from drivers.core.robotFrame import RobotFrame
-from object import Object
-from obstacles import Obstacle
-from block import Block
+"""
+Things relating to simulated robots.
 
-black = (0,0,0)
-red = (255,0,0)
+Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
+Last modified: 2/8/19
+"""
+from tools.simulator.drivers.core.robotframe import RobotFrame
+from tools.simulator.object import SimulationObject, MASK_RECT
+from tools.simulator.util import dt_state_to_vel
+import numpy as np
 
-class Robot(Object, RobotFrame):
+
+ROBOT_WIDTH = 6
+ROBOT_HEIGHT = 3
+ROBOT_COLOR = (0, 255, 0)
+
+
+class SimulationRobot(SimulationObject, RobotFrame):
     """
-    Robot does the following functions:
-        handles initialization of the RobotFrame - starting its own thread
-        move and handles collisions
-        changes state based on input (change_state, etc)
-    Each robot instance runs on its own separate thread.
-    All robots manage a shared object list created by the Field.
-    Cannot directly access object properties besides itself.
+    A simulated robot that exists within its own thread.
     """
-
-    def __init__(self, position=[0, 0], velocity=[0,0] heading=0, dimensions=[6*s._MULTIPLIER, 4*s._MULTIPLIER, 0]):
-        Object.__init__(self, position, dimensions, black)
-        RobotFrame.__init__(self, "Robot")
-        self.drivetrain_state = DrivetrainState() # - where we get the state of movement
-        self.velocity = velocity
-        self.heading = heading
-
-    def on_collision(self):
+    def __init__(self, x, y, theta):
         """
-        Changes object color when robot interacts with it.
-        """
-        self.color = red
-
-    def off_collision(self):
-        """
-        Changes object color when robot stops interacting with it.
-        """
-        self.color = black
-
-    ### rebuild
-    def move(self, group=[]):
-        """
-        Moves robot position.
-
         Parameters
         ----------
-        group : object
-            a list of object to check for collision
+        x: float
+            horizontal position in units
+        y: float
+            vertical position in units
+        theta: float
+            heading in radians
         """
-        xVel, yVel, rVel = k.dt_state_to_vel(drivetrain_state, self.heading, s._WHEELS_APART)
-        vel = [xVel, yVel]
-        move = True
-        self.position = [p + v for p, v in zip(self.position, vel)]
-        self.heading += rVel
+        SimulationObject.__init__(self, x, y, theta, ROBOT_WIDTH, ROBOT_HEIGHT, ROBOT_COLOR, MASK_RECT)
+        RobotFrame.__init__(self, "mr robot")
 
-        #check boundaries and check collision amongst objects
+        self.drivetrain_state = None
+
+    def loop(self):
         """
-            REWRITE TO MANAGE CHECK_COLLISION WITH ROTATION
-            (adjust corner coords based on heading)
+        A single iteration of the robot's control code. Called automatically by the overarching thread.
+
+        Returns
+        -------
+        None
         """
-        collided_obj = self.check_collision(group)
-        move = (self.check_bounds() and not collided_obj)
+        # Only do time-dependent actions if a dt can be calculated
+        if self.timestamp_last is not None and self.timestamp_current is not None:
+            # Get simulation velocity from drivetrain state
+            self.pose_velocity = dt_state_to_vel(self.drivetrain_state, self.pose[2], 2)
 
-        #then move
-        if move is False:
-            print("Robot collision with obstacle or terrain!")
-            # revert position based on drivetrain state
-            self.position = [p - v for p, v in zip(self.position, vel)]
-            self.heading -= rVel
-        else:
-            print(self.position[0], ";", self.position[1], ";", self.heading, u"\N{DEGREE SIGN}")
+            # If dt != 0, move according to the velocity vector
+            dt = self.timestamp_current - self.timestamp_last
+            if dt != 0:
+                self.pose = np.add(self.pose, np.dot(self.pose_velocity, dt))
 
-        #adjust obj properties based on collision
-        for object in collided_obj:
-            object.on_collision()
-        for object in set(group)^set(collided_obj):
-            object.off_collision()
+        # Update timestamp for next iteration
+        self.timestamp_last = self.timestamp_current
 
-
-    ### rebuild
-    # def rotate(self, group=[]):
-    #     rotate = True
-    #
-    #     # rotates robot, checks circle around robot longest axis
-    #     offset = 5
-    #     # flip offset if rotating from opposite dimensions
-    #     if self.dimensions[0] is 4*s._MULTIPLIER:
-    #         offset = -5
-    #
-    #     self.position = [self.position[0]+offset, self.position[1]-offset]
-    #     self.dimensions = [self.dimensions[1], self.dimensions[0]]
-    #     collided_obj = self.check_collision(group)
-    #     rotate = (self.check_bounds() and not collided_obj)
-    #
-    #     #then rotate
-    #     if rotate is False:
-    #         print("Robot collision with obstacle or terrain!")
-    #         self.dimensions = [self.dimensions[1], self.dimensions[0]]
-    #         self.position = [self.position[0]-offset, self.position[1]+offset]
-    #         return False
-    #     else:
-    #         print(self.dimensions[0], ";", self.dimensions[1])
-    #         self.change_dim()
-    #         return True
-
-
-if __name__ == "__main__":
-    print("Hello")
-    robot = Robot()
-    group = []
-    group.append(robot)
-    print(robot.position)
-    robot.move([-5, 0], group)
-    print(robot.position)

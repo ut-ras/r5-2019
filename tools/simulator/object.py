@@ -1,151 +1,119 @@
-#Author: Chad Harthan, Matthew Yu
-#Last modified: 12/2/18
-#Objects.py
+"""
+Topmost abstraction of a simulator object.
+
+Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
+Last modified: 2/8/19
+"""
+from pygame import Surface
+from pygame.sprite import Sprite
+from tools.simulator.settings import PIXELS_PER_UNIT
+from tools.simulator.simulation import SIMULATION_BG_COLOR
+import numpy as np
+import math
 import pygame
-import settings as s
 
-black = (0,0,0)
 
-class Object():
-    def __init__(self, position=[0, 0], dimensions=[50, 50, 0], color=black):
-        self.position = position
-        self.dimensions = dimensions
-        self.image = pygame.Surface([dimensions[0], dimensions[1]])
+MASK_CIRCULAR = 0
+MASK_RECT = 1
+
+
+class SimulationObject(Sprite):
+    """
+    Abstraction of a simulated object with a pose and a sprite.
+    """
+    def __init__(self, x, y, theta, width=0, height=0, color=(0, 0, 0), mask=MASK_RECT):
+        """
+        Parameters
+        ----------
+        x: float
+            horizontal position in units
+        y: float
+            vertical position in units
+        theta:
+            heading in radians
+        width: float
+            width in units
+        height: float
+            height in units
+        color: tuple
+            (r, g, b)
+        mask: int
+            sprite mask (circle or rectangle)
+        """
+        Sprite.__init__(self)
+
+        # State
+        self.pose = np.array([x, y, theta])
+        self.pose_velocity = np.array([0, 0, 0])
+
+        # Appearance
+        self.mask = mask
         self.color = color
+        self.image = Surface([width, height])
+        self.image.set_colorkey(SIMULATION_BG_COLOR)
+        self.rect = self.image.get_rect()
+        self.autoscale = True
+        self.sprite_update()
 
-    def set_color(self):
-        """
-        Sets color of image with self.color
-        """
-        self.image.fill(self.color)
+        # Timekeeping
+        self.timestamp_last = None
+        self.timestamp_current = None
 
-    def draw(self, screen):
+    def sprite_update(self):
         """
-        Draws image on screen
-        """
-        self.set_color()
-        # print(self, self.position)
-        screen.blit(self.image, [self.position[0], self.position[1]])
-
-    def change_dim(self):
-        self.image = pygame.Surface([self.dimensions[0], self.dimensions[1]])
-
-    def rotate(self, sprite, theta):
-        """
-        rotates points of the object (robot intended) for collision checking
-
-        Parameters
-        ----------
-        sprite : Object -> Robot/Obstacle/Block/Mothership
-            Object to compare to
-        theta : radians
+        Updates the internal surface (usually called after forcibly updating the object's color, shape, etc.).
 
         Returns
         -------
-        list : points
-            list of corners for collision checking
+        None
         """
-        c_v = [
-            [sprite.position[0], sprite.position[1]],
-            [sprite.position[0] + sprite.dimensions[0], sprite.position[1]],
-            [sprite.position[0], sprite.position[1] + sprite.dimensions[1]],
-            [sprite.position[0] + sprite.dimensions[0], sprite.position[1] + sprite.dimensions[1]]
-        ]
+        if self.mask == MASK_RECT:
+            self.image.fill(self.color)
+        elif self.mask == MASK_CIRCULAR:
+            self.image.fill(self.image.get_colorkey())
+            pygame.draw.ellipse(self.image, self.color, self.image.get_rect())
 
-        return [[
-            c_v[0][0]*cos(theta) - c_v[0][1]*sin(theta), c_v[0][0]*sin(theta) + c_v[0][1]*cos(theta)],
-            c_v[1][0]*cos(theta) - c_v[1][1]*sin(theta), c_v[1][0]*sin(theta) + c_v[1][1]*cos(theta)],
-            c_v[2][0]*cos(theta) - c_v[2][1]*sin(theta), c_v[2][0]*sin(theta) + c_v[2][1]*cos(theta)],
-            c_v[3][0]*cos(theta) - c_v[3][1]*sin(theta), c_v[3][0]*sin(theta) + c_v[3][1]*cos(theta)]
-        ]]
-
-    def collision(self, sprite, theta=0, offset_x=0, offset_y=0):
+    def draw(self, display):
         """
-        checks collision between self and a given sprite
+        Draws the object to a display surface.
 
         Parameters
         ----------
-        sprite : Object -> Robot/Obstacle/Block/Mothership
-            Object to compare to
+        display: Surface
+            target surface
+
+        Returns
+        -------
+        None
+        """
+        # Scale to pixels
+        sprite_transformed = self.image
+        if self.autoscale:
+            sprite_transformed = pygame.transform.scale(sprite_transformed,
+                                                        (int(self.image.get_width() * PIXELS_PER_UNIT),
+                                                         int(self.image.get_height() * PIXELS_PER_UNIT)))
+        # Rotate to face heading
+        sprite_transformed = pygame.transform.rotate(sprite_transformed, math.degrees(self.pose[2]))
+        # Draw
+        display.blit(sprite_transformed, [int(self.pose[0] * PIXELS_PER_UNIT) - sprite_transformed.get_width() // 2,
+                                          display.get_height() - int(self.pose[1] * PIXELS_PER_UNIT) -
+                                          sprite_transformed.get_height() // 2])
+
+    def collision(self, obj):
+        """
+        Checks for a collision between this object and another.
+        TODO: I don't think this takes rotation into account
+
+        Parameters
+        ----------
+        obj: SimulationObject
+            object to check collision with
 
         Returns
         -------
         bool
-            True if collides; False otherwise
-
+            whether or not I am colliding with obj
         """
-        top = self.position[1] - offset_y
-        bottom = self.position[1] + self.dimensions[1] + offset_y
-        left = self.position[0] - offset_x
-        right = self.position[0] + self.dimensions[0] + offset_x
-        if theta is 0:
-            corners = [
-                [sprite.position[0], sprite.position[1]],
-                [sprite.position[0] + sprite.dimensions[0], sprite.position[1]],
-                [sprite.position[0], sprite.position[1] + sprite.dimensions[1]],
-                [sprite.position[0] + sprite.dimensions[0], sprite.position[1] + sprite.dimensions[1]]]
-
-            for corner in corners:
-                if corner[1] > top and corner[1] < bottom:
-                    if corner[0] > left and corner[0] < right:
-                        return True
-            return False
-        else:
-            corners = rotate(sprite, theta)
-            for corner in corners:
-                if corner[1] > top and corner[1] < bottom:
-                    if corner[0] > left and corner[0] < right:
-                        return True
-            return False
-
-    def check_collision(self, group, offset_x=0, offset_y=0):
-        """
-        Checks whether robot has collided with any other obstacle or robot.
-
-        Parameters
-        ----------
-        group : []
-            list of Objects
-
-        Returns
-        ----------
-        collided : []
-            list of collided sprites
-        """
-        collided = []
-        # print("Group: {group}". format(group=group))
-        # check robot against all other objects in the group
-        for sprite in group:
-            if sprite is not self:
-                # print("Robot Pos: {x}:{y}". format(x=self.position[0], y=self.position[1]))
-                # print("Sprite Pos: {x}:{y}". format(x=sprite.position[0], y=sprite.position[1]))
-                # print("offset: {xoffset}:{yoffset}".
-                #     format(xoffset = sprite.position[0] - self.position[0],
-                #     yoffset = sprite.position[1] - self.position[1]))
-                if self.collision(sprite, offset_x, offset_y):
-                    collided.append(sprite)
-        return collided
-
-    def check_bounds(self):
-        """
-        Checks whether robot has hit the edge of the field.
-
-        Returns
-        ----------
-        bool
-            True if no boundary has been overstepped, False elsewise
-        """
-        if (self.position[0] + self.dimensions[0]) >= s._DISPLAY_WIDTH:
-            return False
-        if self.position[0] <= 0:
-            return False
-        if (self.position[1] + self.dimensions[1]) >= s._DISPLAY_HEIGHT:
-            return False
-        if self.position[1] <= 0:
-            return False
-        return True
-
-
-if __name__ == "__main__":
-    print("Hello")
-    object = Object()
+        self_rect = self.image.get_rect().move(self.pose[0], self.pose[1])
+        obj_rect = obj.image.get_rect().move(obj.pose[0], obj.pose[1])
+        return self_rect.colliderect(obj_rect)

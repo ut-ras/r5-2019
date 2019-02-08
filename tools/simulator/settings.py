@@ -1,11 +1,8 @@
-#intitialize the screen
+"""
+Miscellaneous constants for configuring the simulator (not specific to any particular year's competition).
+"""
+PIXELS_PER_UNIT = 5.0 / 1.0  # 5 px per 1 inch
 
-_FEET2INCHES = 12
-_MULTIPLIER = 5
-_DISPLAY_WIDTH = _DISPLAY_HEIGHT = 8 * _FEET2INCHES * _MULTIPLIER
-_BLOCK_OFFSET = _OBSTACLE_OFFSET = 1.5 * _MULTIPLIER
-_MS_OFFSET = 3 * _MULTIPLIER
-_EDGE_OFFSET = _SPACING_OFFSET = 6 * _MULTIPLIER
-_STARTX = _STARTY = 4 * _FEET2INCHES * _MULTIPLIER
-_SIM_SPEED = int(500/10) #change denominator to adjust sim speed
-_WHEELS_APART = 3 * _MULTIPLIER
+FIELD_WIDTH = 8 * 12
+FIELD_HEIGHT = FIELD_WIDTH
+FIELD_COLOR = (199, 123, 73)  # As specified by the rulebook
