@@ -4,9 +4,9 @@ Things relating to simulated robots.
 Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last modified: 2/8/19
 """
-from tools.simulator.drivers.core.robotframe import RobotFrame
-from tools.simulator.object import SimulationObject, MASK_RECT
-from tools.simulator.util import dt_state_to_vel
+from drivers.core.robotframe import RobotFrame
+from object import SimulationObject, MASK_RECT
+from util import dt_state_to_vel
 import numpy as np
 
 

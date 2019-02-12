@@ -4,7 +4,7 @@ Various utility functions.
 Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last updated: 2/8/19
 """
-from tools.simulator.robotcontrol import DRIVE_FORWARD, DRIVE_BACKWARD, TURN_LEFT, TURN_RIGHT
+from robotcontrol import DRIVE_FORWARD, DRIVE_BACKWARD, TURN_LEFT, TURN_RIGHT
 from math import sin, cos, sqrt
 
 

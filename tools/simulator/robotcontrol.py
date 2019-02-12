@@ -5,7 +5,7 @@ control team will eventually provide.
 Authors: Stefan deBruyn
 Last modified: 2/8/19
 """
-import tools.simulator.drivers.core.profiling as profiling
+import drivers.core.profiling as profiling
 import math
 import time
 

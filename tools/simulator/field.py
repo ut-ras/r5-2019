@@ -5,9 +5,9 @@ Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last modified: 2/8/19
 """
 import random
-from tools.simulator.object import SimulationObject, MASK_CIRCULAR, MASK_RECT
-from tools.simulator.settings import PIXELS_PER_UNIT, FIELD_WIDTH, FIELD_HEIGHT
-from tools.simulator.util import dist
+from object import SimulationObject, MASK_CIRCULAR, MASK_RECT
+from settings import PIXELS_PER_UNIT, FIELD_WIDTH, FIELD_HEIGHT
+from util import dist
 
 
 OBSTACLE_RADIUS = 0.75

@@ -4,8 +4,8 @@ Central code for running and controlling simulations.
 Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last modified: 2/8/19
 """
-from tools.simulator.robotcontrol import Clock
-from tools.simulator.settings import *
+from robotcontrol import Clock
+from settings import *
 import pygame
 import time
 

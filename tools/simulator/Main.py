@@ -1,7 +1,7 @@
-from tools.simulator.field import build_field
-from tools.simulator.robot import SimulationRobot
-from tools.simulator.robotcontrol import RobotController
-from tools.simulator.simulation import Simulation
+from field import build_field
+from robot import SimulationRobot
+from robotcontrol import RobotController
+from simulation import Simulation
 
 
 # Controller setup

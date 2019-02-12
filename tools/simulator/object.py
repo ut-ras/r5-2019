@@ -6,8 +6,8 @@ Last modified: 2/8/19
 """
 from pygame import Surface
 from pygame.sprite import Sprite
-from tools.simulator.settings import PIXELS_PER_UNIT
-from tools.simulator.simulation import SIMULATION_BG_COLOR
+from settings import PIXELS_PER_UNIT
+from simulation import SIMULATION_BG_COLOR
 import numpy as np
 import math
 import pygame
