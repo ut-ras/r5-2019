@@ -1,6 +1,7 @@
 
 import threading
 import json
+import unittest
 
 
 class MutexController:
@@ -71,3 +72,35 @@ class MutexController:
         # Release
         else:
             self.semaphores[name].release()
+
+
+class Tests(unittest.TestCase):
+
+    def test_semaphore(self):
+
+        from ..task_manager import TaskServer
+        from ..task_manager import Task, RemoteTaskManager, RemoteServer
+
+        handler = MutexController(
+            ["mothership", "a", "b", "c", "d", "e", "f"]).handler
+        server = TaskServer(port=8000, handler=handler)
+        server.run()
+
+        manager = RemoteTaskManager(RemoteServer("localhost:8000", "", ""))
+
+        r = manager.put(
+            Task("mutex", {"name": "a", "operation": "acquire"}, None))
+        self.assertEqual(r["mutex"], "a")
+        self.assertEqual(r["status"], True)
+
+        r = manager.put(
+            Task("mutex", {"name": "a", "operation": "acquire"}, None))
+        self.assertEqual(r["status"], False)
+
+        r = manager.put(
+            Task("mutex", {"name": "a", "operation": "release"}, None))
+        r = manager.put(
+            Task("mutex", {"name": "a", "operation": "acquire"}, None))
+        self.assertEqual(r["status"], True)
+
+        server.stop()

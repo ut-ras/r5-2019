@@ -70,7 +70,6 @@ class RemoteServer:
         if self.post_addr is None:
             raise ServerException("No POST endpoint defined.")
         else:
-            print(self.__get_addr(self.post_addr))
             return requests.post(
                 self.__get_addr(self.post_addr), json=data, auth=self.auth)
 

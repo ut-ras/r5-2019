@@ -81,17 +81,17 @@ class TaskServer:
     ----------
     port : int
         Server port to use
-    direct_handler : Task -> None or str
+    handler : Task -> None or str
         See docs for RequestHandler.
     """
 
-    def __init__(self, port=80, direct_handler=None):
+    def __init__(self, port=80, handler=None):
         self.port = port
         self.manager = HostTaskManager()
 
         class TaskRequestHandler(RequestHandler):
             manager = self.manager
-            self.direct_handler = direct_handler
+            direct_handler = handler
 
         self.server = HostServer(8000, handler=TaskRequestHandler)
 
