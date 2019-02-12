@@ -99,7 +99,7 @@ class RobotController:
         ang_const: tuple
             angular motion constraints 2-tuple (angular_velocity_max, angular_acceleration_max)
         """
-        import tools.simulator.util as util
+        import util as util
 
         self.clock = Clock()
         self.instructions = []
