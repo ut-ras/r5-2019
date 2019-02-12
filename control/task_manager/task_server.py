@@ -91,7 +91,7 @@ class TaskServer:
 
         class TaskRequestHandler(RequestHandler):
             manager = self.manager
-            direct_handler = direct_handler
+            self.direct_handler = direct_handler
 
         self.server = HostServer(8000, handler=TaskRequestHandler)
 
