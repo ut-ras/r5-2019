@@ -1,4 +1,4 @@
-from field import build_field
+from field import build_field, Obstacle
 from robot import SimulationRobot
 from robotcontrol import RobotController
 from simulation import Simulation
@@ -19,6 +19,7 @@ controller = RobotController(pose_initial, path, lin_const, ang_const)
 s = Simulation(controller)
 r = SimulationRobot(pose_initial[0], pose_initial[1], pose_initial[2])
 s.objects.append(r)
+s.objects.append(Obstacle(24, 24))
 s.objects.extend(build_field(0))
 
 # Go time

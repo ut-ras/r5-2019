@@ -52,6 +52,7 @@ class SimulationObject(Sprite):
         self.color = color
         self.image = Surface([width, height])
         self.image.set_colorkey(SIMULATION_BG_COLOR)
+        self.dims = [width, height]
         self.rect = self.image.get_rect()
         self.autoscale = True
         self.sprite_update()
@@ -100,6 +101,17 @@ class SimulationObject(Sprite):
                                           display.get_height() - int(self.pose[1] * PIXELS_PER_UNIT) -
                                           sprite_transformed.get_height() // 2])
 
+    # top left, top right, bottom left, bottom right
+    def get_corners(self):
+        h_w = self.dims[0]/2
+        h_h = self.dims[1]/2
+        return [
+            [self.pose[0] - h_w, self.pose[1] + h_h],
+            [self.pose[0] + h_w, self.pose[1] + h_h],
+            [self.pose[0] - h_w, self.pose[1] - h_h],
+            [self.pose[0] + h_w, self.pose[1] - h_h]
+        ]
+
     def collision(self, obj):
         """
         Checks for a collision between this object and another.
@@ -116,28 +128,23 @@ class SimulationObject(Sprite):
             whether or not I am colliding with obj
         """
 
-        self_corners = [
-            [self.pose[0], self.pose[1]],
-            [self.pose[0], self.pose[1] + self.rect[1]],
-            [self.pose[0] + self.rect[0], self.pose[1]],
-            [self.pose[0] + self.rect[0], self.pose[1] + self.rect[1]]
-        ]
-        obj_corners = [
-            [obj.pose[0], obj.pose[1]],
-            [obj.pose[0], obj.pose[1] + obj.rect[1]],
-            [obj.pose[0] + obj.rect[0], obj.pose[1]],
-            [obj.pose[0] + obj.rect[0], obj.pose[1] + obj.rect[1]]
-        ]
 
-        d = u.dist(
-            self.pose[0] + self.rect[0]/2,
-            self.pose[1] + self.rect[1]/2,
-            obj.pose[0] + obj.rect[0]/2,
-            obj.pose[1] + obj.rect[1]/2
-        )
+        self_corners = self.get_corners()
+        obj_corners = obj.get_corners()
+        # distance check, ignore if too far
+        for corner in obj_corners:
+            d = u.dist(
+                self.pose[0],
+                self.pose[1],
+                corner[0],
+                corner[1],
+            )
+            print(d)
 
-        if d >= obj.rect[0] or d >= obj.rect[1]:
-            return False
+            if d > 10:
+                return False
+
+        # line intersection check based on corner points
         for i in range(0, 3):
             line_self = [self_corners[i], self_corners[(i + 1) % 4]]
             for j in range(0, 3):

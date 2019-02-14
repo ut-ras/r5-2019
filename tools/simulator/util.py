@@ -78,11 +78,11 @@ def intersects(line_seg_a, line_seg_b):
     xDiff2 = line_seg_b[1][0] - line_seg_b[0][0]
     yDiff2 = line_seg_b[1][1] - line_seg_b[0][1]
 
-    print(xDiff1, "\t", yDiff1, "\t", xDiff2, "\t", yDiff2, "\t")
+    # print("{xDiff1, yDiff1; xDiff2, yDiff2}". format(xDiff1=xDiff1, yDiff1=yDiff1, xDiff2=xDiff2, yDiff2=yDiff2))
 
     det = xDiff2*(-yDiff1) - yDiff2*(-xDiff1)
 
-    print(det, "\n")
+    # print("det: {det}". format(det=det))
 
 
     if det:
