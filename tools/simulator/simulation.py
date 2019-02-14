@@ -51,25 +51,14 @@ class Simulation:
 
         # Collision checking for robots only
         for robot in self.robots:
-            # Compute corners of rectangular collision mask and rotate them by the robot's heading
-            x, y, w, h = robot.pose[0], robot.pose[1], robot.width, robot.height
-            corners = [
-                [x - w / 2, y + h / 2],
-                [x + w / 2, y + h / 2],
-                [x - w / 2, y - h / 2],
-                [x + w / 2, y - h / 2]
-            ]
-            corners_rot = rotate_rect(corners, robot.pose[2], x, y)
             # For everything that is not a robot
             for obj in self.objects:
                 if obj.__class__.__name__ is not "SimulationRobot":
-                    # Check each corner for an individual collision, and mark the robot as collided if necessary
-                    for corner in corners_rot:
-                        if obj.collision(corner[0], corner[1]):
-                            robot.color = SIMULATION_COLLISION_COLOR
-                            robot.sprite_update()
-                            obj.color = SIMULATION_COLLISION_COLOR
-                            obj.sprite_update()
+                    if robot.collision(obj):
+                        robot.color = SIMULATION_COLLISION_COLOR
+                        robot.sprite_update()
+                        obj.color = SIMULATION_COLLISION_COLOR
+                        obj.sprite_update()
 
         # Draw all objects
         for obj in self.objects:

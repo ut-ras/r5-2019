@@ -91,77 +91,23 @@ def rotate_rect(corners, theta, cx=0, cy=0):
 
 # a line seg is two points
 def intersects(line_seg_a, line_seg_b):
-    # a_pt_0_x = line_seg_a[0][0]
-    # a_pt_0_y = line_seg_a[0][1]
-    # a_pt_1_x = line_seg_a[1][0]
-    # a_pt_1_y = line_seg_a[1][1]
-    # b_pt_0_x = line_seg_b[0][0]
-    # b_pt_0_y = line_seg_b[0][1]
-    # b_pt_1_x = line_seg_b[1][0]
-    # b_pt_1_y = line_seg_b[1][1]
-
     xDiff1 = line_seg_a[1][0] - line_seg_a[0][0]
     yDiff1 = line_seg_a[1][1] - line_seg_a[0][1]
     xDiff2 = line_seg_b[1][0] - line_seg_b[0][0]
     yDiff2 = line_seg_b[1][1] - line_seg_b[0][1]
 
-    # print("{xDiff1, yDiff1; xDiff2, yDiff2}". format(xDiff1=xDiff1, yDiff1=yDiff1, xDiff2=xDiff2, yDiff2=yDiff2))
-
     det = xDiff2*(-yDiff1) - yDiff2*(-xDiff1)
 
-    # print("det: {det}". format(det=det))
-
-
     if det:
-        print(xDiff1, "\t", yDiff1, "\t", xDiff2, "\t", yDiff2, "\t")
-        print(det, "\n")
-
         lambda1 = (-yDiff2*(line_seg_a[0][0] - line_seg_b[0][0]) +
             xDiff2*(line_seg_a[0][1] - line_seg_b[0][1]))/det
-        lambda1 = (-yDiff1*(line_seg_a[0][0] - line_seg_b[0][0]) +
+        lambda2 = (-yDiff1*(line_seg_a[0][0] - line_seg_b[0][0]) +
             xDiff1*(line_seg_a[0][1] - line_seg_b[0][1]))/det
 
         if (0 <= lambda1) and (lambda1 <= 1) and (0 <= lambda2) and (lambda2 <= 1):
             return True
 
     return False
-
-#
-# class Mirror{
-# 	public:
-# 		int position[2];
-# 		float vector[2];
-# 		Mirror();
-# 		Mirror(int position[2], int vector[2]);
-# 		float getOAngle();
-# };
-#
-# bool Particle::intersects(Mirror other){
-#     float det, xDiff1, xDiff2, yDiff1, yDiff2;
-#     xDiff1 = this->vector[0];   #line_seg_a pt 2x-1x
-#     yDiff1 = this->vector[1];
-#     xDiff2 = other.vector[0];
-#     yDiff2 = other.vector[1];
-#
-#     det = xDiff2*(-yDiff1) - yDiff2*(-xDiff1);
-#     if(det != 0){
-#         float lambda1, lambda2;
-#         lambda1 = (-yDiff2*(this->position[0] - other.position[0]) +
-#             xDiff2*(this->position[1] - other.position[1]))/det;
-#         lambda2 = (-yDiff1*(this->position[0] - other.position[0]) +
-#             xDiff1*(this->position[1] - other.position[1]))/det;
-#         if(0 <= lambda1 && lambda1 <= 1 && 0 <= lambda2 && lambda2 <= 1){
-#             //get point of intersection
-#             // int pos[2] = {
-#             //     this->position[0] + lambda1*xDiff1,
-#             //     this->position[1] + lambda1*yDiff1
-#             // };
-#             return true;
-#         }
-#     }
-#     //if 0 or outside of lambdas, return 0
-#     return false;
-# }
 
 def dt_state_to_vel(dt_state, heading, track_width):
     """

@@ -22,9 +22,9 @@ MOTHERSHIP_HEIGHT = 8.5
 MOTHERSHIP_COLOR = (128, 128, 128)
 
 ROUND_OBJECT_COUNTS = (
-    (2, 0),  # Block count, obstacle count
-    (4, 0),
-    (6, 0)
+    (2, 5),  # Block count, obstacle count
+    (4, 10),
+    (6, 15)
 )
 OBJECT_SAFE_DISTANCE = 6
 
@@ -47,7 +47,6 @@ class Obstacle(SimulationObject):
         self.autoscale = False  # For preserving ellipse precision
         self.dims[0] /= PIXELS_PER_UNIT
         self.dims[1] /= PIXELS_PER_UNIT
-
 
 class Block(SimulationObject):
     """

@@ -4,6 +4,7 @@ Topmost abstraction of a simulator object.
 Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last modified: 2/8/19
 """
+from util import *
 from pygame import Surface
 from pygame.sprite import Sprite
 from settings import PIXELS_PER_UNIT
@@ -11,7 +12,6 @@ from simulation import SIMULATION_BG_COLOR
 import numpy as np
 import math
 import pygame
-import util as u
 
 
 MASK_CIRCULAR = 0
@@ -105,12 +105,13 @@ class SimulationObject(Sprite):
     def get_corners(self):
         h_w = self.dims[0]/2
         h_h = self.dims[1]/2
-        return [
+        corners = [
             [self.pose[0] - h_w, self.pose[1] + h_h],
             [self.pose[0] + h_w, self.pose[1] + h_h],
             [self.pose[0] - h_w, self.pose[1] - h_h],
             [self.pose[0] + h_w, self.pose[1] - h_h]
         ]
+        return rotate_rect(corners, self.pose[2], self.pose[0], self.pose[1])
 
     def collision(self, obj):
         """
@@ -133,14 +134,12 @@ class SimulationObject(Sprite):
         obj_corners = obj.get_corners()
         # distance check, ignore if too far
         for corner in obj_corners:
-            d = u.dist(
+            d = dist(
                 self.pose[0],
                 self.pose[1],
                 corner[0],
                 corner[1],
             )
-            print(d)
-
             if d > 10:
                 return False
 
@@ -149,7 +148,7 @@ class SimulationObject(Sprite):
             line_self = [self_corners[i], self_corners[(i + 1) % 4]]
             for j in range(0, 3):
                 line_other = [obj_corners[j], obj_corners[(j + 1) % 4]]
-                if u.intersects(line_self, line_other):
+                if intersects(line_self, line_other):
                     return True
         return False
 
