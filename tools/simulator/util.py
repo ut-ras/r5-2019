@@ -31,7 +31,40 @@ def dist(x1, y1, x2, y2):
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-def rotate_rect(corners, theta):
+def rotate_point(cx, cy, x, y, theta):
+    """
+    Rotates a point around another by some angle.
+
+    Parameters
+    ----------
+    cx: float
+        center x
+    cy: float
+        center y
+    x: float
+        point x
+    y: float
+        point y
+    theta: float
+        angle in radians
+
+    Returns
+    -------
+    tuple
+        2-tuple (x_rot, y_rot)
+    """
+    s, c = sin(theta), cos(theta)
+
+    x -= cx
+    y -= cy
+
+    x_new = x * c - y * s
+    y_new = x * s + y * c
+
+    return x_new + cx, y_new + cy
+
+
+def rotate_rect(corners, theta, cx=0, cy=0):
     """
     Rotates the corners of a rectangle by some angle.
 
@@ -48,19 +81,13 @@ def rotate_rect(corners, theta):
     list
         coordinate list of the same form as corners parameter, rotated around the rectangle's center by theta
     """
-    return [
-        [corners[0][0] * cos(theta) - corners[0][1] * sin(theta),
-         corners[0][0] * sin(theta) + corners[0][1] * cos(theta)],
+    return (
+        rotate_point(cx, cy, corners[0][0], corners[0][1], theta),
+        rotate_point(cx, cy, corners[1][0], corners[1][1], theta),
+        rotate_point(cx, cy, corners[2][0], corners[2][1], theta),
+        rotate_point(cx, cy, corners[3][0], corners[3][1], theta)
+    )
 
-        [corners[1][0] * cos(theta) - corners[1][1] * sin(theta),
-         corners[1][0] * sin(theta) + corners[1][1] * cos(theta)],
-
-        [corners[2][0] * cos(theta) - corners[2][1] * sin(theta),
-         corners[2][0] * sin(theta) + corners[2][1] * cos(theta)],
-
-        [corners[3][0] * cos(theta) - corners[3][1] * sin(theta),
-         corners[3][0] * sin(theta) + corners[3][1] * cos(theta)]
-    ]
 
 # a line seg is two points
 def intersects(line_seg_a, line_seg_b):
