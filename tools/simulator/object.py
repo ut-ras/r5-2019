@@ -11,6 +11,7 @@ from simulation import SIMULATION_BG_COLOR
 import numpy as np
 import math
 import pygame
+import util as u
 
 
 MASK_CIRCULAR = 0
@@ -114,6 +115,35 @@ class SimulationObject(Sprite):
         bool
             whether or not I am colliding with obj
         """
-        self_rect = self.image.get_rect().move(self.pose[0], self.pose[1])
-        obj_rect = obj.image.get_rect().move(obj.pose[0], obj.pose[1])
-        return self_rect.colliderect(obj_rect)
+
+        self_corners = [
+            [self.pose[0], self.pose[1]],
+            [self.pose[0], self.pose[1] + self.rect[1]],
+            [self.pose[0] + self.rect[0], self.pose[1]],
+            [self.pose[0] + self.rect[0], self.pose[1] + self.rect[1]]
+        ]
+        obj_corners = [
+            [obj.pose[0], obj.pose[1]],
+            [obj.pose[0], obj.pose[1] + obj.rect[1]],
+            [obj.pose[0] + obj.rect[0], obj.pose[1]],
+            [obj.pose[0] + obj.rect[0], obj.pose[1] + obj.rect[1]]
+        ]
+
+        d = u.dist(
+            self.pose[0] + self.rect[0]/2,
+            self.pose[1] + self.rect[1]/2,
+            obj.pose[0] + obj.rect[0]/2,
+            obj.pose[1] + obj.rect[1]/2
+        )
+
+        if d >= obj.rect[0] or d >= obj.rect[1]:
+            return False
+        for i in range(0, 3):
+            line_self = [self_corners[i], self_corners[(i + 1) % 4]]
+            for j in range(0, 3):
+                line_other = [obj_corners[j], obj_corners[(j + 1) % 4]]
+                if u.intersects(line_self, line_other):
+                    return True
+        return False
+
+        # return self_rect.colliderect(obj_rect)

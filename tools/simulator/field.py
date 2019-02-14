@@ -102,17 +102,27 @@ def place_safe(objects, constructor):
     done = False
 
     while not done:
-        x = random.randint(0, FIELD_WIDTH)
-        y = random.randint(0, FIELD_HEIGHT)
+        center = [random.randint(6, FIELD_WIDTH-6), random.randint(6, FIELD_HEIGHT-6)]
         safe = True
 
         for obj in objects:
-            if dist(x, y, obj.pose[0], obj.pose[1]) < OBJECT_SAFE_DISTANCE:
-                safe = False
+            corners = [
+                [obj.pose[0], obj.pose[1]],
+                [obj.pose[0], obj.pose[1] + obj.rect[1]],
+                [obj.pose[0] + obj.rect[0], obj.pose[1]],
+                [obj.pose[0] + obj.rect[0], obj.pose[1] + obj.rect[1]]
+            ]
+
+            for corner in corners:
+                if dist(center[0], center[1], corner[0], corner[1]) < OBJECT_SAFE_DISTANCE:
+                    safe = False
+                    break
+
+            if safe is False:
                 break
 
         if safe:
-            objects.append(constructor(x, y))
+            objects.append(constructor(center[0], center[1]))
             done = True
 
 
