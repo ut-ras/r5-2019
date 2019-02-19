@@ -88,25 +88,35 @@ def rotate_rect(corners, theta, cx=0, cy=0):
         rotate_point(cx, cy, corners[3][0], corners[3][1], theta)
     )
 
-
-# a line seg is two points
 def intersects(line_seg_a, line_seg_b):
+    """
+    Checks whether two line segments intersect.
+
+    Parameters
+    ----------
+    line_seg_a: [x1, y1], [x2, y2]
+        details of first line segment.
+    line_seg_b: [x1, y1], [x2, y2]
+        details of second line segment.
+
+    Returns
+    ----------
+    boolean
+        true if intersects, false otherwise.
+    """
     xDiff1 = line_seg_a[1][0] - line_seg_a[0][0]
     yDiff1 = line_seg_a[1][1] - line_seg_a[0][1]
     xDiff2 = line_seg_b[1][0] - line_seg_b[0][0]
     yDiff2 = line_seg_b[1][1] - line_seg_b[0][1]
 
     det = xDiff2*(-yDiff1) - yDiff2*(-xDiff1)
-
     if det:
         lambda1 = (-yDiff2*(line_seg_a[0][0] - line_seg_b[0][0]) +
             xDiff2*(line_seg_a[0][1] - line_seg_b[0][1]))/det
         lambda2 = (-yDiff1*(line_seg_a[0][0] - line_seg_b[0][0]) +
             xDiff1*(line_seg_a[0][1] - line_seg_b[0][1]))/det
-
         if (0 <= lambda1) and (lambda1 <= 1) and (0 <= lambda2) and (lambda2 <= 1):
             return True
-
     return False
 
 def dt_state_to_vel(dt_state, heading, track_width):

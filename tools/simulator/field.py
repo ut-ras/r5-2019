@@ -87,7 +87,6 @@ class Mothership(SimulationObject):
 def place_safe(objects, constructor):
     """
     Finds a location for an object such that it is at least OBJECT_SAFE_DISTANCE units away from everything else.
-    TODO: take collision masks into account
 
     Parameters
     ----------

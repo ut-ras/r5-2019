@@ -116,7 +116,6 @@ class SimulationObject(Sprite):
     def collision(self, obj):
         """
         Checks for a collision between this object and another.
-        TODO: I don't think this takes rotation into account
 
         Parameters
         ----------
@@ -128,7 +127,6 @@ class SimulationObject(Sprite):
         bool
             whether or not I am colliding with obj
         """
-
 
         self_corners = self.get_corners()
         obj_corners = obj.get_corners()
@@ -151,5 +149,3 @@ class SimulationObject(Sprite):
                 if intersects(line_self, line_other):
                     return True
         return False
-
-        # return self_rect.colliderect(obj_rect)
