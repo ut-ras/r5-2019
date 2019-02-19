@@ -6,7 +6,7 @@ Last modified: 2/8/19
 """
 from drivers.core.robotframe import RobotFrame
 from object import SimulationObject, MASK_RECT
-from util import dt_state_to_vel
+from util import robot_state_to_vel
 import numpy as np
 
 
@@ -33,7 +33,7 @@ class SimulationRobot(SimulationObject, RobotFrame):
         SimulationObject.__init__(self, x, y, theta, ROBOT_WIDTH, ROBOT_HEIGHT, ROBOT_COLOR, MASK_RECT)
         RobotFrame.__init__(self, "mr robot")
 
-        self.drivetrain_state = None
+        self.state = None
 
     def loop(self):
         """
@@ -46,7 +46,7 @@ class SimulationRobot(SimulationObject, RobotFrame):
         # Only do time-dependent actions if a dt can be calculated
         if self.timestamp_last is not None and self.timestamp_current is not None:
             # Get simulation velocity from drivetrain state
-            self.pose_velocity = dt_state_to_vel(self.drivetrain_state, self.pose[2], 2)
+            self.pose_velocity = robot_state_to_vel(self.state, self.pose[2], 2)
 
             # If dt != 0, move according to the velocity vector
             dt = self.timestamp_current - self.timestamp_last
@@ -55,4 +55,3 @@ class SimulationRobot(SimulationObject, RobotFrame):
 
         # Update timestamp for next iteration
         self.timestamp_last = self.timestamp_current
-

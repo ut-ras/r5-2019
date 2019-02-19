@@ -99,7 +99,7 @@ class RobotController:
         ang_const: tuple
             angular motion constraints 2-tuple (angular_velocity_max, angular_acceleration_max)
         """
-        import util as util
+        import util
 
         self.clock = Clock()
         self.instructions = []
@@ -143,7 +143,7 @@ class RobotController:
 
         Returns
         ----------
-        DrivetrainState
+        RobotState
             drivetrain state at time t or None if the specified time lies outside the duration of the control sequence
         """
         # Specified time lies outside the controller's duration
@@ -157,11 +157,11 @@ class RobotController:
                 profile_state = inst.profile_state_at(t - elapsed)
                 # Drive instruction
                 if inst.id == INSTRUCTION_DRIVE:
-                    dt_state = DrivetrainState(DRIVE_FORWARD, abs(profile_state.v))
+                    dt_state = RobotState(DRIVE_FORWARD, abs(profile_state.v))
                     return dt_state
                 # Turn instruction
                 elif inst.id == INSTRUCTION_TURN:
-                    dt_state = DrivetrainState(TURN_LEFT if profile_state.v > 0 else
+                    dt_state = RobotState(TURN_LEFT if profile_state.v > 0 else
                                                TURN_RIGHT, abs(profile_state.v))
                     return dt_state
             elapsed += inst.profile.duration
@@ -171,8 +171,8 @@ TURN_RIGHT = 0
 DRIVE_FORWARD = 1
 TURN_LEFT = 2
 DRIVE_BACKWARD = 3
-VALID_STATES = [TURN_RIGHT, DRIVE_FORWARD, TURN_LEFT, DRIVE_BACKWARD]
-IDENT_LOOKUP = {
+VALID_DRIVE_STATES = [TURN_RIGHT, DRIVE_FORWARD, TURN_LEFT, DRIVE_BACKWARD]
+DRIVE_STATE_ID_LOOKUP = {
     TURN_RIGHT: "TURN_RIGHT",
     DRIVE_FORWARD: "DRIVE_FORWARD",
     TURN_LEFT: "TURN_LEFT",
@@ -180,25 +180,31 @@ IDENT_LOOKUP = {
 }
 
 
-class DrivetrainState:
+class RobotState:
     """
-    An instantaneous drivetrain state. Control algorithms will provide continuous streams of these, and robots will do
-    their best to replicate them.
+    Represents the state of the robot at a particular point in time. Control algorithms will provide continuous streams
+    of these, and robots will do their best to mimic them.
     """
-    def __init__(self, state=None, magnitude=0):
+    def __init__(self, drive_state=None, drive_magnitude=0, claw_state=False, elevator_state=False):
         """
         Parameters
         ----------
-        state: int
-            state type; see VALID_STATES
+        drive_state: int
+            drive state type; see VALID_STATES
+        claw_state: bool
+            whether or not the claw is engaged
+        elevator_state: bool
+            whether or not the elevator is raised
         magnitude: float
             magnitude of the state, usually a velocity
         """
-        if state not in VALID_STATES:
-            raise ValueError("invalid state", state)
+        if drive_state not in VALID_DRIVE_STATES:
+            raise ValueError("invalid state", drive_state)
 
-        self.state = state
-        self.magnitude = magnitude
+        self.drive_state = drive_state
+        self.drive_magnitude = drive_magnitude
+        self.claw_state = claw_state
+        self.elevator_state = elevator_state
 
     def __str__(self):
         """
@@ -207,4 +213,4 @@ class DrivetrainState:
         str
             string representation of the form (IDENTITY@MAGNITUDE)
         """
-        return "(" + IDENT_LOOKUP[self.state] + "@" + str(self.magnitude) + ")"
+        return "(" + DRIVE_STATE_ID_LOOKUP[self.drive_state] + "@" + str(self.magnitude) + ")"
