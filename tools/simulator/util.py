@@ -119,14 +119,15 @@ def intersects(line_seg_a, line_seg_b):
             return True
     return False
 
-def dt_state_to_vel(dt_state, heading, track_width):
+
+def robot_state_to_vel(robot_state, heading, track_width):
     """
     Produces a pose velocity vector given a tank (nonholonomic) drivetrain state and heading.
 
     Parameters
     ----------
-    dt_state: DrivetrainState
-        robot drivetrain state
+    robot_state: RobotState
+        robot state as specified by the control algorithm
     heading: float
         robot heading in radians
     track_width:
@@ -138,19 +139,19 @@ def dt_state_to_vel(dt_state, heading, track_width):
         pose vector of the form [x_velocity (u/s), y_velocity (u/s), theta_velocity (rad/s)]
     """
     # Sign of the resulting velocity
-    sign = 1 if (dt_state.state == DRIVE_FORWARD or dt_state.state == TURN_LEFT) else -1
+    sign = 1 if (robot_state.drive_state == DRIVE_FORWARD or robot_state.drive_state == TURN_LEFT) else -1
 
     # Drive instruction
-    if dt_state.state == DRIVE_FORWARD or dt_state.state == DRIVE_BACKWARD:
+    if robot_state.drive_state == DRIVE_FORWARD or robot_state.drive_state == DRIVE_BACKWARD:
         return [
-            dt_state.magnitude * cos(heading) * sign,
-            dt_state.magnitude * sin(heading) * sign,
+            robot_state.drive_magnitude * cos(heading) * sign,
+            robot_state.drive_magnitude * sin(heading) * sign,
             0
         ]
     # Turn instructions
-    elif dt_state.state == TURN_LEFT or dt_state.state == TURN_RIGHT:
+    elif robot_state.drive_state == TURN_LEFT or robot_state.drive_state == TURN_RIGHT:
         return [
             0,
             0,
-            2 * dt_state.magnitude * sign / track_width
+            2 * robot_state.drive_magnitude * sign / track_width
         ]

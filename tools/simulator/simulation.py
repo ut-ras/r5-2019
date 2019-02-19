@@ -107,7 +107,7 @@ class Simulation:
             # Update robots
             for robot in self.robots:
                 robot.timestamp_current = t
-                robot.drivetrain_state = self.controller.state_at(t)
+                robot.state = self.controller.state_at(t)
 
             # Refresh the field display
             self.draw()
