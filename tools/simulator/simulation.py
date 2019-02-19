@@ -125,6 +125,7 @@ class Simulation:
             self.draw()
             # Draw coordinate readouts for objects
             for robot in self.robots:
-                self.display_txt(str(robot.pose), robot.pose[0], robot.pose[1])
+                strPose = ("{0:.3f}  {1:.3f}  {2:.3f}".format(robot.pose[0], robot.pose[1], robot.pose[2]*360/6.28))
+                self.display_txt(strPose, robot.pose[0], robot.pose[1])
 
             time.sleep(1 / 60)
