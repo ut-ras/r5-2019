@@ -2,11 +2,10 @@
 Various utility functions.
 
 Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
-Last updated: 2/8/19
+Last updated: 2/18/19
 """
 from robotcontrol import DRIVE_FORWARD, DRIVE_BACKWARD, TURN_LEFT, TURN_RIGHT
 from math import sin, cos, sqrt
-
 
 def dist(x1, y1, x2, y2):
     """

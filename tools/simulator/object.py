@@ -5,13 +5,13 @@ Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last modified: 2/8/19
 """
 from util import *
+import pygame
 from pygame import Surface
 from pygame.sprite import Sprite
 from settings import PIXELS_PER_UNIT
 from simulation import SIMULATION_BG_COLOR
 import numpy as np
 import math
-import pygame
 
 
 MASK_CIRCULAR = 0

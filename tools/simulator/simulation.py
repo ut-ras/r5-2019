@@ -2,7 +2,7 @@
 Central code for running and controlling simulations.
 
 Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
-Last modified: 2/8/19
+Last modified: 2/18/19
 """
 from robotcontrol import Clock
 from settings import *
@@ -10,7 +10,7 @@ from util import rotate_rect
 import pygame
 import time
 
-
+COLOR_BLACK = (0, 0, 0)
 COLOR_WHITE = (255, 255, 255)
 COLOR_RED = (255, 0, 0)
 SIMULATION_BG_COLOR = FIELD_COLOR
@@ -38,6 +38,10 @@ class Simulation:
         self.display = pygame.display.set_mode([display_width, display_height])
         self.clock = Clock()
         self.controller = controller
+
+        if not pygame.font.get_init():
+            pygame.font.init()
+        self.font = pygame.font.SysFont("monospace", 12, True)
 
     def draw(self):
         """
@@ -86,6 +90,14 @@ class Simulation:
         self.clock.reset()
         self.run()
 
+    def display_txt(self, text, x, y):
+        label = self.font.render(text, 1, COLOR_BLACK)
+        self.display.blit(label,
+            (int(x * PIXELS_PER_UNIT), self.display.get_height() - int(y * PIXELS_PER_UNIT))
+        )
+        pygame.display.update()
+
+
     def run(self):
         """
         Contains the actual simulation loop.
@@ -111,4 +123,8 @@ class Simulation:
 
             # Refresh the field display
             self.draw()
+            # Draw coordinate readouts for objects
+            for robot in self.robots:
+                self.display_txt(str(robot.pose), robot.pose[0], robot.pose[1])
+
             time.sleep(1 / 60)
