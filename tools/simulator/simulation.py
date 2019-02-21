@@ -11,7 +11,6 @@ import pygame
 import time
 
 COLOR_BLACK = (0, 0, 0)
-COLOR_GREY = (125, 125, 125)
 COLOR_WHITE = (255, 255, 255)
 COLOR_RED = (255, 0, 0)
 SIMULATION_BG_COLOR = FIELD_COLOR
@@ -65,6 +64,9 @@ class Simulation:
                         obj.color = SIMULATION_COLLISION_COLOR
                         obj.sprite_update()
 
+        # Draw gridlines
+        self.display_gridlines()
+
         # Draw all objects
         for obj in self.objects:
             obj.draw(self.display)
@@ -93,10 +95,10 @@ class Simulation:
 
     def display_gridlines(self):
         for y in range(0, 8):   #horizontal lines
-            pygame.draw.line(self.display, COLOR_GREY,
+            pygame.draw.line(self.display, GRID_COLOR,
                 [0, y/GRID_RESOLUTION * FIELD_HEIGHT*PIXELS_PER_UNIT], [FIELD_WIDTH*PIXELS_PER_UNIT, y/GRID_RESOLUTION * FIELD_HEIGHT*PIXELS_PER_UNIT])
         for x in range(0, 8):
-            pygame.draw.line(self.display, COLOR_GREY,
+            pygame.draw.line(self.display, GRID_COLOR,
                 [x/GRID_RESOLUTION * FIELD_WIDTH*PIXELS_PER_UNIT, 0], [x/GRID_RESOLUTION * FIELD_WIDTH*PIXELS_PER_UNIT, FIELD_HEIGHT*PIXELS_PER_UNIT])
 
     def run(self):
@@ -127,5 +129,5 @@ class Simulation:
 
             # Draw gridlines
             self.display_gridlines()
-
+            
             time.sleep(1 / 60)
