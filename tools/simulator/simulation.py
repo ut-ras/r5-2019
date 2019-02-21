@@ -11,6 +11,7 @@ import pygame
 import time
 
 COLOR_BLACK = (0, 0, 0)
+COLOR_GREY = (125, 125, 125)
 COLOR_WHITE = (255, 255, 255)
 COLOR_RED = (255, 0, 0)
 SIMULATION_BG_COLOR = FIELD_COLOR
@@ -97,6 +98,13 @@ class Simulation:
         )
         pygame.display.update()
 
+    def display_gridlines(self):
+        for y in range(0, 8):   #horizontal lines
+            pygame.draw.line(self.display, COLOR_GREY,
+                [0, y/GRID_RESOLUTION * FIELD_HEIGHT*PIXELS_PER_UNIT], [FIELD_WIDTH*PIXELS_PER_UNIT, y/GRID_RESOLUTION * FIELD_HEIGHT*PIXELS_PER_UNIT])
+        for x in range(0, 8):
+            pygame.draw.line(self.display, COLOR_GREY,
+                [x/GRID_RESOLUTION * FIELD_WIDTH*PIXELS_PER_UNIT, 0], [x/GRID_RESOLUTION * FIELD_WIDTH*PIXELS_PER_UNIT, FIELD_HEIGHT*PIXELS_PER_UNIT])
 
     def run(self):
         """
@@ -123,6 +131,10 @@ class Simulation:
 
             # Refresh the field display
             self.draw()
+
+            # Draw gridlines
+            self.display_gridlines()
+
             # Draw coordinate readouts for objects
             for robot in self.robots:
                 strPose = ("{0:.3f}  {1:.3f}  {2:.3f}".format(robot.pose[0], robot.pose[1], robot.pose[2]*360/6.28))

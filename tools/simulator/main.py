@@ -20,7 +20,7 @@ s = Simulation(controller)
 r = SimulationRobot(pose_initial[0], pose_initial[1], pose_initial[2])
 s.objects.append(r)
 s.objects.append(Obstacle(24, 24))
-s.objects.extend(build_field(0))
+s.objects.extend(build_field(2))
 
 # Go time
 s.launch()
