@@ -5,7 +5,10 @@ Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last modified: 2/8/19
 """
 from drivers.core.robotframe import RobotFrame
+from graphics import *
+from math import degrees
 from object import SimulationObject, MASK_RECT
+from settings import *
 from util import robot_state_to_vel
 import numpy as np
 
@@ -13,6 +16,9 @@ import numpy as np
 ROBOT_WIDTH = 6
 ROBOT_HEIGHT = 3
 ROBOT_COLOR = (0, 255, 0)
+
+CAMERA_FOV_HORIZ = 62
+CAMERA_FOV_VERT = 48
 
 
 class SimulationRobot(SimulationObject, RobotFrame):
@@ -34,6 +40,19 @@ class SimulationRobot(SimulationObject, RobotFrame):
         RobotFrame.__init__(self, "mr robot")
 
         self.state = None
+
+    def draw(self, display):
+        """
+        Draws the robot to a surface.
+        """
+        SimulationObject.draw(self, display)
+        draw_set_color(0, 0, 255)
+        text = (self.subsys_name + "\n" +
+               "{0:.3f} " + DISTANCE_UNIT + "\n" +
+               "{1:.3f} " + DISTANCE_UNIT + "\n" +
+               "{2:.3f} " + ANGLE_UNIT).format(self.pose[0], self.pose[1],
+               degrees(self.pose[2]))
+        draw_text_field(display, text, self.pose[0], self.pose[1])
 
     def loop(self):
         """

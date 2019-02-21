@@ -91,13 +91,6 @@ class Simulation:
         self.clock.reset()
         self.run()
 
-    def display_txt(self, text, x, y):
-        label = self.font.render(text, 1, COLOR_BLACK)
-        self.display.blit(label,
-            (int(x * PIXELS_PER_UNIT), self.display.get_height() - int(y * PIXELS_PER_UNIT))
-        )
-        pygame.display.update()
-
     def display_gridlines(self):
         for y in range(0, 8):   #horizontal lines
             pygame.draw.line(self.display, COLOR_GREY,
@@ -134,10 +127,5 @@ class Simulation:
 
             # Draw gridlines
             self.display_gridlines()
-
-            # Draw coordinate readouts for objects
-            for robot in self.robots:
-                strPose = ("{0:.3f}  {1:.3f}  {2:.3f}".format(robot.pose[0], robot.pose[1], robot.pose[2]*360/6.28))
-                self.display_txt(strPose, robot.pose[0], robot.pose[1])
 
             time.sleep(1 / 60)
