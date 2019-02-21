@@ -100,29 +100,36 @@ def place_safe(objects, constructor):
     None
     """
     done = False
-
+    a = constructor(0, 0)
     while not done:
-        center = [random.randint(6, FIELD_WIDTH-6), random.randint(6, FIELD_HEIGHT-6)]
+        a.pose = [random.randint(6, FIELD_WIDTH-6), random.randint(6, FIELD_HEIGHT-6), a.pose[2]]
         safe = True
 
-        for obj in objects:
-            corners = [
-                [obj.pose[0], obj.pose[1]],
-                [obj.pose[0], obj.pose[1] + obj.rect[1]],
-                [obj.pose[0] + obj.rect[0], obj.pose[1]],
-                [obj.pose[0] + obj.rect[0], obj.pose[1] + obj.rect[1]]
-            ]
+        this_corners = [
+            [a.pose[0], a.pose[1]],
+            [a.pose[0], a.pose[1] + a.rect[1]],
+            [a.pose[0] + a.rect[0], a.pose[1]],
+            [a.pose[0] + a.rect[0], a.pose[1] + a.rect[1]]
+        ]
 
-            for corner in corners:
-                if dist(center[0], center[1], corner[0], corner[1]) < OBJECT_SAFE_DISTANCE:
-                    safe = False
-                    break
+        for b in objects:
+            corners = [
+                [b.pose[0], b.pose[1]],
+                [b.pose[0], b.pose[1] + b.rect[1]],
+                [b.pose[0] + b.rect[0], b.pose[1]],
+                [b.pose[0] + b.rect[0], b.pose[1] + b.rect[1]]
+            ]
+            for this_corner in this_corners:
+                for corner in corners:
+                    if dist(this_corner[0], this_corner[1], corner[0], corner[1]) < OBJECT_SAFE_DISTANCE:
+                        safe = False
+                        break
 
             if safe is False:
                 break
 
         if safe:
-            objects.append(constructor(center[0], center[1]))
+            objects.append(a)
             done = True
 
 
