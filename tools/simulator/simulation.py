@@ -9,10 +9,15 @@ from settings import *
 from util import rotate_rect
 import pygame
 import time
+import models
+import vision
+import math
+
 
 COLOR_BLACK = (0, 0, 0)
 COLOR_WHITE = (255, 255, 255)
 COLOR_RED = (255, 0, 0)
+COLOR_YELLOW = (255, 255, 0)
 SIMULATION_BG_COLOR = FIELD_COLOR
 SIMULATION_COLLISION_COLOR = COLOR_RED
 
@@ -41,6 +46,8 @@ class Simulation:
         self.display = pygame.display.set_mode([display_width, display_height])
         self.clock = Clock()
         self.controller = controller
+
+        self.model = models.get_2019_detection_probability_model()
 
     def add_object(self, obj):
         """
@@ -94,6 +101,12 @@ class Simulation:
         # Draw actual robots second
         for obj in self.robots:
             obj.draw(self.display)
+            # vision detection
+            seen = vision.detect(self.objects, robot.pose, math.radians(62), self.model)
+            for obj in seen:
+                position = [(obj.pose[0] - obj.dims[0]/2) * PIXELS_PER_UNIT,
+                    self.display.get_size()[1] - (obj.pose[1] + obj.dims[1]/2) * PIXELS_PER_UNIT]
+                pygame.draw.rect(self.display, COLOR_YELLOW, obj.rect.move(position))
 
         pygame.display.update()
 

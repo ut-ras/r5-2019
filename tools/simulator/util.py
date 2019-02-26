@@ -5,7 +5,7 @@ Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last updated: 2/18/19
 """
 from robotcontrol import DRIVE_FORWARD, DRIVE_BACKWARD, TURN_LEFT, TURN_RIGHT
-from math import sin, cos, sqrt
+from math import sin, cos, sqrt, pi, fmod
 
 def dist(x1, y1, x2, y2):
     """
@@ -28,7 +28,6 @@ def dist(x1, y1, x2, y2):
         distance from A to B
     """
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-
 
 def rotate_point(cx, cy, x, y, theta):
     """
@@ -61,7 +60,6 @@ def rotate_point(cx, cy, x, y, theta):
     y_new = x * s + y * c
 
     return x_new + cx, y_new + cy
-
 
 def rotate_rect(corners, theta, cx=0, cy=0):
     """
@@ -118,7 +116,6 @@ def intersects(line_seg_a, line_seg_b):
             return True
     return False
 
-
 def robot_state_to_vel(robot_state, heading, track_width):
     """
     Produces a pose velocity vector given a tank (nonholonomic) drivetrain state and heading.
@@ -154,3 +151,8 @@ def robot_state_to_vel(robot_state, heading, track_width):
             0,
             2 * robot_state.drive_magnitude * sign / track_width
         ]
+
+def angle_dev(a, b):
+    diff = fmod((a-b + pi), (pi * 2)) - pi
+    return diff
+    # atan2(sin(x-y), cos(x-y))
