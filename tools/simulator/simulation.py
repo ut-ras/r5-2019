@@ -19,9 +19,11 @@ SIMULATION_COLLISION_COLOR = COLOR_RED
 
 class Simulation:
     """
-    Centermost simulator class. Manages simulated object list, display drawing, and the simulation loop.
+    Centermost simulator class. Manages simulated object list, display drawing,
+    and the simulation loop.
     """
-    def __init__(self, controller, display_width=int(FIELD_WIDTH * PIXELS_PER_UNIT),
+    def __init__(self, controller,
+                 display_width=int(FIELD_WIDTH * PIXELS_PER_UNIT),
                  display_height=int(FIELD_HEIGHT * PIXELS_PER_UNIT)):
         """
         Parameters
@@ -35,13 +37,32 @@ class Simulation:
         """
         self.objects = []
         self.robots = []
+        self.not_robots = []
         self.display = pygame.display.set_mode([display_width, display_height])
         self.clock = Clock()
         self.controller = controller
 
-        if not pygame.font.get_init():
-            pygame.font.init()
-        self.font = pygame.font.SysFont("monospace", 12, True)
+    def add_object(self, obj):
+        """
+        Adds an object to the simulation.
+
+        Parameters
+        ----------
+        obj: SimulationObject
+            object to add
+
+        Returns
+        -------
+        None
+        """
+        from robot import SimulationRobot
+
+        if isinstance(obj, SimulationRobot):
+            self.robots.append(obj)
+        else:
+            self.not_robots.append(obj)
+
+        self.objects.append(obj)
 
     def draw(self):
         """
@@ -56,19 +77,22 @@ class Simulation:
         # Collision checking for robots only
         for robot in self.robots:
             # For everything that is not a robot
-            for obj in self.objects:
-                if obj.__class__.__name__ is not "SimulationRobot":
-                    if robot.collision(obj):
-                        robot.color = SIMULATION_COLLISION_COLOR
-                        robot.sprite_update()
-                        obj.color = SIMULATION_COLLISION_COLOR
-                        obj.sprite_update()
+            for obj in self.not_robots:
+                if robot.collision(obj):
+                    robot.color = SIMULATION_COLLISION_COLOR
+                    robot.sprite_update()
+                    obj.color = SIMULATION_COLLISION_COLOR
+                    obj.sprite_update()
 
         # Draw gridlines
         self.display_gridlines()
 
-        # Draw all objects
-        for obj in self.objects:
+        # Draw non-robot objects first
+        for obj in self.not_robots:
+            obj.draw(self.display)
+
+        # Draw actual robots second
+        for obj in self.robots:
             obj.draw(self.display)
 
         pygame.display.update()
@@ -81,11 +105,6 @@ class Simulation:
         -------
         None
         """
-        # Put robots into a separate list for convenience
-        for obj in self.objects:
-            if obj.__class__.__name__ == "SimulationRobot":
-                self.robots.append(obj)
-
         # Begin robot threads
         for robot in self.robots:
             robot.start()
@@ -129,5 +148,5 @@ class Simulation:
 
             # Draw gridlines
             self.display_gridlines()
-            
+
             time.sleep(1 / 60)

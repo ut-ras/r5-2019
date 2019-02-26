@@ -48,6 +48,7 @@ class Obstacle(SimulationObject):
         self.dims[0] /= PIXELS_PER_UNIT
         self.dims[1] /= PIXELS_PER_UNIT
 
+
 class Block(SimulationObject):
     """
     Represents the lettered cubes. Rectangular collision mask.

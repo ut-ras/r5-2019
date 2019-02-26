@@ -1,6 +1,6 @@
 """
-Simple control algorithm for testing simulator movement. Takes the general form of the control algorithm that the
-control team will eventually provide.
+Simple control algorithm for testing simulator movement. Takes the general form
+of the control algorithm that the control team will eventually provide.
 
 Authors: Stefan deBruyn
 Last modified: 2/8/19
@@ -77,7 +77,8 @@ class RobotInstruction:
         return self.profile.state_at(t)
 
     def __str__(self):
-        return "(" + ("DRIVE" if self.id == INSTRUCTION_DRIVE else "TURN") + "@" + str(self.profile.duration) + ")"
+        return "(" + ("DRIVE" if self.id == INSTRUCTION_DRIVE else "TURN") +\
+            "@" + str(self.profile.duration) + ")"
 
 
 class RobotController:
@@ -95,9 +96,11 @@ class RobotController:
         path: list
             list of 2-tuples representing (x, y) coordinate pairs to be visited
         lin_const: tuple
-            linear motion constraints 2-tuple (linear_velocity_max, linear_acceleration_max)
+            linear motion constraints 2-tuple (linear_velocity_max,
+            linear_acceleration_max)
         ang_const: tuple
-            angular motion constraints 2-tuple (angular_velocity_max, angular_acceleration_max)
+            angular motion constraints 2-tuple (angular_velocity_max,
+            angular_acceleration_max)
         """
         import util
 
@@ -108,10 +111,12 @@ class RobotController:
 
         for point in path:
             # Calculate heading error and schedule a turn instruction if necessary
-            heading_target = math.atan2(point[1] - pose_current[1], point[0] - pose_current[0])
+            heading_target = math.atan2(point[1] - pose_current[1],
+                point[0] - pose_current[0])
             heading_error = heading_target - pose_current[2]
             if heading_error != 0:
-                prof = profiling.make_sym_trap(pose_current[2], heading_target, ang_const[0], ang_const[1])
+                prof = profiling.make_sym_trap(pose_current[2], heading_target,
+                    ang_const[0], ang_const[1])
                 self.duration += prof.duration
                 inst = RobotInstruction(INSTRUCTION_TURN, prof)
                 self.instructions.append(inst)
@@ -144,7 +149,8 @@ class RobotController:
         Returns
         ----------
         RobotState
-            drivetrain state at time t or None if the specified time lies outside the duration of the control sequence
+            drivetrain state at time t or None if the specified time lies
+            outside the duration of the control sequence
         """
         # Specified time lies outside the controller's duration
         if t < 0 or t > self.duration:
@@ -182,10 +188,12 @@ DRIVE_STATE_ID_LOOKUP = {
 
 class RobotState:
     """
-    Represents the state of the robot at a particular point in time. Control algorithms will provide continuous streams
-    of these, and robots will do their best to mimic them.
+    Represents the state of the robot at a particular point in time. Control
+    algorithms will provide continuous streams of these, and robots will do
+    their best to mimic them.
     """
-    def __init__(self, drive_state=None, drive_magnitude=0, claw_state=False, elevator_state=False):
+    def __init__(self, drive_state=None, drive_magnitude=0, claw_state=False,
+        elevator_state=False):
         """
         Parameters
         ----------

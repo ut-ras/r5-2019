@@ -1,5 +1,6 @@
 """
-Miscellaneous constants for configuring the simulator (not specific to any particular year's competition).
+Miscellaneous constants for configuring the simulator (not specific to any
+particular year's competition).
 """
 PIXELS_PER_UNIT = 5.0 / 1.0  # 5 px per 1 inch
 

@@ -92,8 +92,8 @@ class SimulationObject(Sprite):
         sprite_transformed = self.image
         if self.autoscale:
             sprite_transformed = pygame.transform.scale(sprite_transformed,
-                                                        (int(self.image.get_width() * PIXELS_PER_UNIT),
-                                                         int(self.image.get_height() * PIXELS_PER_UNIT)))
+                (int(self.image.get_width() * PIXELS_PER_UNIT),
+                 int(self.image.get_height() * PIXELS_PER_UNIT)))
         # Rotate to face heading
         sprite_transformed = pygame.transform.rotate(sprite_transformed, math.degrees(self.pose[2]))
         # Draw

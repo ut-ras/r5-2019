@@ -36,7 +36,8 @@ class SimulationRobot(SimulationObject, RobotFrame):
         theta: float
             heading in radians
         """
-        SimulationObject.__init__(self, x, y, theta, ROBOT_WIDTH, ROBOT_HEIGHT, ROBOT_COLOR, MASK_RECT)
+        SimulationObject.__init__(self, x, y, theta, ROBOT_WIDTH, ROBOT_HEIGHT,
+            ROBOT_COLOR, MASK_RECT)
         RobotFrame.__init__(self, "mr robot")
 
         self.state = None
@@ -56,14 +57,16 @@ class SimulationRobot(SimulationObject, RobotFrame):
 
     def loop(self):
         """
-        A single iteration of the robot's control code. Called automatically by the overarching thread.
+        A single iteration of the robot's control code. Called automatically by
+        the overarching thread.
 
         Returns
         -------
         None
         """
         # Only do time-dependent actions if a dt can be calculated
-        if self.timestamp_last is not None and self.timestamp_current is not None:
+        if self.timestamp_last is not None and\
+           self.timestamp_current is not None:
             # Get simulation velocity from drivetrain state
             self.pose_velocity = robot_state_to_vel(self.state, self.pose[2], 2)
 
