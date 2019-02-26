@@ -15,7 +15,7 @@ def get_2019_detection_probability_model():
 
     model = Model()
     model.define_interval(-math.inf, success_threshold, lambda x: 1)
-    model.fit_function(success_threshold, 1, failure_threshold, 0, "rcpsqr_dec")
+    model.fit_function(success_threshold, 1, failure_threshold, 0, "rcp_dec")
     model.define_interval(failure_threshold, math.inf, lambda x: 0)
 
     return model
