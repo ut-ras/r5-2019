@@ -86,7 +86,9 @@ class Model:
             b = y1 - a / x1
             self.define_interval(x1, x2, lambda x: a / x + b)
         elif name == "rcpsqr_dec":
-            pass
+            a = (y2 - y1) / (1 / x2 ** 2 - 1 / x1 ** 2)
+            b = y1 - a / x1 ** 2
+            self.define_interval(x1, x2, lambda x: a / x ** 2 + b)
         else:
             raise Exception("invalid function identifier: " + name)
 
