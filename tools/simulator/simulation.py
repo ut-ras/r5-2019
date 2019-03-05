@@ -12,6 +12,7 @@ import time
 import models
 import vision
 import math
+import graphics
 
 
 COLOR_BLACK = (0, 0, 0)
@@ -102,11 +103,13 @@ class Simulation:
         for obj in self.robots:
             obj.draw(self.display)
             # vision detection
-            seen = vision.detect(self.objects, robot.pose, math.radians(62), self.model)
+            seen = vision.detect(self.not_robots, robot.pose, math.radians(62), self.model)    
             for obj in seen:
                 position = [(obj.pose[0] - obj.dims[0]/2) * PIXELS_PER_UNIT,
                     self.display.get_size()[1] - (obj.pose[1] + obj.dims[1]/2) * PIXELS_PER_UNIT]
-                pygame.draw.rect(self.display, COLOR_YELLOW, obj.rect.move(position))
+                newRect = [obj.rect.move(position)[0], obj.rect.move(position)[1], obj.dims[0], obj.dims[1]]
+                graphics.draw_set_color(COLOR_YELLOW[0], COLOR_YELLOW[1], COLOR_YELLOW[2])
+                graphics.draw_rectangle(self.display, newRect, 2)
 
         pygame.display.update()
 

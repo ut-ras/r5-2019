@@ -27,6 +27,7 @@ def draw_set_color(r, g, b):
     b: int
         blue value on [0, 255]
     """
+    global GLOBAL_DRAW_COLOR
     GLOBAL_DRAW_COLOR = (r, g, b)
 
 
@@ -43,6 +44,7 @@ def draw_set_font(name, size, bold):
     bold: bool
         whether or not to bold the font
     """
+    global GLOBAL_DRAW_FONT
     GLOBAL_DRAW_FONT = pygame.font.SysFont(name, size, bold)
 
 
@@ -67,3 +69,8 @@ def draw_text_field(surface, string, x, y):
     """
     draw_text(surface, string, int(x * PIXELS_PER_UNIT),
         int(y * PIXELS_PER_UNIT))
+
+
+def draw_rectangle(surface, rect, borderWidth=0):
+    pygame.draw.rect(surface, GLOBAL_DRAW_COLOR, [rect[0], rect[1], rect[2] * PIXELS_PER_UNIT, 
+        rect[3] * PIXELS_PER_UNIT], borderWidth)

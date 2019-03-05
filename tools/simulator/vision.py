@@ -20,7 +20,14 @@ def detect(objs, pose, fov, model):
     """
     objInRange = []
     for obj in objs:
-        angleBetween = math.atan((obj.pose[1]-pose[1])/(obj.pose[0]-pose[0]))
+        xDiff = (obj.pose[0]-pose[0])
+        yDiff = (obj.pose[1]-pose[1])
+        if xDiff == 0:
+            xDiff = 1
+        try:
+            angleBetween = math.atan2(yDiff,xDiff)
+        except Exception:
+            pass
         deviation_left = math.fabs(util.angle_dev(angleBetween, pose[2]+fov/2))
         deviation_right = math.fabs(util.angle_dev(angleBetween, pose[2]-fov/2))
         if deviation_left < fov and deviation_right < fov:
