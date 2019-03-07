@@ -2,7 +2,7 @@
 Miscellaneous constants for configuring the simulator (not specific to any
 particular year's competition).
 """
-PIXELS_PER_UNIT = 5.0 / 1.0  # 5 px per 1 inch
+PIXELS_PER_UNIT = 10.0 / 1.0  # 10 px per 1 inch
 
 FIELD_WIDTH = 8 * 12
 FIELD_HEIGHT = FIELD_WIDTH

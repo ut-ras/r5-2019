@@ -1,4 +1,4 @@
-from field import build_field, Obstacle
+from field import build_field, Obstacle, Block, Mothership
 from robot import SimulationRobot
 from robotcontrol import RobotController
 from simulation import Simulation
@@ -20,6 +20,7 @@ s = Simulation(controller)
 r = SimulationRobot(pose_initial[0], pose_initial[1], pose_initial[2])
 
 s.add_object(r)
+s.add_object(Block(144, 144))
 
 for obj in build_field(2):
     s.add_object(obj)

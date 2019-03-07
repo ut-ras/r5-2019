@@ -43,7 +43,7 @@ class Clock:
         self.t0 = time.time()
 
 
-class RobotInstruction:
+class DriveInstruction:
     """
     A drive or turn instruction with an associated motion profile.
     """
@@ -118,7 +118,7 @@ class RobotController:
                 prof = profiling.make_sym_trap(pose_current[2], heading_target,
                     ang_const[0], ang_const[1])
                 self.duration += prof.duration
-                inst = RobotInstruction(INSTRUCTION_TURN, prof)
+                inst = DriveInstruction(INSTRUCTION_TURN, prof)
                 self.instructions.append(inst)
 
             # Calculate distance and schedule a drive instruction if necessary
@@ -126,7 +126,7 @@ class RobotController:
             if distance != 0:
                 prof = profiling.make_sym_trap(0, distance, lin_const[0], lin_const[1])
                 self.duration += prof.duration
-                inst = RobotInstruction(INSTRUCTION_DRIVE, prof)
+                inst = DriveInstruction(INSTRUCTION_DRIVE, prof)
                 self.instructions.append(inst)
 
             pose_current = (point[0], point[1], heading_target)
@@ -163,12 +163,13 @@ class RobotController:
                 profile_state = inst.profile_state_at(t - elapsed)
                 # Drive instruction
                 if inst.id == INSTRUCTION_DRIVE:
-                    dt_state = RobotState(DRIVE_FORWARD, abs(profile_state.v))
+                    dt_state = RobotState(DRIVE_FORWARD,
+                        abs(profile_state.v))
                     return dt_state
                 # Turn instruction
                 elif inst.id == INSTRUCTION_TURN:
-                    dt_state = RobotState(TURN_LEFT if profile_state.v > 0 else
-                                               TURN_RIGHT, abs(profile_state.v))
+                    dt_state = RobotState(TURN_LEFT if profile_state.v > 0
+                        else TURN_RIGHT, abs(profile_state.v))
                     return dt_state
             elapsed += inst.profile.duration
 
@@ -221,4 +222,7 @@ class RobotState:
         str
             string representation of the form (IDENTITY@MAGNITUDE)
         """
-        return "(" + DRIVE_STATE_ID_LOOKUP[self.drive_state] + "@" + str(self.magnitude) + ")"
+        format = "({0}@{1:0.3f}, claw={2}, elev={3})"
+        return format.format(DRIVE_STATE_ID_LOOKUP[self.drive_state],
+            self.drive_magnitude, str(self.claw_state),
+            str(self.elevator_state))

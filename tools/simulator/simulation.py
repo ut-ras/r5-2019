@@ -67,6 +67,7 @@ class Simulation:
 
         if isinstance(obj, SimulationRobot):
             self.robots.append(obj)
+            obj.sim = self
         else:
             self.not_robots.append(obj)
 
@@ -103,7 +104,7 @@ class Simulation:
         for obj in self.robots:
             obj.draw(self.display)
             # vision detection
-            seen = vision.detect(self.not_robots, robot.pose, math.radians(62), self.model)    
+            seen = vision.detect(self.not_robots, robot.pose, math.radians(62), self.model)
             for obj in seen:
                 position = [(obj.pose[0] - obj.dims[0]/2) * PIXELS_PER_UNIT,
                     self.display.get_size()[1] - (obj.pose[1] + obj.dims[1]/2) * PIXELS_PER_UNIT]
@@ -157,7 +158,7 @@ class Simulation:
             # Update robots
             for robot in self.robots:
                 robot.timestamp_current = t
-                robot.state = self.controller.state_at(t)
+                robot.state_update(self.controller.state_at(t))
 
             # Refresh the field display
             self.draw()

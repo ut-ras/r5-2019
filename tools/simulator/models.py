@@ -10,8 +10,8 @@ def get_2019_detection_probability_model():
     Model
         2019 model
     """
-    success_threshold = 12  # Distance before which detection cannot fail
-    failure_threshold = 48  # Distance past which detection cannot succeed
+    success_threshold = 24  # Distance before which detection cannot fail
+    failure_threshold = 60  # Distance past which detection cannot succeed
 
     model = Model()
     model.define_interval(-math.inf, success_threshold, lambda x: 1)

@@ -48,7 +48,32 @@ def draw_set_font(name, size, bold):
     GLOBAL_DRAW_FONT = pygame.font.SysFont(name, size, bold)
 
 
-def draw_text(surface, string, x, y):
+def text_get_width(string):
+    """
+    Gets the pixel width of a string when rendered in the global font.
+
+    Returns
+    -------
+    int
+        width in pixels
+    """
+    global GLOBAL_DRAW_FONT
+    return GLOBAL_DRAW_FONT.size(string)[0]
+
+def text_get_height(string):
+    """
+    Gets the pixel height of a string when rendered in the global font.
+
+    Returns
+    -------
+    int
+        height in pixels
+    """
+    global GLOBAL_DRAW_FONT
+    return GLOBAL_DRAW_FONT.size(string)[1]
+
+
+def draw_text(surface, string, x, y, align="left"):
     """
     Renders a piece of text to a surface in the global font.
     """
@@ -57,20 +82,34 @@ def draw_text(surface, string, x, y):
     y_offset = 0
     line_height = GLOBAL_DRAW_FONT.size("X")[1]
 
+    if align != "left":
+        # Find length of longest line
+        maxlenstr = None;
+        for line in lines:
+            if maxlenstr == None or len(line) > len(maxlenstr):
+                maxlenstr = line
+
+        # Recompute draw coordinates
+        if align == "center":
+            x -= text_get_width(maxlenstr) / 2
+        elif align == "right":
+            x -= text_get_width(maxlenstr)
+
+    # Do drawing
     for line in lines:
         text = GLOBAL_DRAW_FONT.render(line, 1, GLOBAL_DRAW_COLOR)
         surface.blit(text, (x, surface.get_height() - y - y_offset))
         y_offset += line_height
 
 
-def draw_text_field(surface, string, x, y):
+def draw_text_field(surface, string, x, y, align="left"):
     """
     Renders a piece of text at field-centric coordinates.
     """
     draw_text(surface, string, int(x * PIXELS_PER_UNIT),
-        int(y * PIXELS_PER_UNIT))
+        int(y * PIXELS_PER_UNIT), align)
 
 
 def draw_rectangle(surface, rect, borderWidth=0):
-    pygame.draw.rect(surface, GLOBAL_DRAW_COLOR, [rect[0], rect[1], rect[2] * PIXELS_PER_UNIT, 
-        rect[3] * PIXELS_PER_UNIT], borderWidth)
+    pygame.draw.rect(surface, GLOBAL_DRAW_COLOR, [rect[0], rect[1],
+        rect[2] * PIXELS_PER_UNIT, rect[3] * PIXELS_PER_UNIT], borderWidth)

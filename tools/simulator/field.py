@@ -4,6 +4,7 @@ Holds stuff specific to representing this year's game field.
 Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
 Last modified: 2/8/19
 """
+import graphics
 import random
 from object import SimulationObject, MASK_CIRCULAR, MASK_RECT
 from settings import PIXELS_PER_UNIT, FIELD_WIDTH, FIELD_HEIGHT
@@ -65,6 +66,17 @@ class Block(SimulationObject):
             heading in radians
         """
         SimulationObject.__init__(self, x, y, theta, BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_COLOR, MASK_RECT)
+        self.letter = ""
+
+    def draw(self, display):
+        """
+        Draws the object to a surface.
+        """
+        SimulationObject.draw(self, display)
+        graphics.draw_set_color(0, 0, 0)
+        graphics.draw_text_field(display, "Block " + self.letter, self.pose[0],
+            self.pose[1] - 1, align="center")
+
 
 
 class Mothership(SimulationObject):
@@ -133,6 +145,8 @@ def place_safe(objects, constructor):
             objects.append(a)
             done = True
 
+    return a
+
 
 def build_field(round):
     """
@@ -152,7 +166,8 @@ def build_field(round):
 
     # Place blocks
     for i in range(ROUND_OBJECT_COUNTS[round][0]):
-        place_safe(objects, lambda x, y: Block(x, y))
+        block = place_safe(objects, lambda x, y: Block(x, y))
+        block.letter = chr(65 + i)
 
     # Place obstacles
     for i in range(ROUND_OBJECT_COUNTS[round][1]):
