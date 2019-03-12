@@ -19,11 +19,15 @@ controller = RobotController(pose_initial, path, lin_const, ang_const)
 s = Simulation(controller)
 r = SimulationRobot(pose_initial[0], pose_initial[1], pose_initial[2])
 
-s.add_object(r)
-s.add_object(Block(144, 144))
+b = Block(24, 24)
+b.letter = "A"
 
-for obj in build_field(2):
-    s.add_object(obj)
+s.add_object(r)
+s.add_object(b)
+s.add_object(Mothership(24, 48))
+
+#for obj in build_field(2):
+    #s.add_object(obj)
 
 # Go time
 s.launch()

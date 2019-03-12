@@ -95,6 +95,17 @@ class Mothership(SimulationObject):
             heading in radians
         """
         SimulationObject.__init__(self, x, y, theta, MOTHERSHIP_WIDTH, MOTHERSHIP_HEIGHT, MOTHERSHIP_COLOR, MASK_RECT)
+        self.blocks = []
+
+    def draw(self, display):
+        """
+        Draws the object to a surface.
+        """
+        SimulationObject.draw(self, display)
+        graphics.draw_set_color(0, 0, 0)
+        graphics.draw_text_field(display, "Mothership\nblocks=" +\
+            str(self.blocks), self.pose[0], self.pose[1])
+
 
 
 def place_safe(objects, constructor):

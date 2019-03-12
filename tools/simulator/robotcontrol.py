@@ -61,8 +61,8 @@ class DriveInstruction:
 
     def profile_state_at(self, t):
         """
-        Gets the kinematic state at a point in time relative to the epoch of the instruction (t=0 being the instant
-        the instruction begins).
+        Gets the kinematic state at a point in time relative to the epoch of the
+        instruction (t=0 being the instant the instruction begins).
 
         Parameters
         ----------
@@ -106,7 +106,10 @@ class RobotController:
 
         self.clock = Clock()
         self.instructions = []
+        self.collect_point = ()  # (x, y)
+        self.deposit_point = ()  # (x, y)
         self.duration = 0
+
         pose_current = pose_initial
 
         for point in path:
