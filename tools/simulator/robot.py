@@ -8,9 +8,11 @@ from drivers.core.robotframe import RobotFrame
 import field
 from graphics import *
 from math import degrees
+import models
 from object import SimulationObject, MASK_RECT
 from settings import *
 from util import robot_state_to_vel, dist
+from vision import detect
 import numpy as np
 
 
@@ -20,6 +22,8 @@ ROBOT_COLOR = (0, 255, 0)
 
 CAMERA_FOV_HORIZ = 62
 CAMERA_FOV_VERT = 48
+
+CV_PROB_MODEL = models.get_2019_detection_probability_model()
 
 
 class SimulationRobot(SimulationObject, RobotFrame):
@@ -100,6 +104,11 @@ class SimulationRobot(SimulationObject, RobotFrame):
                 self.pose[1], obj.pose[0], obj.pose[1]) <= DROPOFF_RANGE:
                 obj.blocks.append(self.carried_block_mutex)
                 self.carried_block_mutex = None
+
+
+    def cv_scan(self):
+        return detect(self.sim.not_robots, self.pose, CAMERA_FOV_HORIZ,
+            CV_PROB_MODEL)
 
 
     def loop(self):
