@@ -6,11 +6,11 @@ from simulation import Simulation
 
 # Controller setup
 path = [  # List of coordinates to visit
-    (2 * 12, 2 * 12),
-    (2 * 12, 4 * 12),
+    (0, 8 * 12),
+    (8 * 12, 8 * 12),
     (6 * 12, 6 * 12)
 ]
-pose_initial = (12, 12, 0)  # Initial x, y, theta
+pose_initial = (0, -3 * 12, 0)  # Initial x, y, theta
 lin_const = (10, 5)  # Max velocity, max acceleration
 ang_const = (1, 0.5)  # Max angular velocity, max angular acceleration
 controller = RobotController(pose_initial, path, lin_const, ang_const)

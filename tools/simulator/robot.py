@@ -72,8 +72,8 @@ class SimulationRobot(SimulationObject, RobotFrame):
                degrees(self.pose[2])) + "\n" +\
                "has_block=" + str(self.has_block) + "\n" +\
                "state=" + str(self.state)
-        draw_text_field(display, text, self.pose[0],
-            self.pose[1] - 6, align="center")
+        #draw_text_field(display, text, self.pose[0],self.pose[1] - 6, align="left")
+        draw_text_onScreen(display,text,self.pose[0],self.pose[1])
 
     def attempt_block_pickup(self):
         PICKUP_RANGE = 1

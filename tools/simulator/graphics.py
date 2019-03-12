@@ -3,6 +3,8 @@ Graphics utilities for drawing to PyGame surfaces.
 """
 import pygame
 from settings import PIXELS_PER_UNIT
+from settings import FIELD_WIDTH
+from settings import FIELD_HEIGHT
 import re
 
 
@@ -113,3 +115,39 @@ def draw_text_field(surface, string, x, y, align="left"):
 def draw_rectangle(surface, rect, borderWidth=0):
     pygame.draw.rect(surface, GLOBAL_DRAW_COLOR, [rect[0], rect[1],
         rect[2] * PIXELS_PER_UNIT, rect[3] * PIXELS_PER_UNIT], borderWidth)
+
+def draw_text_onScreen(surface, string, x, y, align="left"):
+    from robot import ROBOT_WIDTH
+    from robot import ROBOT_HEIGHT
+
+    lines = string.split("\n")
+    lines.reverse()
+    y_offset = 0
+    height = GLOBAL_DRAW_FONT.size("X")[1] * len(lines)
+    maxlenstr = None;
+    for line in lines:
+        if maxlenstr == None or len(line) > len(maxlenstr):
+            maxlenstr = line
+
+    width = text_get_width(maxlenstr)
+
+    unitW = width / PIXELS_PER_UNIT
+    unitH = height / PIXELS_PER_UNIT
+
+    xOffScreen = 0
+    yOffScreen = 0
+
+    x *= PIXELS_PER_UNIT
+    y *= PIXELS_PER_UNIT
+    
+    if x < 0:
+        x = 0
+    if x > ((FIELD_WIDTH * PIXELS_PER_UNIT) - width):
+        x = (FIELD_WIDTH * PIXELS_PER_UNIT) - width
+    if y < 0:
+        y = height
+    if y > (FIELD_HEIGHT * PIXELS_PER_UNIT) - height:
+        y = (FIELD_HEIGHT* PIXELS_PER_UNIT) - height
+
+    draw_text(surface,string,x,y,align)
+
