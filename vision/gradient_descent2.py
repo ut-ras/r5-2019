@@ -11,7 +11,7 @@ from scipy.stats import multivariate_normal
 import random
 SAMPLE_SIZE = 2
 
-def cost_function(data base_point):
+def cost_function(data, base_point):
     """
     Cost function [].
 
@@ -33,13 +33,20 @@ def cost_function(data base_point):
     distances = [[
         sample[0] - base_point[0],
         sample[1] - base_point[1],
-        sample[2] - base_point[2]] for sample in sample_list]
+        sample[2] - base_point[2]] for sample in sample_list
+    ]
     # get the normal distribution of the point distance
-    res = multivariate_normal.pdf(sample_list)
+    res = [
+        multivariate_normal.pdf([dist[0] for dist in distances]),
+        multivariate_normal.pdf([dist[1] for dist in distances]),
+        multivariate_normal.pdf([dist[2] for dist in distances])
+    ]
     # sum the normal distribution in a singular point (difference)
     diff = [0, 0, 0]
     for ele in res:
-        diff[0] += res
+        diff[0] += ele[0]    # multiplied by some probability value? (pdf = probability density function)
+        diff[1] += ele[1]
+        diff[2] += ele[2]
 
     base_point[0] += diff[0]
     base_point[1] += diff[1]
@@ -48,7 +55,8 @@ def cost_function(data base_point):
     return base_point
 
 start_guess = [0, 0, 0]
-data_set = np.array([0, 0, 0], [255, 255, 255], [122, 122, 122])
+data_set = np.array([[0, 0, 0], [255, 255, 255], [122, 122, 122]])
+data_set = np.ndarray(shape=(3, 3), buffer=data_set)
 
 res = minimize(cost_function, data_set, start_guess, method='nelder-mead', options={'xtol': 1e-8, 'disp': True})
 print(res)
