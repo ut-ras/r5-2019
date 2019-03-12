@@ -14,8 +14,8 @@ from util import robot_state_to_vel, dist
 import numpy as np
 
 
-ROBOT_WIDTH = 6
-ROBOT_HEIGHT = 3
+ROBOT_WIDTH = 5.25
+ROBOT_HEIGHT = 3.2
 ROBOT_COLOR = (0, 255, 0)
 
 CAMERA_FOV_HORIZ = 62
@@ -43,7 +43,7 @@ class SimulationRobot(SimulationObject, RobotFrame):
 
         self.state_last = None
         self.state = None
-        self.has_block = False
+        self.carried_block_mutex = None
         self.sim = None
 
     def state_update(self, state_new):
@@ -70,20 +70,36 @@ class SimulationRobot(SimulationObject, RobotFrame):
                "{1:.3f} " + DISTANCE_UNIT + ", " +\
                "{2:.3f}" + ANGLE_UNIT + ">").format(self.pose[0], self.pose[1],
                degrees(self.pose[2])) + "\n" +\
-               "has_block=" + str(self.has_block) + "\n" +\
+               "block=" + str(self.carried_block_mutex) + "\n" +\
                "state=" + str(self.state)
         draw_text_field(display, text, self.pose[0],
             self.pose[1] - 6, align="center")
 
+
     def attempt_block_pickup(self):
-        PICKUP_RANGE = 1
+        PICKUP_RANGE = 3
         target = None
 
         for obj in self.sim.not_robots:
             if isinstance(obj, field.Block) and dist(self.pose[0], self.pose[1],
                 obj.pose[0], obj.pose[1]) <= PICKUP_RANGE:
-                sim.not_robots.remove(obj)
-                sim.objects.remove(obj)
+                self.sim.not_robots.remove(obj)
+                self.sim.objects.remove(obj)
+                self.carried_block_mutex = obj.letter
+
+
+    def attempt_block_dropoff(self):
+        if self.carried_block_mutex == None:
+            return
+
+        DROPOFF_RANGE = 6
+        target = None
+
+        for obj in self.sim.not_robots:
+            if isinstance(obj, field.Mothership) and dist(self.pose[0],
+                self.pose[1], obj.pose[0], obj.pose[1]) <= DROPOFF_RANGE:
+                obj.blocks.append(self.carried_block_mutex)
+                self.carried_block_mutex = None
 
 
     def loop(self):
@@ -102,10 +118,13 @@ class SimulationRobot(SimulationObject, RobotFrame):
             if self.state_last != None:
                 # Claw was opened
                 if self.state_last.claw_state and not self.state.claw_state:
-                    pass
+                    self.attempt_block_dropoff()
                 # Claw was closed
                 elif not self.state_last.claw_state and self.state.claw_state:
                     self.attempt_block_pickup()
+
+            self.attempt_block_pickup()
+            self.attempt_block_dropoff()
 
             # Get simulation velocity from contalg state
             self.pose_velocity = robot_state_to_vel(self.state, self.pose[2], 2)
@@ -115,5 +134,4 @@ class SimulationRobot(SimulationObject, RobotFrame):
             if dt != 0:
                 self.pose = np.add(self.pose, np.dot(self.pose_velocity, dt))
 
-        # Update timestamp for next iteration
         self.timestamp_last = self.timestamp_current
