@@ -1,8 +1,5 @@
 """
-Central code for running and controlling simulations.
-
-Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
-Last modified: 2/18/19
+Agents for running and controlling simulations.
 """
 from robotcontrol import Clock
 from settings import *
@@ -104,13 +101,19 @@ class Simulation:
         for obj in self.robots:
             obj.draw(self.display)
             # vision detection
-            seen = vision.detect(self.not_robots, robot.pose, math.radians(62), self.model)
+            seen = vision.detect(self.not_robots, robot.pose, math.radians(62),
+                self.model)
             for obj in seen:
                 position = [(obj.pose[0] - obj.dims[0]/2) * PIXELS_PER_UNIT,
-                    self.display.get_size()[1] - (obj.pose[1] + obj.dims[1]/2) * PIXELS_PER_UNIT]
-                newRect = [obj.rect.move(position)[0], obj.rect.move(position)[1], obj.dims[0], obj.dims[1]]
-                graphics.draw_set_color(COLOR_YELLOW[0], COLOR_YELLOW[1], COLOR_YELLOW[2])
-                graphics.draw_rectangle(self.display, newRect, 2)
+                    self.display.get_size()[1] - (obj.pose[1] + obj.dims[1]/2)\
+                    * PIXELS_PER_UNIT]
+                graphics.draw_set_color(COLOR_YELLOW[0], COLOR_YELLOW[1],
+                    COLOR_YELLOW[2])
+                graphics.draw_rectangle(self.display,
+                    (obj.pose[0] - obj.dims[0] / 2) * PIXELS_PER_UNIT,
+                    (obj.pose[1] + obj.dims[1] / 2) * PIXELS_PER_UNIT,
+                    obj.dims[0] * PIXELS_PER_UNIT,
+                    obj.dims[1] * PIXELS_PER_UNIT, 2)
 
         pygame.display.update()
 
@@ -130,12 +133,19 @@ class Simulation:
         self.run()
 
     def display_gridlines(self):
+        """
+        fffffffffffffffffffffff
+        """
         for y in range(0, 8):   #horizontal lines
             pygame.draw.line(self.display, GRID_COLOR,
-                [0, y/GRID_RESOLUTION * FIELD_HEIGHT*PIXELS_PER_UNIT], [FIELD_WIDTH*PIXELS_PER_UNIT, y/GRID_RESOLUTION * FIELD_HEIGHT*PIXELS_PER_UNIT])
+                [0, y/GRID_RESOLUTION * FIELD_HEIGHT*PIXELS_PER_UNIT],
+                [FIELD_WIDTH*PIXELS_PER_UNIT, y/GRID_RESOLUTION *\
+                FIELD_HEIGHT*PIXELS_PER_UNIT])
         for x in range(0, 8):
             pygame.draw.line(self.display, GRID_COLOR,
-                [x/GRID_RESOLUTION * FIELD_WIDTH*PIXELS_PER_UNIT, 0], [x/GRID_RESOLUTION * FIELD_WIDTH*PIXELS_PER_UNIT, FIELD_HEIGHT*PIXELS_PER_UNIT])
+                [x/GRID_RESOLUTION * FIELD_WIDTH*PIXELS_PER_UNIT, 0],
+                [x/GRID_RESOLUTION * FIELD_WIDTH*PIXELS_PER_UNIT,
+                FIELD_HEIGHT*PIXELS_PER_UNIT])
 
     def run(self):
         """

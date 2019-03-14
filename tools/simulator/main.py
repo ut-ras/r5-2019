@@ -24,6 +24,7 @@ b.letter = "A"
 
 s.add_object(r)
 s.add_object(b)
+s.add_object(Obstacle(48, 48))
 s.add_object(Mothership(24, 48))
 
 #for obj in build_field(2):

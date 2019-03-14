@@ -1,9 +1,6 @@
 """
 Simple control algorithm for testing simulator movement. Takes the general form
 of the control algorithm that the control team will eventually provide.
-
-Authors: Stefan deBruyn
-Last modified: 2/8/19
 """
 import drivers.core.profiling as profiling
 import math

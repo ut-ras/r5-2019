@@ -1,17 +1,14 @@
 """
 Topmost abstraction of a simulator object.
-
-Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
-Last modified: 2/8/19
 """
-from util import *
-import pygame
 from pygame import Surface
 from pygame.sprite import Sprite
-from settings import PIXELS_PER_UNIT
 from simulation import SIMULATION_BG_COLOR
 import numpy as np
 import math
+import pygame
+import settings
+import util
 
 
 MASK_CIRCULAR = 0
@@ -22,7 +19,8 @@ class SimulationObject(Sprite):
     """
     Abstraction of a simulated object with a pose and a sprite.
     """
-    def __init__(self, x, y, theta, width=0, height=0, color=(0, 0, 0), mask=MASK_RECT):
+    def __init__(self, x, y, theta, width=0, height=0, color=(0, 0, 0),
+        mask=MASK_RECT):
         """
         Parameters
         ----------
@@ -63,7 +61,8 @@ class SimulationObject(Sprite):
 
     def sprite_update(self):
         """
-        Updates the internal surface (usually called after forcibly updating the object's color, shape, etc.).
+        Updates the internal surface (usually called after forcibly updating the
+        object's color, shape, etc.).
 
         Returns
         -------
@@ -92,16 +91,19 @@ class SimulationObject(Sprite):
         sprite_transformed = self.image
         if self.autoscale:
             sprite_transformed = pygame.transform.scale(sprite_transformed,
-                (int(self.image.get_width() * PIXELS_PER_UNIT),
-                 int(self.image.get_height() * PIXELS_PER_UNIT)))
+                (int(self.image.get_width() * settings.PIXELS_PER_UNIT),
+                 int(self.image.get_height() * settings.PIXELS_PER_UNIT)))
         # Rotate to face heading
-        sprite_transformed = pygame.transform.rotate(sprite_transformed, math.degrees(self.pose[2]))
+        sprite_transformed = pygame.transform.rotate(sprite_transformed,
+            math.degrees(self.pose[2]))
         # Draw
-        display.blit(sprite_transformed, [int(self.pose[0] * PIXELS_PER_UNIT) - sprite_transformed.get_width() // 2,
-                                          display.get_height() - int(self.pose[1] * PIXELS_PER_UNIT) -
-                                          sprite_transformed.get_height() // 2])
+        display.blit(sprite_transformed,
+            [int(self.pose[0] * settings.PIXELS_PER_UNIT) -\
+            sprite_transformed.get_width() // 2, display.get_height() -\
+            int(self.pose[1] * settings.PIXELS_PER_UNIT) -\
+            sprite_transformed.get_height() // 2])
 
-    # top left, top right, bottom left, bottom right
+
     def get_corners(self):
         h_w = self.dims[0]/2
         h_h = self.dims[1]/2
@@ -111,7 +113,8 @@ class SimulationObject(Sprite):
             [self.pose[0] - h_w, self.pose[1] - h_h],
             [self.pose[0] + h_w, self.pose[1] - h_h]
         ]
-        return rotate_rect(corners, self.pose[2], self.pose[0], self.pose[1])
+        return util.rotate_rect(corners, self.pose[2], self.pose[0],
+            self.pose[1])
 
     def collision(self, obj):
         """
@@ -132,7 +135,7 @@ class SimulationObject(Sprite):
         obj_corners = obj.get_corners()
         # distance check, ignore if too far
         for corner in obj_corners:
-            d = dist(
+            d = util.dist(
                 self.pose[0],
                 self.pose[1],
                 corner[0],

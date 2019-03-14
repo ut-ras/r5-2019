@@ -1,19 +1,17 @@
 """
-Things relating to simulated robots.
-
-Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
-Last modified: 2/8/19
+Top-level things for configuring simulant robots. Custom implementations
+should go in another file.
 """
 from drivers.core.robotframe import RobotFrame
+from object import MASK_RECT, SimulationObject
 import field
-from graphics import *
-from math import degrees
-import models
-from object import SimulationObject, MASK_RECT
-from settings import *
-from util import robot_state_to_vel, dist
-from vision import detect
+import graphics
 import numpy as np
+import math
+import models
+import settings
+import util
+import vision
 
 
 ROBOT_WIDTH = 5.25
@@ -68,31 +66,40 @@ class SimulationRobot(SimulationObject, RobotFrame):
         Draws the robot to a surface.
         """
         SimulationObject.draw(self, display)
-        draw_set_color(0, 0, 255)
-        text = (self.subsys_name + "\n" +\
-               "pose=<{0:.3f} " + DISTANCE_UNIT + ", " +\
-               "{1:.3f} " + DISTANCE_UNIT + ", " +\
-               "{2:.3f}" + ANGLE_UNIT + ">").format(self.pose[0], self.pose[1],
-               degrees(self.pose[2])) + "\n" +\
-               "block=" + str(self.carried_block_mutex) + "\n" +\
-               "state=" + str(self.state)
+        graphics.draw_set_color(0, 0, 0)
+        text = [
+            self.subsys_name,
+            "pose=<{0:.3f}, {1:.3f}, {2:.3f}>".format(self.pose[0],
+                 self.pose[1], math.degrees(self.pose[2])),
+            "block=" + str(self.carried_block_mutex),
+            "state=" + str(self.state)
+        ]
         #draw_text_field(display, text, self.pose[0],self.pose[1] - 6, align="left")
-        draw_text_onScreen(display,text,self.pose[0],self.pose[1])
-
+        graphics.draw_text_onsc(display, text,
+            self.pose[0] * settings.PIXELS_PER_UNIT,
+            self.pose[1] * settings.PIXELS_PER_UNIT)
 
     def attempt_block_pickup(self):
+        """
+        Tries to pick up the nearest block on the field. Called when the claw
+        state changes from false->true.
+        """
         PICKUP_RANGE = 3
         target = None
 
         for obj in self.sim.not_robots:
-            if isinstance(obj, field.Block) and dist(self.pose[0], self.pose[1],
+            if isinstance(obj, field.Block) and\
+                util.dist(self.pose[0], self.pose[1],
                 obj.pose[0], obj.pose[1]) <= PICKUP_RANGE:
                 self.sim.not_robots.remove(obj)
                 self.sim.objects.remove(obj)
                 self.carried_block_mutex = obj.letter
 
-
     def attempt_block_dropoff(self):
+        """
+        Tries to deposit in the nearest mothership if a block is possessed.
+        Called when the claw state changes from true->false.
+        """
         if self.carried_block_mutex == None:
             return
 
@@ -105,11 +112,17 @@ class SimulationRobot(SimulationObject, RobotFrame):
                 obj.blocks.append(self.carried_block_mutex)
                 self.carried_block_mutex = None
 
-
     def cv_scan(self):
-        return detect(self.sim.not_robots, self.pose, CAMERA_FOV_HORIZ,
-            CV_PROB_MODEL)
+        """
+        Retrieves everything the robot can see.
 
+        Returns
+        -------
+        list
+            list of Simulation objects currently being detected by the model
+        """
+        return vision.detect(self.sim.not_robots, self.pose, CAMERA_FOV_HORIZ,
+            CV_PROB_MODEL)
 
     def loop(self):
         """
@@ -136,7 +149,8 @@ class SimulationRobot(SimulationObject, RobotFrame):
             self.attempt_block_dropoff()
 
             # Get simulation velocity from contalg state
-            self.pose_velocity = robot_state_to_vel(self.state, self.pose[2], 2)
+            self.pose_velocity =\
+                util.robot_state_to_vel(self.state, self.pose[2], 2)
 
             # If dt != 0, move according to the velocity vector
             dt = self.timestamp_current - self.timestamp_last

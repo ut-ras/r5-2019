@@ -1,14 +1,11 @@
 """
 Holds stuff specific to representing this year's game field.
-
-Authors: Chad Harthan, Matthew Yu, Stefan deBruyn
-Last modified: 2/8/19
 """
+from object import SimulationObject, MASK_CIRCULAR, MASK_RECT
 import graphics
 import random
-from object import SimulationObject, MASK_CIRCULAR, MASK_RECT
-from settings import PIXELS_PER_UNIT, FIELD_WIDTH, FIELD_HEIGHT
-from util import dist
+import settings
+import util
 
 
 OBSTACLE_RADIUS = 0.75
@@ -32,7 +29,8 @@ OBJECT_SAFE_DISTANCE = 6
 
 class Obstacle(SimulationObject):
     """
-    Represents the dowel/ping pong ball obstacles. Circular collision mask, no heading.
+    Represents the dowel/ping pong ball obstacles. Circular collision mask, no
+    heading.
     """
     def __init__(self, x, y):
         """
@@ -43,11 +41,13 @@ class Obstacle(SimulationObject):
         y: float
             vertical position in units
         """
-        SimulationObject.__init__(self, x, y, 0, int(PIXELS_PER_UNIT * OBSTACLE_RADIUS * 2),
-                                  int(PIXELS_PER_UNIT * OBSTACLE_RADIUS * 2), OBSTACLE_COLOR, MASK_CIRCULAR)
+        SimulationObject.__init__(self, x, y, 0,
+            int(settings.PIXELS_PER_UNIT * OBSTACLE_RADIUS * 2),
+            int(settings.PIXELS_PER_UNIT * OBSTACLE_RADIUS * 2),
+            OBSTACLE_COLOR, MASK_CIRCULAR)
         self.autoscale = False  # For preserving ellipse precision
-        self.dims[0] /= PIXELS_PER_UNIT
-        self.dims[1] /= PIXELS_PER_UNIT
+        self.dims[0] /= settings.PIXELS_PER_UNIT
+        self.dims[1] /= settings.PIXELS_PER_UNIT
 
 
 class Block(SimulationObject):
@@ -65,7 +65,8 @@ class Block(SimulationObject):
         theta: float
             heading in radians
         """
-        SimulationObject.__init__(self, x, y, theta, BLOCK_WIDTH, BLOCK_HEIGHT, BLOCK_COLOR, MASK_RECT)
+        SimulationObject.__init__(self, x, y, theta, BLOCK_WIDTH, BLOCK_HEIGHT,
+            BLOCK_COLOR, MASK_RECT)
         self.letter = ""
 
     def draw(self, display):
@@ -74,7 +75,7 @@ class Block(SimulationObject):
         """
         SimulationObject.draw(self, display)
         graphics.draw_set_color(0, 0, 0)
-        graphics.draw_text_field(display, "Block " + self.letter, self.pose[0],
+        graphics.draw_text_field(display, ["Block " + self.letter], self.pose[0],
             self.pose[1] - 1, align="center")
 
 
@@ -94,7 +95,8 @@ class Mothership(SimulationObject):
         theta: float
             heading in radians
         """
-        SimulationObject.__init__(self, x, y, theta, MOTHERSHIP_WIDTH, MOTHERSHIP_HEIGHT, MOTHERSHIP_COLOR, MASK_RECT)
+        SimulationObject.__init__(self, x, y, theta, MOTHERSHIP_WIDTH,
+            MOTHERSHIP_HEIGHT, MOTHERSHIP_COLOR, MASK_RECT)
         self.blocks = []
 
     def draw(self, display):
@@ -103,8 +105,8 @@ class Mothership(SimulationObject):
         """
         SimulationObject.draw(self, display)
         graphics.draw_set_color(0, 0, 0)
-        graphics.draw_text_field(display, "Mothership\nblocks=" +\
-            str(self.blocks), self.pose[0], self.pose[1])
+        graphics.draw_text_field(display, ["Mothership", "blocks=" +\
+            str(self.blocks)], self.pose[0], self.pose[1])
 
 
 
@@ -126,7 +128,8 @@ def place_safe(objects, constructor):
     done = False
     a = constructor(0, 0)
     while not done:
-        a.pose = [random.randint(6, FIELD_WIDTH-6), random.randint(6, FIELD_HEIGHT-6), a.pose[2]]
+        a.pose = [random.randint(6, settings.FIELD_WIDTH-6), random.randint(6,
+            settings.FIELD_HEIGHT-6), a.pose[2]]
         safe = True
 
         this_corners = [
@@ -145,7 +148,8 @@ def place_safe(objects, constructor):
             ]
             for this_corner in this_corners:
                 for corner in corners:
-                    if dist(this_corner[0], this_corner[1], corner[0], corner[1]) < OBJECT_SAFE_DISTANCE:
+                    if dist(this_corner[0], this_corner[1], corner[0],
+                        corner[1]) < OBJECT_SAFE_DISTANCE:
                         safe = False
                         break
 

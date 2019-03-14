@@ -2,10 +2,9 @@
 Graphics utilities for drawing to PyGame surfaces.
 """
 import pygame
-from settings import PIXELS_PER_UNIT
-from settings import FIELD_WIDTH
-from settings import FIELD_HEIGHT
 import re
+import settings
+import util
 
 
 if not pygame.font.get_init():
@@ -62,6 +61,7 @@ def text_get_width(string):
     global GLOBAL_DRAW_FONT
     return GLOBAL_DRAW_FONT.size(string)[0]
 
+
 def text_get_height(string):
     """
     Gets the pixel height of a string when rendered in the global font.
@@ -75,19 +75,30 @@ def text_get_height(string):
     return GLOBAL_DRAW_FONT.size(string)[1]
 
 
-def draw_text(surface, string, x, y, align="left"):
+def draw_text(surface, text, x, y, align="left"):
     """
     Renders a piece of text to a surface in the global font.
+
+    Parameters
+    ----------
+    surface: pygame.Surface
+        target surface
+    text: list
+        list of strings to draw (top to bottom)
+    x: int
+        pixels from left
+    y: int
+        pixels from top
+    align: str
+        align mode
     """
-    lines = string.split("\n")
-    lines.reverse()
     y_offset = 0
-    line_height = GLOBAL_DRAW_FONT.size("X")[1]
+    line_height = text_get_height("X")
 
     if align != "left":
         # Find length of longest line
         maxlenstr = None;
-        for line in lines:
+        for line in text:
             if maxlenstr == None or len(line) > len(maxlenstr):
                 maxlenstr = line
 
@@ -98,56 +109,69 @@ def draw_text(surface, string, x, y, align="left"):
             x -= text_get_width(maxlenstr)
 
     # Do drawing
-    for line in lines:
+    text.reverse()  # TODO: be a better developer
+    for line in text:
         text = GLOBAL_DRAW_FONT.render(line, 1, GLOBAL_DRAW_COLOR)
         surface.blit(text, (x, surface.get_height() - y - y_offset))
         y_offset += line_height
 
 
-def draw_text_field(surface, string, x, y, align="left"):
+def draw_text_field(surface, text, x, y, align="left"):
     """
-    Renders a piece of text at field-centric coordinates.
+    x: float
+        simulation units from left
+    y: float
+        simulation units from top
     """
-    draw_text(surface, string, int(x * PIXELS_PER_UNIT),
-        int(y * PIXELS_PER_UNIT), align)
+    draw_text(surface, text, int(x * settings.PIXELS_PER_UNIT),
+        int(y * settings.PIXELS_PER_UNIT), align)
 
 
-def draw_rectangle(surface, rect, borderWidth=0):
-    pygame.draw.rect(surface, GLOBAL_DRAW_COLOR, [rect[0], rect[1],
-        rect[2] * PIXELS_PER_UNIT, rect[3] * PIXELS_PER_UNIT], borderWidth)
+def draw_rectangle(surface, x, y, width, height, stroke=0):
+    """
+    Draws a simple rectangle.
 
-def draw_text_onScreen(surface, string, x, y, align="left"):
-    from robot import ROBOT_WIDTH
-    from robot import ROBOT_HEIGHT
+    Parameters
+    ----------
+    surface: pygame.Surface
+        target surface
+    stroke: int
+        rectangle stroke width (0 for solid fill)
+    """
+    pygame.draw.rect(surface, GLOBAL_DRAW_COLOR, pygame.Rect(x,
+        surface.get_height() - y, width, height), stroke)
 
-    lines = string.split("\n")
-    lines.reverse()
-    y_offset = 0
-    height = GLOBAL_DRAW_FONT.size("X")[1] * len(lines)
-    maxlenstr = None;
-    for line in lines:
+
+def draw_text_onsc(surface, text, x, y, align="left"):
+    """
+    Draws text and guarantees it appears on-screen (enforces bound limits).
+
+    Parameters
+    ----------
+    surface: pygame.Surface
+        target surface
+    text: list
+        list of strings
+    x: int
+        pixels from left
+    y: int
+        pixels from bottom
+    align: str
+        align mode
+    """
+    maxlenstr = None
+    for line in text:
         if maxlenstr == None or len(line) > len(maxlenstr):
             maxlenstr = line
 
-    width = text_get_width(maxlenstr)
+    text_width = text_get_width(maxlenstr)
+    line_height = text_get_height("X")
+    text_height = text_get_height("X") * len(text)
 
-    unitW = width / PIXELS_PER_UNIT
-    unitH = height / PIXELS_PER_UNIT
+    x_max = surface.get_width() - text_width
+    y_max = surface.get_height() - text_height
 
-    xOffScreen = 0
-    yOffScreen = 0
+    x = util.clamp(0, x_max, x)
+    y = util.clamp(0, y_max, y)
 
-    x *= PIXELS_PER_UNIT
-    y *= PIXELS_PER_UNIT
-    
-    if x < 0:
-        x = 0
-    if x > ((FIELD_WIDTH * PIXELS_PER_UNIT) - width):
-        x = (FIELD_WIDTH * PIXELS_PER_UNIT) - width
-    if y < 0:
-        y = height
-    if y > (FIELD_HEIGHT * PIXELS_PER_UNIT) - height:
-        y = (FIELD_HEIGHT* PIXELS_PER_UNIT) - height
-
-    draw_text(surface,string,x,y,align)
-
+    draw_text(surface, text, x, y + line_height, align="left")
