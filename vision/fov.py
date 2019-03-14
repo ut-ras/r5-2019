@@ -1,3 +1,10 @@
+"""FOV/color-based obstacle detection
+
+Usage
+-----
+Initialize the vision module with ``VisionModule()``. Call the
+``VisionModule.process`` function to get objects from an image.
+"""
 
 from matplotlib import pyplot as plt
 import cv2
@@ -11,6 +18,20 @@ Object = collections.namedtuple("Object", ["rect", "dist", "meta"])
 
 
 class VisionModule():
+    """Vision module
+
+    Parameters
+    ----------
+    width : int
+        Image width.
+    height : int
+        Image height. If the input image shape (to process) is not equal to
+        (width, height), the image is resized.
+    erode_ksize : float
+        Erosion kernel size, as a fraction of the image width.
+    dilate_ksize : float
+        Dilation kernel size, as a fraction of the image width.
+    """
 
     FOV_H = math.radians(63.54)
     FOV_V = math.radians(42.36)
@@ -39,6 +60,21 @@ class VisionModule():
         self.__cube_erode_mask = make_square_kernel(2 * self.erode_ksize)
 
     def __get_field_mask(self, src):
+        """Get field mask:
+
+        mask <- erode, then dilate thresholded scene
+        intersect mask complement with convex hull of mask
+
+        Parameters
+        ----------
+        src : np.array -- shape=(WIDTH, HEIGHT, 3)
+            Input image
+
+        Returns
+        -------
+        np.array -- shape=(WIDTH, HEIGHT)
+            Object mask
+        """
 
         # Threshold
         mask = cv2.inRange(src, self.FIELD_LOWER, self.FIELD_UPPER)
@@ -60,6 +96,20 @@ class VisionModule():
         return mask
 
     def __get_object_properties(self, obj, meta):
+        """Get object properties
+
+        Parameters
+        ----------
+        obj : np.array
+            Contour (one output of cv2.findContours)
+        meta : arbitrary type
+            Object metadata (is assigned to 'meta' flag)
+
+        Returns
+        -------
+        Object
+            Object with computed bounding box, distance, and tagged metadata
+        """
 
         x, y, w, h = cv2.boundingRect(obj)
         try:
@@ -73,6 +123,20 @@ class VisionModule():
         return Object(rect=[x, y, w, h], dist=d, meta=meta)
 
     def __mask_to_objects(self, mask, meta):
+        """Convert mask to a list of Objects
+
+        Parameters
+        ----------
+        mask : np.array -- size=(WIDTH, HEIGHT)
+            Input mask
+        meta : arbitrary type
+            Mask metadata; all objects are tagged with 'meta'
+
+        Returns
+        -------
+        Object[]
+            List of found objects
+        """
 
         contours, hier = cv2.findContours(
             mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -80,6 +144,20 @@ class VisionModule():
         return [self.__get_object_properties(c, meta) for c in contours]
 
     def __get_objects(self, src, mask):
+        """Get cubes and obstacles in the scene
+
+        Parameters
+        ----------
+        src : np.array -- size=(WIDTH, HEIGHT, 3)
+            Input image
+        mask : np.array -- size=(WIDTH, HEIGHT)
+            Obstacle Mask
+
+        Returns
+        -------
+        Object[]
+            Found objects
+        """
 
         cube_mask = cv2.inRange(src, self.CUBE_LOWER, self.CUBE_UPPER)
 
@@ -99,6 +177,18 @@ class VisionModule():
         return cubes + obstacles
 
     def process(self, img):
+        """Process image
+
+        Parameters
+        ----------
+        img : np.array, size=(WIDTH, HEIGHT, 3)
+            Input RGB image
+
+        Returns
+        -------
+        Object[]
+            List of found objects
+        """
 
         if img.shape != (self.width, self.height):
             img = cv2.resize(img, (self.width, self.height))
