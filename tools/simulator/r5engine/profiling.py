@@ -2,7 +2,7 @@
 Fault-tolerant algorithms for building symmetrical trapezoidal and S-curve motion profiles.
 """
 
-from drivers.core.robotmotion import MotionProfile, MotionState
+from r5engine.robotmotion import MotionProfile, MotionState
 from math import sqrt, fabs
 from numpy import sign
 

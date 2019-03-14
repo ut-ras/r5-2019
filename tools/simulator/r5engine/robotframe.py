@@ -3,7 +3,7 @@ Abstract state representations for a robot. Intended to provide a common
 interface for both simulated and real robots.
 """
 
-from .robotcore import MotionState, Subsystem
+from r5engine.robotcore import MotionState, Subsystem
 import threading
 import time
 

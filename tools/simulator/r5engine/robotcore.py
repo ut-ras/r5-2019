@@ -2,7 +2,7 @@
 Abstract subsystem classes.
 """
 
-from .robotmotion import MotionState
+from r5engine.robotmotion import MotionState
 import math
 
 

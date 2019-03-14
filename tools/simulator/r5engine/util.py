@@ -1,8 +1,10 @@
 """
 Various utility functions used across the simulator.
 """
-from robotcontrol import DRIVE_FORWARD, DRIVE_BACKWARD, TURN_LEFT, TURN_RIGHT
-from math import sin, cos, sqrt, pi, fmod
+from r5engine.robotcontrol import DRIVE_FORWARD, DRIVE_BACKWARD, TURN_LEFT, TURN_RIGHT
+import random
+import r5engine.settings as settings
+import math
 
 
 def dist(x1, y1, x2, y2):
@@ -25,7 +27,7 @@ def dist(x1, y1, x2, y2):
     float
         distance from A to B
     """
-    return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
 def rotate_point(cx, cy, x, y, theta):
@@ -50,7 +52,7 @@ def rotate_point(cx, cy, x, y, theta):
     tuple
         2-tuple (x_rot, y_rot)
     """
-    s, c = sin(theta), cos(theta)
+    s, c = math.sin(theta), math.cos(theta)
 
     x -= cx
     y -= cy
@@ -148,8 +150,8 @@ def robot_state_to_vel(robot_state, heading, track_width):
     if robot_state.drive_state == DRIVE_FORWARD or\
         robot_state.drive_state == DRIVE_BACKWARD:
         return [
-            robot_state.drive_magnitude * cos(heading) * sign,
-            robot_state.drive_magnitude * sin(heading) * sign,
+            robot_state.drive_magnitude * math.cos(heading) * sign,
+            robot_state.drive_magnitude * math.sin(heading) * sign,
             0
         ]
     # Turn instructions
@@ -178,7 +180,7 @@ def angle_dev(a, b):
     float
         difference between A and B
     """
-    diff = fmod((a-b + pi), (pi * 2)) - pi
+    diff = math.fmod((a - b + math.pi), (math.pi * 2)) - math.pi
     return diff
 
 
@@ -201,3 +203,59 @@ def clamp(low, high, val):
         clamped value
     """
     return low if val < low else (high if val > high else val)
+
+
+def place_safe(objects, constructor, safe_dist):
+    """
+    Finds a location for an object such that it is at least
+    some distance away from everything else.
+
+    Parameters
+    ----------
+    objects: list
+        list of SimulationObjects to avoid
+    constructor: lambda x, y
+        constructor for SimulationObject to place
+    safe_dist: float
+        minimum distance between objects
+
+    Returns
+    -------
+    None
+    """
+    done = False
+    a = constructor(0, 0)
+    while not done:
+        a.pose = [random.randint(6, settings.FIELD_WIDTH-6), random.randint(6,
+            settings.FIELD_HEIGHT-6), a.pose[2]]
+        safe = True
+
+        this_corners = [
+            [a.pose[0], a.pose[1]],
+            [a.pose[0], a.pose[1] + a.rect[1]],
+            [a.pose[0] + a.rect[0], a.pose[1]],
+            [a.pose[0] + a.rect[0], a.pose[1] + a.rect[1]]
+        ]
+
+        for b in objects:
+            corners = [
+                [b.pose[0], b.pose[1]],
+                [b.pose[0], b.pose[1] + b.rect[1]],
+                [b.pose[0] + b.rect[0], b.pose[1]],
+                [b.pose[0] + b.rect[0], b.pose[1] + b.rect[1]]
+            ]
+            for this_corner in this_corners:
+                for corner in corners:
+                    if dist(this_corner[0], this_corner[1], corner[0],
+                        corner[1]) < safe_dist:
+                        safe = False
+                        break
+
+            if safe is False:
+                break
+
+        if safe:
+            objects.append(a)
+            done = True
+
+    return a

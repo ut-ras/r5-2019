@@ -1,15 +1,15 @@
 """
 Agents for running and controlling simulations.
 """
-from robotcontrol import Clock
-from settings import *
-from util import rotate_rect
+from r5engine.robotcontrol import Clock
+from r5engine.settings import FIELD_WIDTH, FIELD_HEIGHT, PIXELS_PER_UNIT, FIELD_COLOR, GRID_COLOR, GRID_RESOLUTION
+from r5engine.util import rotate_rect
+
 import pygame
-import time
-import models
-import vision
 import math
-import graphics
+import r5engine.graphics as graphics
+import r5engine.models as models
+import time
 
 
 COLOR_BLACK = (0, 0, 0)
@@ -31,11 +31,11 @@ class Simulation:
         """
         Parameters
         ----------
-        controller : RobotController
+        controller: RobotController
             control algorithm governing robot actions
-        display_width : int
+        display_width: int
             display width in pixels
-        display_height : int
+        display_height: int
             display width in pixels
         """
         self.objects = []
@@ -45,7 +45,7 @@ class Simulation:
         self.clock = Clock()
         self.controller = controller
 
-        self.model = models.get_2019_detection_probability_model()
+        pygame.display.set_caption("r5engine")
 
     def add_object(self, obj):
         """
@@ -60,7 +60,7 @@ class Simulation:
         -------
         None
         """
-        from robot import SimulationRobot
+        from r5engine.robot import SimulationRobot
 
         if isinstance(obj, SimulationRobot):
             self.robots.append(obj)
@@ -98,11 +98,10 @@ class Simulation:
             obj.draw(self.display)
 
         # Draw actual robots second
-        for obj in self.robots:
-            obj.draw(self.display)
+        for robot in self.robots:
+            robot.draw(self.display)
             # vision detection
-            seen = vision.detect(self.not_robots, robot.pose, math.radians(62),
-                self.model)
+            seen = robot.cv_scan()
             for obj in seen:
                 position = [(obj.pose[0] - obj.dims[0]/2) * PIXELS_PER_UNIT,
                     self.display.get_size()[1] - (obj.pose[1] + obj.dims[1]/2)\
@@ -134,7 +133,7 @@ class Simulation:
 
     def display_gridlines(self):
         """
-        fffffffffffffffffffffff
+        Draws the field gridlines.
         """
         for y in range(0, 8):   #horizontal lines
             pygame.draw.line(self.display, GRID_COLOR,
@@ -162,7 +161,8 @@ class Simulation:
 
             # Simulation quits on ESC
             for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                if event.type == pygame.KEYDOWN and\
+                    event.key == pygame.K_ESCAPE:
                     done = True
 
             # Update robots

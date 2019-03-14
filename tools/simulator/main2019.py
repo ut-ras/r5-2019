@@ -1,7 +1,7 @@
-from field import build_field, Obstacle, Block, Mothership
-from robot import SimulationRobot
-from robotcontrol import RobotController
-from simulation import Simulation
+from field2019 import build_field, Obstacle, Block, Mothership
+from r5engine.robotcontrol import RobotController
+from r5engine.simulation import Simulation
+from robots2019 import CollectorRobot
 
 
 # Controller setup
@@ -17,7 +17,7 @@ controller = RobotController(pose_initial, path, lin_const, ang_const)
 
 # Simulation setup
 s = Simulation(controller)
-r = SimulationRobot(pose_initial[0], pose_initial[1], pose_initial[2])
+r = CollectorRobot(pose_initial[0], pose_initial[1], pose_initial[2], "mr robot")
 
 b = Block(24, 24)
 b.letter = "A"
@@ -27,8 +27,8 @@ s.add_object(b)
 s.add_object(Obstacle(48, 48))
 s.add_object(Mothership(24, 48))
 
-#for obj in build_field(2):
-    #s.add_object(obj)
+for obj in build_field(2):
+    s.add_object(obj)
 
 # Go time
 s.launch()

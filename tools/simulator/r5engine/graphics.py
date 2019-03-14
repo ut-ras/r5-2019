@@ -3,8 +3,8 @@ Graphics utilities for drawing to PyGame surfaces.
 """
 import pygame
 import re
-import settings
-import util
+import r5engine.settings as settings
+import r5engine.util as util
 
 
 if not pygame.font.get_init():

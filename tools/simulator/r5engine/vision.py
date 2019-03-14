@@ -1,17 +1,17 @@
 """
 Vision system for simulated robots.
 """
-import util
 import math
+import r5engine.util as util
 import random
 
 def detect(objs, pose, fov, model):
     """
     Parameters
     ----------
-    objs: list[]
+    objs: list
         list of objects to detect
-    pose: list[]
+    pose: list
         x, y, heading of robot that detects
     fov: float
         field of view (width) in radians

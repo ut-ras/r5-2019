@@ -1,26 +1,6 @@
 import math
 
 
-def get_2019_detection_probability_model():
-    """
-    Gets a probability detection model that mimics the behavior of the 2019 CV algo.
-
-    Returns
-    -------
-    Model
-        2019 model
-    """
-    success_threshold = 24  # Distance before which detection cannot fail
-    failure_threshold = 60  # Distance past which detection cannot succeed
-
-    model = Model()
-    model.define_interval(-math.inf, success_threshold, lambda x: 1)
-    model.fit_function(success_threshold, 1, failure_threshold, 0, "rcp_dec")
-    model.define_interval(failure_threshold, math.inf, lambda x: 0)
-
-    return model
-
-
 class Model:
     """
     A generic piecewise function/numerical model.

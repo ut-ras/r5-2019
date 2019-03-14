@@ -3,12 +3,12 @@ Topmost abstraction of a simulator object.
 """
 from pygame import Surface
 from pygame.sprite import Sprite
-from simulation import SIMULATION_BG_COLOR
 import numpy as np
 import math
 import pygame
-import settings
-import util
+import r5engine.settings as settings
+import r5engine.simulation as simulation
+import r5engine.util as util
 
 
 MASK_CIRCULAR = 0
@@ -49,7 +49,7 @@ class SimulationObject(Sprite):
         self.mask = mask
         self.color = color
         self.image = Surface([width, height])
-        self.image.set_colorkey(SIMULATION_BG_COLOR)
+        self.image.set_colorkey(simulation.SIMULATION_BG_COLOR)
         self.dims = [width, height]
         self.rect = self.image.get_rect()
         self.autoscale = True
@@ -103,8 +103,15 @@ class SimulationObject(Sprite):
             int(self.pose[1] * settings.PIXELS_PER_UNIT) -\
             sprite_transformed.get_height() // 2])
 
-
     def get_corners(self):
+        """
+        Gets the corner locations of this object.
+
+        Returns
+        -------
+        list
+            [top left, top right, bottom left, bottom right]
+        """
         h_w = self.dims[0]/2
         h_h = self.dims[1]/2
         corners = [

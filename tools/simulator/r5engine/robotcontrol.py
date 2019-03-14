@@ -2,7 +2,7 @@
 Simple control algorithm for testing simulator movement. Takes the general form
 of the control algorithm that the control team will eventually provide.
 """
-import drivers.core.profiling as profiling
+import r5engine.profiling as profiling
 import math
 import time
 
@@ -99,7 +99,7 @@ class RobotController:
             angular motion constraints 2-tuple (angular_velocity_max,
             angular_acceleration_max)
         """
-        import util
+        import r5engine.util as util
 
         self.clock = Clock()
         self.instructions = []
@@ -110,7 +110,8 @@ class RobotController:
         pose_current = pose_initial
 
         for point in path:
-            # Calculate heading error and schedule a turn instruction if necessary
+            # Calculate heading error and schedule a turn instruction if
+            # necessary
             heading_target = math.atan2(point[1] - pose_current[1],
                 point[0] - pose_current[0])
             heading_error = heading_target - pose_current[2]
@@ -122,9 +123,11 @@ class RobotController:
                 self.instructions.append(inst)
 
             # Calculate distance and schedule a drive instruction if necessary
-            distance = util.dist(pose_current[0], pose_current[1], point[0], point[1])
+            distance = util.dist(pose_current[0], pose_current[1], point[0],
+                point[1])
             if distance != 0:
-                prof = profiling.make_sym_trap(0, distance, lin_const[0], lin_const[1])
+                prof = profiling.make_sym_trap(0, distance, lin_const[0],
+                    lin_const[1])
                 self.duration += prof.duration
                 inst = DriveInstruction(INSTRUCTION_DRIVE, prof)
                 self.instructions.append(inst)

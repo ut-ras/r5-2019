@@ -1,17 +1,13 @@
-"""
-Top-level things for configuring simulant robots. Custom implementations
-should go in another file.
-"""
-from drivers.core.robotframe import RobotFrame
-from object import MASK_RECT, SimulationObject
-import field
-import graphics
-import numpy as np
+from r5engine.models import Model
+
+import field2019 as field
 import math
-import models
-import settings
-import util
-import vision
+import numpy as np
+import r5engine.graphics as graphics
+import r5engine.robot as robot
+import r5engine.settings as settings
+import r5engine.vision as vision
+import r5engine.util as util
 
 
 ROBOT_WIDTH = 5.25
@@ -21,51 +17,37 @@ ROBOT_COLOR = (0, 255, 0)
 CAMERA_FOV_HORIZ = 62
 CAMERA_FOV_VERT = 48
 
-CV_PROB_MODEL = models.get_2019_detection_probability_model()
 
-
-class SimulationRobot(SimulationObject, RobotFrame):
+def get_2019_detection_probability_model():
     """
-    A simulated robot that exists within its own thread.
-    """
-    def __init__(self, x, y, theta):
-        """
-        Parameters
-        ----------
-        x: float
-            horizontal position in units
-        y: float
-            vertical position in units
-        theta: float
-            heading in radians
-        """
-        SimulationObject.__init__(self, x, y, theta, ROBOT_WIDTH, ROBOT_HEIGHT,
-            ROBOT_COLOR, MASK_RECT)
-        RobotFrame.__init__(self, "mr robot")
+    Gets a probability detection model that mimics the behavior of the 2019 CV algo.
 
-        self.state_last = None
-        self.state = None
+    Returns
+    -------
+    Model
+        2019 model
+    """
+    success_threshold = 24  # Distance before which detection cannot fail
+    failure_threshold = 60  # Distance past which detection cannot succeed
+
+    model = Model()
+    model.define_interval(-math.inf, success_threshold, lambda x: 1)
+    model.fit_function(success_threshold, 1, failure_threshold, 0, "rcp_dec")
+    model.define_interval(failure_threshold, math.inf, lambda x: 0)
+
+    return model
+
+
+class CollectorRobot(robot.SimulationRobot):
+    def __init__(self, x, y, theta, nickname):
+        robot.SimulationRobot.__init__(self, x, y, theta, ROBOT_WIDTH,
+            ROBOT_HEIGHT, ROBOT_COLOR, nickname)
         self.carried_block_mutex = None
-        self.sim = None
-
-    def state_update(self, state_new):
-        """
-        Updates the robot state. Should probably only be called by the control
-        algo.
-
-        Parameters
-        ----------
-        state_new: RobotState
-            new state
-        """
-        self.state_last = self.state
-        self.state = state_new
+        self.cv_model = get_2019_detection_probability_model()
 
     def draw(self, display):
-        """
-        Draws the robot to a surface.
-        """
-        SimulationObject.draw(self, display)
+        robot.SimulationRobot.draw(self, display)
+        # Telemetry
         graphics.draw_set_color(0, 0, 0)
         text = [
             self.subsys_name,
@@ -74,7 +56,6 @@ class SimulationRobot(SimulationObject, RobotFrame):
             "block=" + str(self.carried_block_mutex),
             "state=" + str(self.state)
         ]
-        #draw_text_field(display, text, self.pose[0],self.pose[1] - 6, align="left")
         graphics.draw_text_onsc(display, text,
             self.pose[0] * settings.PIXELS_PER_UNIT,
             self.pose[1] * settings.PIXELS_PER_UNIT)
@@ -113,25 +94,13 @@ class SimulationRobot(SimulationObject, RobotFrame):
                 self.carried_block_mutex = None
 
     def cv_scan(self):
-        """
-        Retrieves everything the robot can see.
-
-        Returns
-        -------
-        list
-            list of Simulation objects currently being detected by the model
-        """
-        return vision.detect(self.sim.not_robots, self.pose, CAMERA_FOV_HORIZ,
-            CV_PROB_MODEL)
+        return vision.detect(self.sim.not_robots, self.pose,
+            math.radians(CAMERA_FOV_HORIZ), self.cv_model)
 
     def loop(self):
         """
         A single iteration of the robot's control code. Called automatically by
         the overarching thread.
-
-        Returns
-        -------
-        None
         """
         # Only do time-dependent actions if a dt can be calculated
         if self.timestamp_last is not None and\
