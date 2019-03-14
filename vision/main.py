@@ -1,9 +1,10 @@
 
-from samples import load
 from matplotlib import pyplot as plt
 import cv2
 import numpy as np
 import syllabus
+
+import samples
 
 
 WIDTH = 800
@@ -14,95 +15,137 @@ KSIZE = int(WIDTH / 50)
 ERODE_DILATE_MASK = np.ones((KSIZE, KSIZE), np.uint8)
 
 
-def erode_dilate(mask, task=None):
+def load(tgt, task):
 
-    if task is not None:
-        task.start()
+    task.start(name="Load", desc="Load image")
+
+    img = cv2.resize(samples.load(tgt), (WIDTH, HEIGHT))
+
+    task.done()
+    return img
+
+
+def erode_dilate(mask, task):
+
+    task.start(name="erode + dilate")
 
     mask = cv2.erode(mask, ERODE_DILATE_MASK)
     mask = cv2.dilate(mask, ERODE_DILATE_MASK)
 
-    if task is not None:
-        task.done()
-
+    task.done()
     return mask
+
+
+def threshold(img, task):
+
+    task.start("Threshold", desc="Threshold field -> erode -> dilate")
+
+    mask = cv2.inRange(
+        img, np.array([200, 100, 50]), np.array([255, 180, 120]))
+    mask = erode_dilate(mask, task.subtask())
+
+    task.done()
+    return mask
+
+
+def get_gray(img, task):
+
+    task.start("In range", desc="Find obstacle stands")
+
+    obs = cv2.inRange(src, np.array([10, 10, 10]), np.array([150, 150, 150]))
+
+    task.done()
+    return obs
+
+
+def bitwise_not(m, task):
+
+    task.start(name="bitwise_not")
+    res = cv2.bitwise_not(m)
+    task.done()
+    return res
+
+
+def bitwise_and(m1, m2, task):
+
+    task.start(name="bitwise_and")
+    res = cv2.bitwise_and(m1, m2)
+    task.done()
+    return res
+
+
+def get_contours(mask, task):
+
+    task.start(name="contours")
+    res = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    task.done()
+    return res
+
+
+def bound_rect(c, task):
+
+    task.start(name="bound_rect")
+    res = cv2.boundingRect(c)
+    task.done()
+    return res
+
+
+def bound_field(img, mask, task):
+
+    task.start(
+        "CVXHull: Bound Field", desc="Background exclusion, bound field")
+
+    # Find contours
+    ct = task.subtask(name="Contours", desc="Find contours").start()
+    contours, hier = get_contours(mask, ct.subtask())
+    m = min(bound_rect(c, ct.subtask())[1] for c in contours)
+    hull_fill = np.zeros(mask.shape, dtype=np.uint8)
+    cv2.rectangle(hull_fill, (0, m), (WIDTH, HEIGHT), 255, -1)
+    ct.done()
+
+    # Update mask
+    update = task.subtask(name="Update mask").start()
+
+    # bitwise AND with !FIELD
+    mask = bitwise_and(
+        bitwise_not(mask, update.subtask()), hull_fill, update.subtask())
+    # Clean up
+    # mask = erode_dilate(mask, update.subtask())
+    # Filter out cubes
+    obs = get_gray(img, update.subtask())
+    mask = bitwise_and(obs, mask, update.subtask())
+    # Clean up
+    mask = erode_dilate(mask, update.subtask())
+
+    update.done()
+
+    task.done()
+    return mask, obs
 
 
 if __name__ == '__main__':
 
     import sys
-    tgt = int(sys.argv[1])
 
     main = syllabus.BasicTaskApp(
         name='Main', desc='Test Vision Implementation').start()
     main.info("Computing with {}x{}px".format(WIDTH, HEIGHT))
     main.info("Kernel size for erosion/dilation: {}".format(KSIZE))
 
-    _load = main.subtask(name="Load", desc="Load image").start()
-    src = cv2.resize(load(tgt), (WIDTH, HEIGHT))
-    # src = src[int(HEIGHT / 2):int(HEIGHT / 2) + HEIGHT]
-    _load.done()
+    src = load(int(sys.argv[1]), main.subtask())
 
     # -- Thresholding ---------------------------------------------------------
 
-    _threshold = main.subtask(
-        name="Thresholding", desc="Thresholding, erode, dilate").start()
-    mask = cv2.inRange(
-        src, np.array([200, 100, 50]), np.array([255, 180, 120]))
-    mask = erode_dilate(
-        mask, task=_threshold.subtask(name="threshold.erode_dilate"))
-    _threshold.done()
+    _threshold = main.subtask()
+    mask = threshold(src, _threshold)
 
     plt.subplot(221)
     plt.imshow(mask)
 
     # -- Convex Hull ----------------------------------------------------------
 
-    _cvxhull = main.subtask(
-        name="CVXHull", desc="Convex Hull and background exclusion").start()
-
-    # Find contours
-    _cvxcont = _cvxhull.subtask(name="CVXHull.contours").start()
-    contours, hier = cv2.findContours(
-        mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    _cvxcont.done()
-
-    # Find convex hull
-    _cvxhull.add_task(len(contours))
-
-    hull_fill = np.zeros(mask.shape, dtype=np.uint8)
-    for c in contours:
-        _cvxsub = _cvxhull.subtask(name="CVXHull.child").start()
-
-        hull = cv2.convexHull(c)
-        hull_fill = cv2.fillConvexPoly(hull_fill, hull, 255)
-
-        _cvxsub.done()
-        _cvxhull.add_progress(1)
-
-    # Update mask
-    _cvxed = _cvxhull.subtask(name="CVXHull.mask_update").start()
-
-    _cvxand = _cvxed.subtask(name="CVXHull.and.1").start()
-    mask = cv2.bitwise_and(cv2.bitwise_not(mask), hull_fill)
-    _cvxand.done()
-
-    mask = erode_dilate(
-        mask, task=_cvxed.subtask(name="CVXHull.erode_dilate.1"))
-
-    _cvxinrange = _cvxed.subtask(name="CVXHull.inrange").start()
-    obs = cv2.inRange(src, np.array([10, 10, 10]), np.array([150, 150, 150]))
-    _cvxinrange.done()
-
-    _cvxand = _cvxed.subtask(name="CVXHull.and.2").start()
-    mask = cv2.bitwise_and(obs, mask)
-    _cvxand.done()
-
-    mask = erode_dilate(
-        mask, task=_cvxed.subtask(name="CVXHull.erode_dilate.2"))
-
-    _cvxed.done()
-    _cvxhull.done()
+    _cvxhull = main.subtask()
+    mask, obs = bound_field(src, mask, _cvxhull)
 
     plt.subplot(223)
     plt.imshow(obs)
@@ -128,7 +171,7 @@ if __name__ == '__main__':
 
         _compsub = _components.subtask(name="Component {}".format(i)).start()
 
-        x, y, w, h = cv2.boundingRect(c)
+        x, y, w, h = bound_rect(c, task=_compsub.subtask())
         rects.append([
             x - int(w * 0.25), y - int(h * 2),
             x + int(w * 1.25), y + int(h * 0.1)])
