@@ -6,7 +6,7 @@ import numpy as np
 import syllabus
 
 
-WIDTH = 1200
+WIDTH = 800
 HEIGHT = int(WIDTH * 0.75)
 KSIZE = int(WIDTH / 50)
 
@@ -33,9 +33,6 @@ if __name__ == '__main__':
     src = cv2.resize(load(tgt), (WIDTH, HEIGHT))
     _load.done()
 
-    plt.subplot(221)
-    plt.imshow(src)
-
     # -- Thresholding ---------------------------------------------------------
 
     _threshold = main.subtask(
@@ -45,7 +42,7 @@ if __name__ == '__main__':
     mask = erode_dilate(mask)
     _threshold.done()
 
-    plt.subplot(222)
+    plt.subplot(221)
     plt.imshow(mask)
 
     # -- Convex Hull ----------------------------------------------------------
@@ -61,11 +58,18 @@ if __name__ == '__main__':
         hull_fill = cv2.fillConvexPoly(hull_fill, hull, 255)
 
     mask = cv2.bitwise_and(cv2.bitwise_not(mask), hull_fill)
-
     mask = erode_dilate(mask)
-    _cvxhull.done()
+
+    obs = cv2.inRange(src, np.array([10, 10, 10]), np.array([150, 150, 150]))
+    mask = cv2.bitwise_and(obs, mask)
+    mask = erode_dilate(mask)
 
     plt.subplot(223)
+    plt.imshow(obs)
+
+    _cvxhull.done()
+
+    plt.subplot(222)
     plt.imshow(cv2.bitwise_and(src, cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)))
 
     # -- Individual Obstacles -------------------------------------------------
@@ -77,20 +81,52 @@ if __name__ == '__main__':
         mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     _components.add_task(len(contours))
+    _components.info("{} objects found".format(len(contours)))
 
+    bbmask = np.zeros(mask.shape, dtype=np.uint8)
+    rects = []
     for c in contours:
         hull = cv2.convexHull(c)
         _components.add_progress(1)
 
+        x, y, w, h = cv2.boundingRect(c)
+        rects.append([
+            x - int(w * 0.25), y - int(h * 2.5),
+            x + int(w * 1.25), y + int(h * 0.1)])
+        cv2.rectangle(
+            src,
+            (x - int(w * 0.25), y - int(h * 2.5)),
+            (x + int(w * 1.25), y + int(h * 0.1)),
+            (255, 0, 0), 3)
         cv2.drawContours(src, [hull], -1, (0, 0, 255), 3)
 
     _components.done()
+
+    # -- Obstacles ------------------------------------------------------------
+
+    _circles = main.subtask(
+        name="HoughCircles", desc="Search for circles").start()
+    for r in rects:
+        try:
+            circles = cv2.HoughCircles(
+                cv2.cvtColor(src[r[1]:r[3], r[0]:r[2]], cv2.COLOR_RGB2GRAY),
+                cv2.HOUGH_GRADIENT, 1, 30, param1=50, param2=30,
+                minRadius=0,
+                maxRadius=0)
+            circles = np.uint16(np.around(circles))
+            for i in circles[0]:
+                cv2.circle(
+                    src, (i[0] + r[0], i[1] + r[1]), i[2], (0, 255, 0), 2)
+        except Exception as e:
+            _circles.error(e)
+    _circles.done()
     plt.subplot(224)
     plt.imshow(src)
 
     main.info(
         "Compute Time [s]: {}".format(
-            _threshold.runtime() + _cvxhull.runtime() + _components.runtime()))
+            _threshold.runtime() + _cvxhull.runtime() +
+            _components.runtime()))
 
     main.done()
 
