@@ -17,6 +17,20 @@ import collections
 Object = collections.namedtuple("Object", ["rect", "dist", "meta"])
 
 
+def _find_contours(mask):
+    """Helper function to deal with OpenCV version changes in the findContours
+    API, because fuck opencv, you assholes"""
+
+    if cv2.__version__ == '4.0.0':
+        contours, hier = cv2.findContours(
+            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    else:
+        _, contours, hier = cv2.findContours(
+            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    return contours
+
+
 class VisionModule():
     """Vision module
 
@@ -37,27 +51,35 @@ class VisionModule():
     FOV_V = math.radians(42.36)
     CAM_HEIGHT = 5
 
-    FIELD_LOWER = np.array([8, 130, 180])
-    FIELD_UPPER = np.array([12, 200, 255])
+    FIELD_LOWER = np.array([4, 120, 160])
+    FIELD_UPPER = np.array([16, 200, 255])
 
-    CUBE_LOWER = np.array([0, 0, 170])
+    CUBE_LOWER = np.array([0, 0, 150])
     CUBE_UPPER = np.array([255, 120, 255])
 
     def __init__(
             self, width=640, height=480,
-            erode_ksize=0.02, dilate_ksize=0.016):
+            erode_ksize=0.025, dilate_ksize=0.020, cube_ksize=0.04,
+            isolate=10):
 
         self.erode_ksize = int(erode_ksize * width)
         self.dilate_ksize = int(dilate_ksize * width)
+        self.cube_ksize = int(cube_ksize * width)
         self.width = width
         self.height = height
+        self.isolate = isolate
 
         def make_square_kernel(i):
             return np.ones((i, i), np.uint8)
 
         self.__erode_mask = make_square_kernel(self.erode_ksize)
         self.__dilate_mask = make_square_kernel(self.dilate_ksize)
-        self.__cube_erode_mask = make_square_kernel(2 * self.erode_ksize)
+        self.__cube_erode_mask = make_square_kernel(self.erode_ksize)
+
+    def __below_horizon(self, contour):
+
+        x, y, w, h = cv2.boundingRect(contour)
+        return y + h > self.height / 2
 
     def __get_field_mask(self, src):
         """Get field mask:
@@ -85,13 +107,20 @@ class VisionModule():
 
         # Compute and fill convex hull
         hull_fill = np.zeros(mask.shape, dtype=np.uint8)
-        contours, hier = cv2.findContours(
-            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        for c in contours:
-            hull_fill = cv2.fillConvexPoly(hull_fill, cv2.convexHull(c), 255)
+        try:
+            contours = np.concatenate([
+                c for c in _find_contours(mask)
+                if self.__below_horizon(c)
+            ])
 
-        # bitwise AND with !FIELD
-        mask = cv2.bitwise_and(cv2.bitwise_not(mask), hull_fill)
+            hull_fill = cv2.fillConvexPoly(
+                hull_fill, cv2.convexHull(contours), 255)
+
+            # bitwise AND with !FIELD
+            mask = cv2.bitwise_and(cv2.bitwise_not(mask), hull_fill)
+
+        except ValueError:
+            pass
 
         return mask
 
@@ -138,10 +167,13 @@ class VisionModule():
             List of found objects
         """
 
-        contours, hier = cv2.findContours(
-            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
-        return [self.__get_object_properties(c, meta) for c in contours]
+        try:
+            return [
+                self.__get_object_properties(c, meta)
+                for c in _find_contours(mask)
+            ]
+        except ValueError:
+            return []
 
     def __get_objects(self, src, mask):
         """Get cubes and obstacles in the scene
@@ -176,6 +208,15 @@ class VisionModule():
 
         return cubes + obstacles
 
+    def __inside(self, target, refs):
+
+        for r in refs:
+            if (r.rect[0] - self.isolate < target.rect[0] and (
+                    r.rect[0] + r.rect[2] + self.isolate >
+                    target.rect[0] + target.rect[2])):
+                return True
+        return False
+
     def process(self, img):
         """Process image
 
@@ -196,13 +237,18 @@ class VisionModule():
         img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
 
         mask = self.__get_field_mask(img)
-        cubes = self.__get_objects(img, mask)
+        objs = self.__get_objects(img, mask)
 
-        return cubes
+        objs.sort(key=lambda x: x.rect[2], reverse=True)
+        final = []
+        for x in objs:
+            if not self.__inside(x, final):
+                final.append(x)
+        return final
 
 
 WIDTH = 640
-HEIGHT = 480
+HEIGHT = 360
 
 COLORS = {
     "obstacle": (255, 0, 0),
@@ -222,45 +268,46 @@ def draw(img, objects):
             (c.rect[0], c.rect[1]),
             (c.rect[0] + c.rect[2], c.rect[1] + c.rect[3]),
             COLORS.get(c.meta), 3)
-        plt.text(
-            c.rect[0], c.rect[1],
-            "{:.2f}".format(c.dist), color=(1, 1, 1))
+        cv2.putText(
+            img, "{:.2f}".format(c.dist), (c.rect[0], c.rect[1]),
+            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
 
 if __name__ == '__main__':
 
     import time
-    import sys
+    import os
 
     mod = VisionModule(width=WIDTH, height=HEIGHT)
 
-    if sys.argv[1] == 'all':
-        total = 0
-        for i in range(9):
+    BASE_DIR = 'tests_01'
 
-            img = load(i)
+    total = 0
+    n = 0
 
-            start = time.time()
-            objects = mod.process(img)
-            dur = time.time() - start
-
-            print(dur)
-            total += dur
-
-            plt.subplot(330 + i + 1)
-            draw(img, objects)
-            plt.imshow(img)
-
-        print("Avg time: {}ms".format(total / 9 * 1000))
-        plt.show()
-
-    else:
-        img = load(int(sys.argv[1]))
+    for img in os.listdir(BASE_DIR):
+        src = cv2.cvtColor(
+            cv2.imread(os.path.join(BASE_DIR, img)), cv2.COLOR_BGR2RGB)
+        src = cv2.resize(src, (640, 360))
 
         start = time.time()
-        objects = mod.process(img)
-        print(time.time() - start)
+        objects = mod.process(src)
+        dur = (time.time() - start)
 
-        draw(img, objects)
-        plt.imshow(img)
-        plt.show()
+        n += 1
+        total += dur
+
+        draw(src, objects)
+
+        src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
+
+        cv2.putText(
+            src, '{:.1f}fps'.format(n / total), (0, 20),
+            cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
+
+        cv2.imshow('test_01', src)
+        if cv2.waitKey(0) & 0xFF == ord('q'):
+            break
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
