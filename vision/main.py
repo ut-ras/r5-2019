@@ -273,21 +273,25 @@ def draw(img, objects):
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
 
-if __name__ == '__main__':
+BASE_DIR = 'tests_01'
+
+
+def test(target, pause=True):
 
     import time
     import os
 
     mod = VisionModule(width=WIDTH, height=HEIGHT)
 
-    BASE_DIR = 'tests_01'
-
     total = 0
     n = 0
 
-    for img in os.listdir(BASE_DIR):
+    srcs = os.listdir(target)
+    srcs.sort()
+
+    for img in srcs:
         src = cv2.cvtColor(
-            cv2.imread(os.path.join(BASE_DIR, img)), cv2.COLOR_BGR2RGB)
+            cv2.imread(os.path.join(target, img)), cv2.COLOR_BGR2RGB)
         src = cv2.resize(src, (640, 360))
 
         start = time.time()
@@ -306,8 +310,15 @@ if __name__ == '__main__':
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
         cv2.imshow('test_01', src)
-        if cv2.waitKey(0) & 0xFF == ord('q'):
+        if cv2.waitKey(0 if pause else 1) & 0xFF == ord('q'):
             break
 
-    cv2.waitKey(0)
+    if pause:
+        cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    # import sys
+    test('tests_01')
+    # test(sys.argv[1])

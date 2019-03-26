@@ -51,9 +51,12 @@ python tester.py db_scan 1.png r=3 d=5
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         print(fp("Vision Tester"))
         print(_HINT)
+    elif sys.argv[1] == 'main':
+        import main
+        main.test('tests_01', pause=len(sys.argv) > 2 and sys.argv[2] == '-p')
     else:
         module, target = sys.argv[1:3]
         kwargs = {f.split("=")[0]: f.split("=")[1] for f in sys.argv[3:]}
