@@ -2,7 +2,7 @@
 Abstract subsystem classes.
 """
 
-from .core.robotmotion import MotionState
+from .robotmotion import MotionState
 import math
 
 
