@@ -1,4 +1,4 @@
-"""Robot template
+"""Main Robot Class
 
 Hardware
 --------
@@ -32,6 +32,9 @@ class SwarmBot(RobotFrame):
 
         super().__init__(gethostname(), **kwargs)
 
+    def init(self):
+        self.tmp_idx = 0
+
     def loop(self):
 
         # Heartbeat
@@ -42,9 +45,14 @@ class SwarmBot(RobotFrame):
             self.done = True
 
         # Check reset
-        if io.RST:
-            pass
-            # reset game state
+        if io.RST.is_held:
+            # TODO: reset game state
+            io.LED1.off()
+            self.tmp_idx = 0
 
         # TMP
-        time.sleep(1)
+        if self.tmp_idx < 10:
+            time.sleep(0.5)
+            self.tmp_idx += 1
+        else:
+            io.LED1.on()
