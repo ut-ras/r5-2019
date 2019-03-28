@@ -25,6 +25,7 @@ class RobotFrame(Subsystem, threading.Thread):
             Number of frames to calculate average update rate from
         """
 
+        threading.Thread.__init__(self)
         super().__init__(name)
 
         # Semaphores for asynchronous access
