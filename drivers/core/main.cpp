@@ -6,15 +6,17 @@
 
 using namespace std;
 enum VALID_STATES{TURN_RIGHT, DRIVE_FORWARD, TURN_LEFT, DRIVE_BACKWARD};
-const int TIME_PER_DEGREE = 1; // need to be calculated
-Motor* motors[4];
+const double TIME_PER_DEGREE = 0.00001; // need to be calculated
+const int CLAW = 14;
+const int ELEVATOR = 15;
+Motor* motors[2];
 
 static PyObject* RobotInit(PyObject* self, PyObject* args){
     while(gpioInitialise() < 0);
     //motors[3] = new DRV(15, 14, 17, 18);
     //motors[2] = new DRV(25, 8, 7, 1);
-    motors[1] = new DRV(27, 22, 10, 9);
-    motors[0] = new DRV(6, 13, 5, 0);
+    motors[1] = new DRV(13, 22, 8, 25);
+    motors[0] = new DRV(6, 27, 7, 1);
     return Py_BuildValue("i", 1);
 }
 
@@ -25,7 +27,7 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
     PyObject* pyElevator =  PyObject_GetAttrString(DriveState, "elevator_state");
     PyObject* pyClaw = PyObject_GetAttrString(DriveState, "claw_state");
     PyObject* pyMagnitude = PyObject_GetAttrString(DriveState, "drive_magnitude");
-    /*int driveState;
+    int driveState;
     bool elevator, claw;
     float magnitude;
     driveState = (int)PyLong_AsLong(pyDriveState);
@@ -64,19 +66,19 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
     }
 
     if(claw == 1){
-        //engage claw
+        gpioServo(CLAW, 2500);
     }
     else{
-        //disengage claw
+        gpioServo(CLAW, 500);
     }
 
     if(elevator == 1){
-        //raise elevator
+        gpioServo(ELEVATOR, 2500);
     }
     else{
-        //lower elevator
+        gpioServo(CLAW, 500);
     }   
-    return Py_BuildValue("i", 1);*/
+    return Py_BuildValue("i", 1);
 }
 
 static PyMethodDef regVmethods[] = {
