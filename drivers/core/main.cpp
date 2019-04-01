@@ -1,22 +1,24 @@
 #include <Python.h>
 #include <pigpio.h>
 #include <iostream>
-#include "motor.h"
-#include "pid.h"
+#include "pb-HAL/inc/motor.h"
+#include "pb-HAL/inc/pid.h"
 
 using namespace std;
 enum VALID_STATES{TURN_RIGHT, DRIVE_FORWARD, TURN_LEFT, DRIVE_BACKWARD};
-const double TIME_PER_DEGREE = 0.00001; // need to be calculated
+//const double TIME_PER_DEGREE = 0.01; // need to be calculated
 const int CLAW = 14;
-const int ELEVATOR = 15;
+const int ELEVATOR = 18;
 Motor* motors[2];
 
 static PyObject* RobotInit(PyObject* self, PyObject* args){
     while(gpioInitialise() < 0);
     //motors[3] = new DRV(15, 14, 17, 18);
     //motors[2] = new DRV(25, 8, 7, 1);
-    motors[1] = new DRV(13, 22, 8, 25);
-    motors[0] = new DRV(6, 27, 7, 1);
+    gpioSetMode(CLAW, PI_OUTPUT);
+    gpioSetMode(ELEVATOR, PI_OUTPUT);
+    motors[1] = new DRV(13, 22, 7, 25);
+    motors[0] = new DRV(6, 27, 1, 8);
     return Py_BuildValue("i", 1);
 }
 
@@ -34,12 +36,28 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
     elevator = PyObject_IsTrue(pyElevator);
     claw = PyObject_IsTrue(pyClaw);
     magnitude = (float)PyFloat_AsDouble(pyMagnitude);
+    int tick1, tick2;
+    bool stopped1, stopped2;
 
     switch(driveState){
         case TURN_RIGHT:
-            motors[0]->set(-0.5);
-            motors[1]->set(0.5);
-            time_sleep(TIME_PER_DEGREE * magnitude);
+            tick1 = motors[0]->getTicks();
+            tick2 = motors[1]->getTicks();
+            motors[0]->set(-0.25);
+            motors[1]->set(0.3);
+            stopped1 = false;
+            stopped2 = false;
+            while(abs(motors[0]->getTicks() - tick1) < 0.8*magnitude || abs(motors[1]->getTicks() - tick2) < 0.8*magnitude){
+                cout << motors[0]->getTicks() << " " << motors[1]->getTicks() << endl;
+                if(!stopped1 && abs(motors[0]->getTicks() - tick1) >= 0.8*magnitude){
+                    motors[0]->stop();
+                    stopped1 = true;
+                }
+                if(!stopped2 && abs(motors[1]->getTicks() - tick2) >= 0.8*magnitude){
+                    motors[1]->stop();
+                    stopped2 = true;
+                }
+            }
             for(int i = 0; i < 2; i++){
                 motors[i]->stop();
             }
@@ -50,9 +68,23 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
             }
         break;
         case TURN_LEFT:
-            motors[0]->set(0.5);
-            motors[1]->set(-0.5);
-            time_sleep(TIME_PER_DEGREE * magnitude);
+            tick1 = motors[0]->getTicks();
+            tick2 = motors[1]->getTicks();
+            motors[0]->set(0.3);
+            motors[1]->set(-0.25);
+            stopped1 = false;
+            stopped2 = false;
+            while(abs(motors[0]->getTicks() - tick1) < 0.8*magnitude || abs(motors[1]->getTicks() - tick2) < 0.8*magnitude){
+                cout << motors[0]->getTicks() << " " << motors[1]->getTicks() << endl;
+                if(!stopped1 && abs(motors[0]->getTicks() - tick1) >= 0.8*magnitude){
+                    motors[0]->stop();
+                    stopped1 = true;
+                }
+                if(!stopped2 && abs(motors[1]->getTicks() - tick2) >= 0.8*magnitude){
+                    motors[1]->stop();
+                    stopped2 = true;
+                }
+            }
             for(int i = 0; i < 2; i++){
                 motors[i]->stop();
             }
@@ -67,16 +99,20 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
 
     if(claw == 1){
         gpioServo(CLAW, 2500);
+        //time_sleep(0.5);
     }
     else{
         gpioServo(CLAW, 500);
+        //time_sleep(0.5);
     }
 
     if(elevator == 1){
         gpioServo(ELEVATOR, 2500);
+        //time_sleep(0.5);
     }
     else{
-        gpioServo(CLAW, 500);
+        gpioServo(ELEVATOR, 500);
+        //time_sleep(0.5);
     }   
     return Py_BuildValue("i", 1);
 }
