@@ -17,8 +17,8 @@ static PyObject* RobotInit(PyObject* self, PyObject* args){
     //motors[2] = new DRV(25, 8, 7, 1);
     gpioSetMode(CLAW, PI_OUTPUT);
     gpioSetMode(ELEVATOR, PI_OUTPUT);
-    motors[1] = new DRV(13, 22, 7, 25);
-    motors[0] = new DRV(6, 27, 1, 8);
+    motors[1] = new DRV(13, 22, 1, 8);
+    motors[0] = new DRV(6, 27, 7, 25);
     return Py_BuildValue("i", 1);
 }
 
@@ -43,19 +43,21 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
         case TURN_RIGHT:
             tick1 = motors[0]->getTicks();
             tick2 = motors[1]->getTicks();
-            motors[0]->set(-0.25);
-            motors[1]->set(0.3);
+            motors[0]->set(-0.2);
+            motors[1]->set(0.4);
             stopped1 = false;
             stopped2 = false;
-            while(abs(motors[0]->getTicks() - tick1) < 0.8*magnitude || abs(motors[1]->getTicks() - tick2) < 0.8*magnitude){
-                cout << motors[0]->getTicks() << " " << motors[1]->getTicks() << endl;
-                if(!stopped1 && abs(motors[0]->getTicks() - tick1) >= 0.8*magnitude){
+            while(abs(motors[0]->getTicks() - tick1) < 1.6*magnitude || abs(motors[1]->getTicks() - tick2) < 1.6*magnitude){
+                cout << abs(motors[0]->getTicks() - tick1) << " " << abs(motors[1]->getTicks() - tick2) << endl;
+                if(!stopped1 && abs(motors[0]->getTicks() - tick1) >= 1.6*magnitude){
                     motors[0]->stop();
                     stopped1 = true;
+                    motors[1]->set(0.5);
                 }
-                if(!stopped2 && abs(motors[1]->getTicks() - tick2) >= 0.8*magnitude){
+                if(!stopped2 && abs(motors[1]->getTicks() - tick2) >= 1.6*magnitude){
                     motors[1]->stop();
                     stopped2 = true;
+                    motors[0]->set(-0.25);
                 }
             }
             for(int i = 0; i < 2; i++){
@@ -70,19 +72,21 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
         case TURN_LEFT:
             tick1 = motors[0]->getTicks();
             tick2 = motors[1]->getTicks();
-            motors[0]->set(0.3);
-            motors[1]->set(-0.25);
+            motors[0]->set(0.4);
+            motors[1]->set(-0.2);
             stopped1 = false;
             stopped2 = false;
-            while(abs(motors[0]->getTicks() - tick1) < 0.8*magnitude || abs(motors[1]->getTicks() - tick2) < 0.8*magnitude){
-                cout << motors[0]->getTicks() << " " << motors[1]->getTicks() << endl;
-                if(!stopped1 && abs(motors[0]->getTicks() - tick1) >= 0.8*magnitude){
+            while(abs(motors[0]->getTicks() - tick1) < 1.6*magnitude || abs(motors[1]->getTicks() - tick2) < 1.6*magnitude){
+                cout << abs(motors[0]->getTicks() - tick1) << " " << abs(motors[1]->getTicks() - tick2) << endl;
+                if(!stopped1 && abs(motors[0]->getTicks() - tick1) >= 1.6*magnitude){
                     motors[0]->stop();
                     stopped1 = true;
+                    motors[1]->set(-0.25);
                 }
-                if(!stopped2 && abs(motors[1]->getTicks() - tick2) >= 0.8*magnitude){
+                if(!stopped2 && abs(motors[1]->getTicks() - tick2) >= 1.6*magnitude){
                     motors[1]->stop();
                     stopped2 = true;
+                    motors[0]->set(0.5);
                 }
             }
             for(int i = 0; i < 2; i++){
