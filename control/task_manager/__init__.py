@@ -1,4 +1,3 @@
-
 """Task Manager Module
 
 Examples
