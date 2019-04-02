@@ -1,6 +1,6 @@
 """
-Simple control algorithm for testing simulator movement. Takes the general form
-of the control algorithm that the control team will eventually provide.
+Simple control algorithms for testing simulator functionality. Takes the general
+form of what the control team will eventually provide.
 """
 import r5engine.profiling as profiling
 import math

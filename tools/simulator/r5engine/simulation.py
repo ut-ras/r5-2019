@@ -5,8 +5,9 @@ from r5engine.robotcontrol import Clock
 from r5engine.settings import FIELD_WIDTH, FIELD_HEIGHT, PIXELS_PER_UNIT, FIELD_COLOR, GRID_COLOR, GRID_RESOLUTION
 from r5engine.util import rotate_rect
 
-import pygame
 import math
+import os
+import pygame
 import r5engine.graphics as graphics
 import r5engine.models as models
 import time
@@ -25,7 +26,7 @@ class Simulation:
     Centermost simulator class. Manages simulated object list, display drawing,
     and the simulation loop.
     """
-    def __init__(self, controller,
+    def __init__(self, controller, name="",
                  display_width=int(FIELD_WIDTH * PIXELS_PER_UNIT),
                  display_height=int(FIELD_HEIGHT * PIXELS_PER_UNIT)):
         """
@@ -45,7 +46,11 @@ class Simulation:
         self.clock = Clock()
         self.controller = controller
 
-        pygame.display.set_caption("r5engine")
+        pygame.display.set_caption("r5engine" +\
+            ((" - " + name) if name != "" else ""))
+        icon = pygame.image.load(os.path.join(os.getcwd(), "r5engine", "asset",
+            "icon.png"))
+        pygame.display.set_icon(icon)
 
     def add_object(self, obj):
         """
@@ -175,5 +180,3 @@ class Simulation:
 
             # Draw gridlines
             self.display_gridlines()
-
-            time.sleep(1 / 60)

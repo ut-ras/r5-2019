@@ -16,7 +16,7 @@ ang_const = (1, 0.5)  # Max angular velocity, max angular acceleration
 controller = RobotController(pose_initial, path, lin_const, ang_const)
 
 # Simulation setup
-s = Simulation(controller)
+s = Simulation(controller, "not to get political but what is martian red")
 r = CollectorRobot(pose_initial[0], pose_initial[1], pose_initial[2], "mr robot")
 
 b = Block(24, 24)

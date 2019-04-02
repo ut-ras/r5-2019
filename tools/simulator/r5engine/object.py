@@ -156,6 +156,6 @@ class SimulationObject(Sprite):
             line_self = [self_corners[i], self_corners[(i + 1) % 4]]
             for j in range(0, 3):
                 line_other = [obj_corners[j], obj_corners[(j + 1) % 4]]
-                if intersects(line_self, line_other):
+                if util.intersects(line_self, line_other):
                     return True
         return False
