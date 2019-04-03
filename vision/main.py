@@ -51,16 +51,24 @@ class VisionModule():
     FOV_V = math.radians(42.36)
     CAM_HEIGHT = 5
 
-    FIELD_LOWER = np.array([4, 120, 160])
+    FIELD_LOWER = np.array([4, 120, 120])
     FIELD_UPPER = np.array([16, 200, 255])
 
     CUBE_LOWER = np.array([0, 0, 150])
     CUBE_UPPER = np.array([255, 120, 255])
 
+    BASE_STATION_LOWER = np.array([100, 240, 0])
+    BASE_STATION_UPPER = np.array([130, 255, 100])
+
+    LIGHT_LOWER = np.array([70, 20, 250])
+    LIGHT_UPPER = np.array([100, 50, 255])
+
+    HORIZON = 80
+
     def __init__(
             self, width=640, height=480,
             erode_ksize=0.025, dilate_ksize=0.020, cube_ksize=0.04,
-            isolate=10):
+            isolate=5):
 
         self.erode_ksize = int(erode_ksize * width)
         self.dilate_ksize = int(dilate_ksize * width)
@@ -79,7 +87,7 @@ class VisionModule():
     def __below_horizon(self, contour):
 
         x, y, w, h = cv2.boundingRect(contour)
-        return y + h > self.height / 2
+        return y + h > self.HORIZON
 
     def __get_field_mask(self, src):
         """Get field mask:
@@ -191,6 +199,15 @@ class VisionModule():
             Found objects
         """
 
+        base_station_mask = cv2.inRange(
+            src, self.BASE_STATION_LOWER, self.BASE_STATION_UPPER)
+
+        base_station_mask = cv2.bitwise_and(mask, base_station_mask)
+        base_station_mask = cv2.dilate(base_station_mask, self.__dilate_mask)
+        base_station_mask = cv2.erode(base_station_mask, self.__erode_mask)
+
+        base_station = self.__mask_to_objects(base_station_mask, "base")
+
         cube_mask = cv2.inRange(src, self.CUBE_LOWER, self.CUBE_UPPER)
 
         cube_mask = cv2.bitwise_and(mask, cube_mask)
@@ -205,8 +222,12 @@ class VisionModule():
         mask = cv2.dilate(mask, self.__dilate_mask)
 
         obstacles = self.__mask_to_objects(mask, "obstacle")
+        light_mask = cv2.inRange(src, self.LIGHT_LOWER, self.LIGHT_UPPER)
+        light_mask = cv2.dilate(light_mask, self.__dilate_mask)
 
-        return cubes + obstacles
+        lights = self.__mask_to_objects(light_mask, "light")
+
+        return cubes + obstacles + base_station + lights
 
     def __inside(self, target, refs):
 
@@ -214,6 +235,15 @@ class VisionModule():
             if (r.rect[0] - self.isolate < target.rect[0] and (
                     r.rect[0] + r.rect[2] + self.isolate >
                     target.rect[0] + target.rect[2])):
+                return True
+        return False
+
+    def __contains(self, target, refs):
+
+        for r in refs:
+            if (target.rect[0] - self.isolate < r.rect[0] and (
+                    target.rect[0] + target.rect[2] + self.isolate >
+                    r.rect[0] + r.rect[2])):
                 return True
         return False
 
@@ -239,10 +269,23 @@ class VisionModule():
         mask = self.__get_field_mask(img)
         objs = self.__get_objects(img, mask)
 
-        objs.sort(key=lambda x: x.rect[2], reverse=True)
-        final = []
+        base = [x for x in objs if x.meta == 'base']
         for x in objs:
-            if not self.__inside(x, final):
+            if self.__contains(x, base):
+                base.append(Object(rect=x.rect, dist=x.dist, meta='base'))
+
+        lights = [x for x in objs if x.meta == 'light']
+        for x in objs:
+            if self.__contains(x, lights):
+                lights.append(
+                    Object(rect=x.rect, dist=x.dist, meta='mothership'))
+
+        final = base + lights
+        objs.sort(key=lambda x: x.rect[2], reverse=True)
+        for x in objs:
+            if x.meta == 'light':
+                final.append(x)
+            elif x.meta != 'base' and not self.__inside(x, final):
                 final.append(x)
         return final
 
@@ -252,7 +295,10 @@ HEIGHT = 360
 
 COLORS = {
     "obstacle": (255, 0, 0),
-    "cube": (0, 255, 0)
+    "cube": (0, 255, 0),
+    "base": (0, 0, 255),
+    "light": (255, 255, 0),
+    "mothership": (255, 0, 255),
 }
 
 
@@ -263,6 +309,8 @@ def load(tgt):
 
 def draw(img, objects):
     for c in objects:
+        if c.meta == 'light':
+            print(c)
         cv2.rectangle(
             img,
             (c.rect[0], c.rect[1]),
@@ -271,9 +319,6 @@ def draw(img, objects):
         cv2.putText(
             img, "{:.2f}".format(c.dist), (c.rect[0], c.rect[1]),
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
-
-
-BASE_DIR = 'tests_01'
 
 
 def test(target, pause=True):
@@ -292,6 +337,7 @@ def test(target, pause=True):
     for img in srcs:
         src = cv2.cvtColor(
             cv2.imread(os.path.join(target, img)), cv2.COLOR_BGR2RGB)
+        src = cv2.flip(src, 0)[:340]
         src = cv2.resize(src, (640, 360))
 
         start = time.time()
@@ -313,6 +359,9 @@ def test(target, pause=True):
         if cv2.waitKey(0 if pause else 1) & 0xFF == ord('q'):
             break
 
+        # plt.imshow(cv2.cvtColor(src, cv2.COLOR_BGR2HSV))
+        # plt.show()
+
     if pause:
         cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -320,5 +369,5 @@ def test(target, pause=True):
 
 if __name__ == '__main__':
     # import sys
-    test('tests_01')
+    test('tests_02')
     # test(sys.argv[1])
