@@ -5,16 +5,13 @@ import time
 regV.RobotInit()
 
 #CODE BORROWED FROM SIMULATOR
-TURN_RIGHT = 0
-DRIVE_FORWARD = 1
-TURN_LEFT = 2
-DRIVE_BACKWARD = 3
-VALID_DRIVE_STATES = [TURN_RIGHT, DRIVE_FORWARD, TURN_LEFT, DRIVE_BACKWARD]
+#CODE BORROWED FROM SIMULATOR
+TURN = 0
+DRIVE = 1
+VALID_DRIVE_STATES = [0, 1]
 DRIVE_STATE_ID_LOOKUP = {
-    TURN_RIGHT: "TURN_RIGHT",
-    DRIVE_FORWARD: "DRIVE_FORWARD",
-    TURN_LEFT: "TURN_LEFT",
-    DRIVE_BACKWARD: "DRIVE_BACKWARD"
+    TURN: "TURN",
+    DRIVE: "DRIVE"
 }
 
 
@@ -25,56 +22,73 @@ class RobotState:
     their best to mimic them.
     """
     def __init__(self, drive_state=None, drive_magnitude=0, claw_state=False,
-        elevator_state=False):
+        elevator_state=False, camera_state=False):
         """
         Parameters
         ----------
         drive_state: int
-            drive state type; see VALID_STATES
+            drive state type; see VALID_DRIVE_STATES
+        drive_velocity: float
+            signed magnitude of the drive instruction
         claw_state: bool
             whether or not the claw is engaged
         elevator_state: bool
             whether or not the elevator is raised
-        magnitude: float
-            magnitude of the state, usually a velocity
+        camera_state: bool
+            whether or not the camera is up
         """
         if drive_state not in VALID_DRIVE_STATES:
             raise ValueError("invalid state", drive_state)
 
         self.drive_state = drive_state
-        self.drive_magnitude = drive_magnitude
+        self.drive_velocity = drive_magnitude
         self.claw_state = claw_state
         self.elevator_state = elevator_state
+        self.camera_state = camera_state
 
     def __str__(self):
         """
         Returns
         -------
         str
-            string representation of the form (IDENTITY@MAGNITUDE)
+            string representation
         """
-        return "(" + DRIVE_STATE_ID_LOOKUP[self.drive_state] + "@" + str(self.magnitude) + ")"
+        format = "({0}@{1:0.3f}, claw={2}, elev={3}, cam={4})"
+        return format.format(DRIVE_STATE_ID_LOOKUP[self.drive_state],
+            self.drive_velocity, str(self.claw_state),
+            str(self.elevator_state), str(self.camera_state))
 
-rstate1 = RobotState(TURN_RIGHT, 45)
-rstate2 = RobotState(TURN_RIGHT, 90)
-rstate3 = RobotState(TURN_RIGHT, 180)
-lstate1 = RobotState(TURN_LEFT, 45)
-lstate2 = RobotState(TURN_LEFT, 90)
-lstate3 = RobotState(TURN_LEFT, 180)
-forward = RobotState(DRIVE_FORWARD, 0.4)
-backward = RobotState(DRIVE_BACKWARD, 0.4)
-clawen = RobotState(DRIVE_FORWARD, 0, True)
-clawdis = RobotState(DRIVE_FORWARD, 0, False)
-eleven = RobotState(DRIVE_FORWARD, 0, False, True)
-elevdis = RobotState(DRIVE_FORWARD, 0, False, False)
-stop = RobotState(DRIVE_FORWARD, 0)
+rstate1 = RobotState(TURN, -45)
+rstate2 = RobotState(TURN, -90)
+rstate3 = RobotState(TURN, -180)
+lstate1 = RobotState(TURN, 45)
+lstate2 = RobotState(TURN, 90)
+lstate3 = RobotState(TURN, 180)
+forward = RobotState(DRIVE, 100)
+backward = RobotState(DRIVE, -10)
+clawen = RobotState(DRIVE, 0, True)
+clawdis = RobotState(DRIVE, 0, False)
+eleven = RobotState(DRIVE, 0, False, True)
+elevdis = RobotState(DRIVE, 0, False, False)
+camen = RobotState(DRIVE, 0, False, False, True)
+camdis = RobotState(DRIVE, 0, False, False, False)
+stop = RobotState(DRIVE, 0)
 
-
-"""regV.RobotControl(forward)
+"""
+regV.RobotControl(clawen)
+time.sleep(1)
+regV.RobotControl(clawdis)
+time.sleep(1)
+regV.RobotControl(camen)
+time.sleep(2)
+regV.RobotControl(camdis)
+"""
+"""
+regV.RobotControl(forward)
 time.sleep(7)
 regV.RobotControl(backward)
 time.sleep(7)
-"""
+
 regV.RobotControl(rstate2)
 time.sleep(4)
 regV.RobotControl(rstate2)
@@ -97,8 +111,9 @@ regV.RobotControl(lstate2)
 """
 regV.RobotControl(forward)
 time.sleep(1)
-regV.RobotControl(backward)
-time.sleep(1)
+#regV.RobotControl(backward)
+#time.sleep(1)
+"""
 regV.RobotControl(clawen)
 time.sleep(1)
 regV.RobotControl(clawdis)
@@ -121,7 +136,8 @@ time.sleep(1)
 regV.RobotControl(forward)
 time.sleep(1)
 regV.RobotControl(forward)
-time.sleep(1)"""
+time.sleep(1)
+"""
 regV.RobotControl(stop)
 print("made it ma")
 sys.exit()
