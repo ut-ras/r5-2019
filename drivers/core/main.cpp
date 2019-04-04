@@ -222,7 +222,7 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
 
     }
 
-    claw == 1 ? gpioServo(CLAW, 833) : gpioServo(CLAW, 500); //30
+    claw == 1 ? gpioServo(CLAW, 600) : gpioServo(CLAW, 1000); //30
     elevator == 1 ? gpioServo(ELEVATOR, 2500) : gpioServo(ELEVATOR, 500); //180
     camera == 1 ? gpioServo(CAMERA, 750) : gpioServo(CAMERA, 1500); //90
     
