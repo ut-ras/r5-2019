@@ -56,6 +56,7 @@ class Camera:
     def save(self):
         """Save current frame"""
 
+        print("Saved {}.jpg".format(self.frame_id))
         cv2.imwrite("{}.jpg".format(self.frame_id), self.capture_raw.array)
 
     def close(self):
