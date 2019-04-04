@@ -1,3 +1,11 @@
+/*
+    main.cpp
+    allows for robot initialization and turning RobotStates from control algorithm into robot actions
+    Authors: Tony Li, Stefan deBruyn
+
+*/
+
+
 #include <Python.h>
 #include <pigpio.h>
 #include <iostream>
@@ -8,17 +16,25 @@
 
 using namespace std;
 enum VALID_STATES{TURN, DRIVE};
-const int CLAW = 14;
-const int CAMERA = 15;
-const int ELEVATOR = 18;
+const int CLAW = 14;                //GPIO pins for servos
+const int CAMERA = 15;              
+const int ELEVATOR = 18;            
 Motor* motors[2];
 //time_t timer;
 
-double time(){
+
+/*
+    returns current time in milliseconds
+*/
+double time(){      
     chrono::milliseconds ms = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
     return ms.count() / 1000.0;
 }
 
+
+/*
+    updates velocity of motor according to pid control and target velocity
+*//
 void control(Motor* motor, PidController* pid, double targetvel, double* currvel, double time){
     double update = pid->update(targetvel - *currvel, time);
     *currvel = *currvel + update;
@@ -30,6 +46,10 @@ void control(Motor* motor, PidController* pid, double targetvel, double* currvel
         motor->set(*currvel);
 }
 
+
+/*
+    Initializes motors and servos, should be called at startup
+*/
 static PyObject* RobotInit(PyObject* self, PyObject* args){
     while(gpioInitialise() < 0);
     //motors[3] = new DRV(15, 14, 17, 18);
@@ -44,19 +64,29 @@ static PyObject* RobotInit(PyObject* self, PyObject* args){
     return Py_BuildValue("i", 1);
 }
 
+/*
+    Takes in Robot State with
+    drive_state: TURN or DRIVE
+    drive_velocity: double representing angle to turn or how far to travel in mm
+    elevator_state: boolean with true being elevator lifted and false being set down
+    claw_state: boolean with true being claw closed and false being claw open
+    camera_state: boolean with true being camera laid down and false being camera upright
+
+    and performs action until target is reached (until drive reaches its desired magnitude)
+*/
 static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotState
-    PyObject* DriveState;
-    PyArg_ParseTuple(args, "O", &DriveState);
-    PyObject* pyDriveState = PyObject_GetAttrString(DriveState, "drive_state");
-    PyObject* pyMagnitude = PyObject_GetAttrString(DriveState, "drive_velocity");
-    PyObject* pyElevator =  PyObject_GetAttrString(DriveState, "elevator_state");
-    PyObject* pyClaw = PyObject_GetAttrString(DriveState, "claw_state");
-    PyObject* pyCamera = PyObject_GetAttrString(DriveState, "camera_state");
+    PyObject* RobotState;
+    PyArg_ParseTuple(args, "O", &RobotState);
+    PyObject* pyDriveState = PyObject_GetAttrString(RobotState, "drive_state");         //retrieve all attributes from Python object
+    PyObject* pyMagnitude = PyObject_GetAttrString(RobotState, "drive_velocity");
+    PyObject* pyElevator =  PyObject_GetAttrString(RobotState, "elevator_state");
+    PyObject* pyClaw = PyObject_GetAttrString(RobotState, "claw_state");
+    PyObject* pyCamera = PyObject_GetAttrString(RobotState, "camera_state");
     
     int driveState;
     bool elevator, claw, camera;
     float magnitude;
-    driveState = (int)PyLong_AsLong(pyDriveState);
+    driveState = (int)PyLong_AsLong(pyDriveState);              //turn all attributes into cpp variables
     elevator = PyObject_IsTrue(pyElevator);
     claw = PyObject_IsTrue(pyClaw);
     camera = PyObject_IsTrue(pyCamera);
@@ -74,7 +104,7 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
         {
             tick1 = motors[0]->getTicks();
             tick2 = motors[1]->getTicks();
-            if(magnitude < 0){
+            if(magnitude < 0){              //set target velocities based on whether angle is positive or negative
                 target1 = -100;
                 target2 = 100;
             }
@@ -96,15 +126,15 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
             //motors[1]->set(-0.05);
             do{ 
                 cout << motors[0]->getTicks() << " " << motors[1]->getTicks() << endl;
-                timer = time() - time_start;
-                double dt = timer - time_last;
+                timer = time() - time_start;                                               
+                double dt = timer - time_last;              //dt = time since last pid update
                 if (dt >= dt_target) {
                     
                     currt1 = motors[0]->getTicks();
                     currt2 = motors[1]->getTicks();
                     diff1 = abs(currt1 - tick1);
                     diff2 = abs(currt2 - tick2);
-                    if(it != 0){
+                    if(it != 0){                            //skip on first iteration
 
                         vel1 = (currt1 - last1)/dt;
                         vel2 = (currt2 - last2)/dt;
@@ -120,12 +150,12 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
                     it++;
                     time_last = timer;
                 }
-                if(!stopped1 && diff1 >= 2.12*abs(magnitude)){
+                if(!stopped1 && diff1 >= 2.12*abs(magnitude)){          //stop motor 1 if it reaches its goal
                         motors[0]->stop();
                         stopped1 = true;
                         gpioWrite(11, 1);
                     }
-                if(!stopped2 && diff2 >= 2.12*abs(magnitude)){
+                if(!stopped2 && diff2 >= 2.12*abs(magnitude)){          //stop motor 2 if it reaches its goal
                     motors[1]->stop();
                     stopped2 = true;
                     gpioWrite(19, 1);
@@ -167,14 +197,14 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
                 buf[i] = 69;
             do{ 
                 timer = time() - time_start;
-                double dt = timer - time_last;
+                double dt = timer - time_last;              //dt = time since last pid update
                 if (dt >= dt_target) {
                     //cout << timer << endl;
                     currt1 = motors[0]->getTicks();
                     currt2 = motors[1]->getTicks();
                     diff1 = abs(currt1 - tick1);
                     diff2 = abs(currt2 - tick2);
-                    if(it != 0){
+                    if(it != 0){                            //skip on first iteration
                         vel1 = (currt1 - last1)/dt;
                         vel2 = (currt2 - last2)/dt;
                         //buf[it%100] = vel1;
@@ -189,19 +219,17 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
                     last2 = currt2;
                     it++;
                     time_last = timer;
-                    if(!stopped1 && diff1 >= 2.5*abs(magnitude)){
+                    if(!stopped1 && diff1 >= 2.5*abs(magnitude)){       //stop motor 1 if it reaches its goal
                         motors[0]->stop();
                         //target = 0;
                         stopped1 = true;
                         gpioWrite(11, 1);
-                        cout << " wan " << diff1 << " " << diff2 << endl;
                     }
-                    if(!stopped2 && diff2 >= 2.5*abs(magnitude)){
+                    if(!stopped2 && diff2 >= 2.5*abs(magnitude)){       //stop motor 2 if it reaches its goal
                         motors[1]->stop();
                         //target = 0;
                         stopped2 = true;
                         gpioWrite(19, 1);
-                        cout << "too" << diff1 << " " << diff2 << endl;
                     }
                 }
                 
@@ -222,9 +250,9 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
 
     }
 
-    claw == 1 ? gpioServo(CLAW, 600) : gpioServo(CLAW, 1000); //30
-    elevator == 1 ? gpioServo(ELEVATOR, 2500) : gpioServo(ELEVATOR, 500); //180
-    camera == 1 ? gpioServo(CAMERA, 750) : gpioServo(CAMERA, 1500); //90
+    claw == 1 ? gpioServo(CLAW, 600) : gpioServo(CLAW, 1000); //true, claw closed, false, claw opened
+    elevator == 1 ? gpioServo(ELEVATOR, 2500) : gpioServo(ELEVATOR, 500); //true, elevator lifted, false, elevator lowered
+    camera == 1 ? gpioServo(CAMERA, 750) : gpioServo(CAMERA, 1500); //true, camera down, false, camera up
     
     return Py_BuildValue("i", 1);
 }
