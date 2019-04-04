@@ -69,11 +69,11 @@ class Camera:
         self.close()
 
 
-def capture_test():
+def capture_test(i=300):
 
     camera = Camera()
 
-    for _ in range(300):
+    for _ in range(i):
         camera.capture()
         camera.save()
 
