@@ -7,6 +7,7 @@ interchangeably by other subroutines.
 
 import unittest
 import queue
+from simplejson.scanner import JSONDecodeError
 
 from .tasks import Task, InvalidTaskException
 
@@ -52,6 +53,8 @@ class HostTaskManager:
             return task
         except queue.Empty:
             return None
+        except KeyError:
+            return None
 
 
 class RemoteTaskManager:
@@ -77,9 +80,18 @@ class RemoteTaskManager:
         ----------
         task : Task object
             Task to add to queue
+
+        Returns
+        -------
+        str
+            Response from server
         """
 
-        self.remote.post(task.json())
+        resp = self.remote.post(task.json())
+        try:
+            return resp.json()
+        except JSONDecodeError:
+            return resp.text
 
     def get(self, label=None):
         """Get the next task

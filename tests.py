@@ -1,3 +1,8 @@
+#   ______          __
+#  /_  __/__  _____/ /____  _____
+#   / / / _ \/ ___/ __/ _ \/ ___/
+#  / / /  __(__  ) /_/  __/ /
+# /_/  \___/____/\__/\___/_/
 
 """General purpose tester for all Region-V code.
 
@@ -10,8 +15,11 @@ This file will recursively search all imported modules for
 with source in the ```r5-2019``` directory will be tested.
 """
 
+import os
 import unittest
 from types import ModuleType
+
+__base_name = os.path.basename(os.getcwd())
 
 
 def get_submodules(module):
@@ -34,7 +42,7 @@ def get_submodules(module):
         if (
                 isinstance(value, ModuleType) and
                 hasattr(value, "__file__") and
-                "r5-2019" in value.__file__):
+                __base_name in value.__file__):
             modules += get_submodules(value)
 
     return modules

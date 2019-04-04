@@ -1,6 +1,7 @@
 
 from . import task_manager
+from . import mutex
 
 __all__ = [
-    "task_manager"
+    "task_manager", "mutex"
 ]
