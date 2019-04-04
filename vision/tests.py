@@ -56,7 +56,7 @@ if __name__ == "__main__":
         print(_HINT)
     elif sys.argv[1] == 'main':
         import main
-        main.test('tests_01', pause=len(sys.argv) > 2 and sys.argv[2] == '-p')
+        main.test(sys.argv[2], pause=len(sys.argv) > 3 and sys.argv[3] == '-p')
     else:
         module, target = sys.argv[1:3]
         kwargs = {f.split("=")[0]: f.split("=")[1] for f in sys.argv[3:]}
