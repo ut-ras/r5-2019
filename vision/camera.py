@@ -45,6 +45,7 @@ class Camera:
             reference to image array; NOT UNIQUE PER CAPTURE.
         """
 
+        self.capture.truncate(0)
         self.camera.capture(
             self.capture_raw, format='bgr', use_video_port=True)
 
