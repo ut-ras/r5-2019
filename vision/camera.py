@@ -28,7 +28,9 @@ class Camera:
 
     def __init__(self):
         self.camera = PiCamera()
+        self.camera.rotation = 180
         self.camera.resolution = (640, 480)
+        self.camera.rotation = 180
         self.camera.awb_mode = 'fluorescent'
         self.capture_raw = PiRGBArray(self.camera)
 
@@ -45,7 +47,7 @@ class Camera:
             reference to image array; NOT UNIQUE PER CAPTURE.
         """
 
-        self.capture.truncate(0)
+        self.capture_raw.truncate(0)
         self.camera.capture(
             self.capture_raw, format='bgr', use_video_port=True)
 
