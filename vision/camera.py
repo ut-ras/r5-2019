@@ -28,7 +28,7 @@ class Camera:
 
     def __init__(self):
         self.camera = PiCamera()
-        self.camera.resolution = (640, 360)
+        self.camera.resolution = (640, 480)
         self.camera.awb_mode = 'fluorescent'
         self.capture_raw = PiRGBArray(self.camera)
 
