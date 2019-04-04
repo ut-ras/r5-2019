@@ -1,5 +1,10 @@
 """Camera interface module
 
+Command Line Test
+-----------------
+python camera.py 100
+-> captures 100 frames and saves as 1.jpg ... 100.jpg
+
 Usage
 -----
 camera = Camera()
@@ -23,7 +28,7 @@ class Camera:
 
     def __init__(self):
         self.camera = PiCamera()
-        self.camera.resolution = (640, 480)
+        self.camera.resolution = (640, 360)
         self.camera.awb_mode = 'fluorescent'
         self.capture_raw = PiRGBArray(self.camera)
 
@@ -62,3 +67,20 @@ class Camera:
         """Destructor method to ensure camera closing"""
 
         self.close()
+
+
+def capture_test(i=300):
+
+    camera = Camera()
+
+    for _ in range(i):
+        camera.capture()
+        camera.save()
+
+    camera.close()
+
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) > 2:
+        capture_test(int(sys.argv[2]))
