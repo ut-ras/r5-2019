@@ -46,7 +46,7 @@ class Camera:
         """
 
         self.camera.capture(
-            self.capture_raw, format='bgr', use_video_mode=True)
+            self.capture_raw, format='bgr', use_video_port=True)
 
         self.frame_id += 1
         self.fps = (time.time() - self.start_time) / self.frame_id
