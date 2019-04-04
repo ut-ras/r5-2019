@@ -84,4 +84,4 @@ def capture_test(i=300):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        capture_test(int(sys.argv[2]))
+        capture_test(int(sys.argv[1]))
