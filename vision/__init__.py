@@ -1,6 +1,6 @@
-from .camera import Camera
+from .camera import Camera, capture_test
 from .main import VisionModule
 
 __all__ = [
-    "Camera", "VisionModule"
+    "Camera", "VisionModule", "capture_test"
 ]

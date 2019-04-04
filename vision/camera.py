@@ -1,5 +1,10 @@
 """Camera interface module
 
+Command Line Test
+-----------------
+python camera.py 100
+-> captures 100 frames and saves as 1.jpg ... 100.jpg
+
 Usage
 -----
 camera = Camera()
@@ -62,3 +67,20 @@ class Camera:
         """Destructor method to ensure camera closing"""
 
         self.close()
+
+
+def capture_test():
+
+    camera = Camera()
+
+    for _ in range(300):
+        camera.capture()
+        camera.save()
+
+    camera.close()
+
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) > 2:
+        capture_test(int(sys.argv[2]))
