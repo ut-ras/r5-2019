@@ -157,6 +157,6 @@ time.sleep(1)
 regV.RobotControl(forward)
 time.sleep(1)
 """
-regV.RobotControl(stop)
+regV.RobotControl(RobotState(TURN, 1))
 print("made it ma")
 sys.exit()
