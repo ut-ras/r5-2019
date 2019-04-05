@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
         drivers.LED2.on()
         if(in_the_way(objects) != 0):
-            drivers.move(drivers.RobotState(drivers.TURN, math.pi * 0.25))
+            drivers.move(drivers.RobotState(drivers.TURN, -1 * math.pi * 0.25))
         else:
             drivers.move(drivers.RobotState(drivers.DRIVE, 5))
         drivers.LED2.off()
