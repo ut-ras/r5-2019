@@ -73,7 +73,7 @@ if __name__ == '__main__':
         cv2.imwrite('{}.jpg'.format(x), src)
 
         drivers.LED2.on()
-        drivers.drive(drivers.DRIVE, 5)
+        drivers.move(drivers.RobotState(drivers.DRIVE, 5))
         drivers.LED2.off()
 
     print("{} frames computed in {}s ({}fps)".format(n, total, n / total))
