@@ -2,9 +2,6 @@
 Utilities for motion profiling and robot kinematics.
 """
 
-from collections import namedtuple
-from enum import Enum
-
 
 class MotionSegment:
     """
@@ -53,17 +50,7 @@ class MotionSegment:
             String rep.
         """
 
-        return "{state=" + str(self.state) + ", dur=" + str(self.dur) + "}"
-
-
-class MotionProfileType(Enum):
-    """
-    Represents a particular type of motion profile.
-    """
-
-    TRI = 0
-    TRAP = 1
-    SCURVE = 2
+        return "[state=" + str(self.state) + ", dur=" + str(self.dur) + "]"
 
 
 class MotionProfile:
@@ -73,7 +60,7 @@ class MotionProfile:
     violates some maximum velocity, acceleration, and jerk.
     """
 
-    def __init__(self, start, constraints):
+    def __init__(self, start):
         """
         Builds an empty profile.
 
@@ -81,13 +68,10 @@ class MotionProfile:
         ----------
         start: MotionState
             Initial profile state.
-        constraints: MotionConstraints
-            Kinematic constraints to obey.
         """
 
         self.start = start
         self.end = start
-        self.constraints = constraints
         self.segments = []
         self.duration = 0
 
@@ -252,7 +236,8 @@ class MotionProfile:
             String rep.
         """
 
-        return "{segs=" + "\n".join([str(seg) for seg in self.segments]) + "}"
+        return "{segs=\n" + "\n".join(str(seg)for seg in self.segments) + "\n" +\
+               "final=" + str(self.end_state()) + "}"
 
 
 class MotionState:
@@ -319,18 +304,3 @@ class MotionState:
         """
 
         return "<" + "{}, {}, {}, {}, {}".format(self.x, self.v, self.a, self.j, self.t) + ">"
-
-
-"""
-Represents a set of kinematic constraints.
-
-Parameters
-----------
-v: float
-    Maximum velocity magnitude.
-a: float
-    Maximum acceleration magnitude.
-j: float
-    Maximum jerk magnitude.
-"""
-MotionConstraints = namedtuple("MotionConstraints", ["v", "a", "j"])

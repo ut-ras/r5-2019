@@ -1,189 +1,209 @@
 """
-Algorithms for motion profiling.
-
-Some notes:
-    * There are currently no preclusion checks. If it isn't possible to fit a profile to the endpoints given the
-      constraints, no attempt will be made to refine the constraints (one quick way to tell if a profile is malformed is
-      to check if the position of its end state is not equal to that which was originally specified). I'm working on
-      fixing this for the S-curve algo, since this is likely the one we'll be using.
-    * The algorithms only recognize asymmetrical and nonzero values in endpoint position and velocity (e.g. initial and
-      final velocities of 0 and 5 are asymmetrical; initial and final velocities of 10 are nonzero). Algorithms exist
-      for generating profiles that are asymmetrical in acceleration and jerk, but they are expensive. Also, there's no
-      reason we would ever need a robot to finish a profile going precisely 5 m/s/s/s or something equally stupid.
+Fault-tolerant algorithms for building symmetrical trapezoidal and S-curve motion profiles.
 """
 
-import math
-import numpy as np
-from .robotmotion import MotionState, MotionProfile
+from drivers.core.robotmotion import MotionProfile, MotionState
+from math import sqrt, fabs
+from numpy import sign
 
 
-def make_trap(start, end, constraints):
+# The number of binary search iterations the S-curve algorithm performs when recalculating a preclusive acceleration
+# constraint
+SCURVE_RECALC_BIN_SEARCHES = 100
+
+
+def make_sym_trap(x0, xf, v, a):
     """
-    Generates a trapezoidal profile.
-
-    Trapezoidal profiles have three segments: constant acceleration to peak velocity, constant velocity for a time,
-    and constant deceleration to final velocity.
+    Generates a symmetrical trapezoidal profile with zero endpoint velocity. In theory, this algorithm is impossible
+    to break. When the constraints are preclusive of a correct profile such that the acceleration segment overshoots
+    the profile midpoint, either the acceleration constraint can be increased or the velocity constraint can be
+    decreased. In this situation, the algorithm opts for the latter, as it creates no violations. This calculation is
+    guaranteed to find the optimal constraint in O(1) time.
 
     Parameters
     ----------
-    start: MotionState
-        Initial profile state.
-    end: MotionState
-        Final profile state.
-    constraints: MotionConstraints
-        Kinematic constrains to obey.
+    x0: float
+        Initial position.
+    xf: float
+        Final position.
+    v: float
+        Velocity constraint magnitude.
+    a: float
+        Acceleration constraint magnitude.
 
     Returns
     -------
     MotionProfile
-        Completed profile.
+        Symmetrical trapezoidal motion (velocity) profile.
     """
 
-    # Calculate the total displacement and the direction it occurs in
-    totaldisp = end.x - start.x
-    direction = np.sign(totaldisp)
+    pairs = tuple_form_trap(x0, xf, v, a)
 
-    # Acceleration segment
-    # d = (vf^2 - v0^2) / (2 * a)
-    accdisp = (constraints.v * constraints.v - start.v * start.v) / (2 * constraints.a * direction)
-    # t = |2 * d / (v0 + vf)|
-    acctime = math.fabs(2 * accdisp / (start.v + constraints.v * direction))
-
-    # Deceleration segment
-    # d = (vf^2 - v0^2) / (2 * a)
-    decdisp = (end.v * end.v - constraints.v * constraints.v) / (2 * -constraints.a * direction)
-    # t = |2 * d / (v0 + vf)|
-    dectime = math.fabs(2 * decdisp / (constraints.v * direction + end.v))
-
-    # Calculate the distance that the cruising segment needs to travel
-    # d_cruise = d_total - d_acc_seg - d_dec_seg
-    cruisedisp = totaldisp - accdisp - decdisp
-    # t = |d / v|
-    cruisetime = math.fabs(cruisedisp / constraints.v * direction)
-
-    return MotionProfile(start, constraints).\
-        append_acc(constraints.a * direction, acctime).\
-        append_acc(0, cruisetime).\
-        append_acc(-constraints.a * direction, dectime).\
-        clean()
+    return MotionProfile(MotionState(x0))\
+        .append_acc(pairs[0][0], pairs[0][1])\
+        .append_acc(pairs[1][0], pairs[1][1])\
+        .append_acc(pairs[2][0], pairs[2][1])\
+        .clean()
 
 
-def make_scurve(start, end, constraints):
+def make_sym_scurve(x0, xf, v, a, j):
     """
-    Generates an S-curve profile.
+    Generates a symmetrical S-curve profile with zero endpoint velocity. The algorithm herein is based on the
+    observation that an S-curve on one derivative level is a trapezoid on the level below. This method creates
+    S-curve velocity profiles by first generating two trapezoidal acceleration profiles, and then joining them with
+    a cruising segment to cover the remaining distance (if necessary).
 
-    S-curve profiles have seven segments: constant jerk to peak acceleration, constant acceleration for a time,
-    constant jerk to 0 acceleration, constant velocity for a time, constant jerk to peak deceleration, constant
-    deceleration for a time, and constant jerk to 0 acceleration. They look a bit like trapezoidal profiles with
-    smooth corners and smooth transitions with the x-axis.
+    Trapezoidal acceleration profiles are guaranteed to meet the constraint velocity by the process described in
+    tuple_form_trap. Position overshoots produced by these profiles are handled in a different way. If an acceleration
+    profile (velocity S-curve) overshoots the overarching profile's midpoint, the acceleration constraint is
+    recalculated. This recalculation guarantees a near-optimal result in O(logN) time, where N is the difference between
+    the user-specified acceleration constraint and the optimal acceleration constraint. The recalculated constraint is
+    always smaller than that which was specified by the user, and so creates no violations.
 
     Parameters
     ----------
-    start: MotionState
-        Initial profile state.
-    end: MotionState
-        Final profile state.
-    constraints: MotionConstraints
-        Kinematic constraints to obey.
+    x0: float
+        Initial position.
+    xf: float
+        Final position.
+    v: float
+        Velocity constraint magnitude.
+    a: float
+        Acceleration constraint magnitude.
+    j: jerk
+        Jerk constraint magnitude.
 
     Returns
     -------
     MotionProfile
-        Completed profile.
+        Symmetrical S-curve motion (velocity) profile.
     """
 
-    # Calculate the total displacement and the direction it occurs in
-    totaldisp = end.x - start.x
-    direction = np.sign(totaldisp)
+    total_dist = xf - x0
+    direction = sign(total_dist)
+    # Because the profile is symmetrical, we need only generate one trapezoid and then mirror it for the backwards
+    # S-curve
+    accel_profile = tuple_form_trap(0, v * direction, a, j)
+    accel_profile_dist = tuple_form_dist(accel_profile, d=1)
 
-    # Segment 1 - jerk from init acc to max acc
+    # If one S-curve overshoots the midpoint, a new acceleration constraint is required
+    if accel_profile_dist * direction > total_dist * direction / 2:
+        # Continually halve the acceleration constraint until the acceleration profile is satisfactory
+        last_a = None
+        while accel_profile_dist * direction > total_dist * direction / 2:
+            last_a = a
+            a /= 2
+            accel_profile[0][0], accel_profile[2][0] = a * direction, -a * direction
+            accel_profile_dist = tuple_form_dist(accel_profile, d=1)
 
-    # Calculate the velocity accumulated by segment 1
-    # v = (af^2 - a0^2) / (2 * j)
-    seg1vel = (constraints.a * constraints.a - start.a * start.a) / (2 * constraints.j * direction)
+        # At this point, we know we have a satisfactory constraint, but it may not be the best option.
+        # Binary search for the perfect constraint to squeeze out a little more performance
+        searches = SCURVE_RECALC_BIN_SEARCHES
+        upper, lower = last_a, a
+        while searches > 0:
+            # Identify midpoint and regenerate the profile based on that
+            mid = (upper + lower) / 2
+            accel_profile[0][0], accel_profile[2][0] = mid * direction, -mid * direction
+            accel_profile_dist = tuple_form_dist(accel_profile, d=1)
+            # Adjust bounds based on whether or not using mid as an acceleration constraint overshot or undershot the
+            # profile midpoint
+            comp = accel_profile_dist * direction - total_dist * direction / 2
+            if comp < 0:
+                lower = mid
+            else:
+                upper = mid
+            searches -= 1
 
-    # Preclusion check - if the jerk segment accumulates more than maxvel/2, a new jerk constraint is required. This
-    # is calculated by increasing the jerk constraint in 25% increments until either the value is satisfactory or
-    # 1000 increments are made.
-    increments = 1000
+    cruise_dist = total_dist - accel_profile_dist * 2
+    cruise_time = fabs(cruise_dist / v)
 
-    while math.fabs(seg1vel) > constraints.v / 2 and increments > 0:
-        constraints.j *= 1.25
-        seg1vel = (constraints.a * constraints.a - start.a * start.a) / (2 * constraints.j * direction)
-        increments -= 1
+    return MotionProfile(MotionState(x0))\
+        .append_jerk(accel_profile[0][0], accel_profile[0][1])\
+        .append_jerk(accel_profile[1][0], accel_profile[1][1])\
+        .append_jerk(accel_profile[2][0], accel_profile[2][1])\
+        .append_acc(0, cruise_time)\
+        .append_jerk(-accel_profile[0][0], accel_profile[0][1])\
+        .append_jerk(-accel_profile[1][0], accel_profile[1][1])\
+        .append_jerk(-accel_profile[2][0], accel_profile[2][1])\
+        .clean()
 
-    # Calculate the duration of segment 1
-    # t = |2 * v / (a0 + af)|
-    seg1time = math.fabs((2 * seg1vel) / (start.a + constraints.a * direction))
 
-    # Segment 3 - jerk from max acc to 0 acc
+def tuple_form_trap(x0, xf, v, a):
+    """
+    Note: robots should not use this method for MotionProfile generation. For that, see make_sym_trap.
 
-    # Calculate the velocity accumulated by segment 3
-    # v = (af^2 - a0^2) / (2 * j)
-    seg3vel = (-constraints.a * constraints.a) / (2 * -constraints.j * direction)
-    # Calculate the duration of segment 3
-    # t = |2 * v / (a0 + af)|
-    seg3time = math.fabs((2 * seg3vel) / constraints.a)
+    Generates a trapezoidal profile in tuple form. It's important to note that the derivative level of the profile
+    does not matter; here, "position" represents some arbitrary time-parametrized variable, "velocity" is its first
+    derivative with respect to time, and "acceleration" is its second. For example, make_sym_trap uses this method
+    to generate velocity profiles, whereas make_sym_scurve uses it for acceleration profiles.
 
-    # Segment 2 - constraint acc to max vel
+    Parameters
+    ----------
+    x0: float
+        Initial position.
+    xf: float
+        Final position.
+    v: float
+        Velocity constraint magnitude.
+    a: float
+        Acceleration constraint magnitude.
 
-    # Calculate the velocity that must be accumulated by segment 2 so that, when combined with the accumulated
-    # velocities of segments 1 and 3, will render the object at cruising speed
-    # v2 = vf - v1 - v3 - v0
-    seg2vel = constraints.v * direction - seg1vel - seg3vel - start.v
-    # Calculate the duration of segment 2
-    # t = |v / a|
-    seg2time = math.fabs(seg2vel / constraints.a)
+    Returns
+    ----------
+    tuple
+        A 3-tuple of arrays of the form [acceleration, duration]. Each of these arrays represents an acceleration
+        segment of a trapezoidal profile.
+    """
 
-    # Segment 5 - jerk from 0 acc to max neg acc
+    total_dist = xf - x0
+    direction = sign(total_dist)
+    accel_dist = v ** 2 / (2 * a * direction)  # Rearrangement of vf^2=v0^2+2ad
 
-    # Calculate the velocity accumulated by segment 5
-    # v = (af^2 - a0^2) / (2 * j)
-    seg5vel = (constraints.a * constraints.a) / (2 * -constraints.j * direction)
-    # Calculate the duration of segment 5
-    # t = |2 * v / (a0 + af)|
-    seg5time = math.fabs((2 * seg5vel) / (-constraints.a * direction))
+    # If the acceleration segment travels further than total_dist/2, a new velocity constraint is required
+    if accel_dist * direction > total_dist / 2:
+        v = sqrt(fabs(total_dist * a))  # Rearrangement of vf^2=v0^2+2ad
+        accel_dist = v ** 2 / (2 * a * direction)
+        print("v is now", v)
 
-    # Segment 7 - jerk from neg max acc to 0 acc
+    accel_time = fabs(2 * accel_dist / v)  # Rearrangement of d=0.5(v0+vf)t
+    cruise_dist = total_dist - accel_dist * 2
+    cruise_time = fabs(cruise_dist / v)
 
-    # Calculate the velocity accumulated by segment 5
-    # v = (af^2 - a0^2) / (2 * j)
-    seg7vel = (end.a * end.a - constraints.a * constraints.a) / (2 * constraints.j * direction)
-    # Calculate the duration of segment 7
-    # t = |2 * v / (a0 + af)|
-    seg7time = math.fabs((2 * seg7vel) / (-constraints.a * direction + end.a))
+    return [a * direction, accel_time], [0, cruise_time], [-a * direction, accel_time]
 
-    # Calculate the velocity that must be accumulated by segment 6 so that, when combined with the accumulated
-    # velocities of segments 5 and 7, will render the object at its final speed
-    # v6 = v0 - v5 - v7 - vf
-    seg6vel = constraints.v * direction + seg5vel + seg7vel - end.v
-    seg6time = math.fabs(seg6vel / constraints.a)
 
-    # Calculate the total distance traveled by each S-curve (series of three segments: pos jerk, pos accel, neg jerk).
-    # See MotionState.state_at for equations
-    seg1state = MotionState(0, start.v, start.a, constraints.j * direction, 0)
-    seg2state = seg1state.state_at(seg1time)
-    seg2stateadj = MotionState(seg2state.x, seg2state.v, constraints.a * direction, 0, seg2state.t)
-    seg3state = seg2stateadj.state_at(seg2time)
-    seg3stateadj = MotionState(seg3state.x, seg3state.v, seg3state.a, -constraints.j * direction, seg3state.t)
-    acc_curve_endpoint = seg3stateadj.state_at(seg3time)
+def tuple_form_dist(pairs, d=0):
+    """
+    Computes the distance covered by a profile in tuple form.
 
-    seg5state = MotionState(0, constraints.v * direction, 0, -constraints.j * direction, 0)
-    seg6state = seg5state.state_at(seg5time)
-    seg6stateadj = MotionState(seg6state.x, seg6state.v, -constraints.a * direction, 0, seg6state.t)
-    seg7state = seg6stateadj.state_at(seg6time)
-    seg7stateadj = MotionState(seg7state.x, seg7state.v, seg7state.a, constraints.j * direction, seg7state.t)
-    dec_curve_endpoint = seg7stateadj.state_at(seg7time)
+    Parameters
+    ----------
+    pairs: tuple
+        tuple of (acceleration, duration) 2-tuples representing profile segments
+    d: int
+        derivative level of provided pairs (d=0 indicates a velocity profile, d=1 indicates an acceleration profile)
 
-    # Calculate the distance that the cruising segment needs to travel
-    # d_cruise = d_total - d_acc_curve - d_dec_curve
-    cruisedisp = totaldisp - acc_curve_endpoint.x - dec_curve_endpoint.x
-    # Calculate the duration of the cruising segment
-    # t = |d / v|
-    cruisetime = math.fabs(cruisedisp / constraints.v)
+    Returns
+    -------
+    float
+        Distance covered by the profile (regardless of derivative level).
+    """
 
-    return MotionProfile(start, constraints).\
-        append_jerk(constraints.j * direction, seg1time).append_acc(constraints.a * direction, seg2time).\
-        append_jerk(-constraints.j * direction, seg3time).append_acc(0, cruisetime).\
-        append_jerk(-constraints.j * direction, seg5time).append_acc(-constraints.a * direction, seg6time).\
-        append_jerk(constraints.j * direction, seg7time).clean()
+    # Begin with a blank MotionState. The kinematics in MotionState.state_at are of particular interest for this method
+    s = MotionState()
+
+    # For each profile segment
+    for p in pairs:
+        # Overwrite either the current state's acceleration or jerk, depending on the derivative level of the profile
+        if d == 0:
+            s.a = p[0]
+        elif d == 1:
+            s.j = p[0]
+        else:
+            raise ValueError("must be a velocity or acceleration profile")
+
+        # Extrapolate the new state
+        s = s.state_at(p[1])
+
+    # Return the position component of the final state vector
+    return s.x
