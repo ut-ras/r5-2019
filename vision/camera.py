@@ -28,7 +28,9 @@ class Camera:
 
     def __init__(self):
         self.camera = PiCamera()
-        self.camera.resolution = (640, 360)
+        self.camera.rotation = 180
+        self.camera.resolution = (640, 480)
+        self.camera.rotation = 180
         self.camera.awb_mode = 'fluorescent'
         self.capture_raw = PiRGBArray(self.camera)
 
@@ -45,8 +47,9 @@ class Camera:
             reference to image array; NOT UNIQUE PER CAPTURE.
         """
 
+        self.capture_raw.truncate(0)
         self.camera.capture(
-            self.capture_raw, format='bgr', use_video_mode=True)
+            self.capture_raw, format='bgr', use_video_port=True)
 
         self.frame_id += 1
         self.fps = (time.time() - self.start_time) / self.frame_id
@@ -56,6 +59,7 @@ class Camera:
     def save(self):
         """Save current frame"""
 
+        print("Saved {}.jpg".format(self.frame_id))
         cv2.imwrite("{}.jpg".format(self.frame_id), self.capture_raw.array)
 
     def close(self):
@@ -82,5 +86,5 @@ def capture_test(i=300):
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) > 2:
-        capture_test(int(sys.argv[2]))
+    if len(sys.argv) >= 2:
+        capture_test(int(sys.argv[1]))
