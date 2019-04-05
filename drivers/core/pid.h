@@ -1,22 +1,26 @@
-#ifndef CONTROL_PID_H
-#define CONTROL_PID_H
+#ifndef PID_H
+#define PID_H
+#include <fstream>
 
-int get__sign(double d);
-
-class PidController {
-protected:
-  const bool RESET_I = true;
-  double kp, ki, kd;
-  double errorLast, errorTotal, timeLast;
-
+class PID {
+    double goal;
+    double last;
+    double sum;
+    double kP;
+    double kI;
+    double kD;
+    std::ofstream logFile;
 public:
-  PidController(double kp, double ki, double kd);
-
-  double update(double error, double time);
-
-  PidController* clone();
-
-  void clear();
+    PID(double p, double i, double d): kP(p), kI(i), kD(d) {
+        set(0);
+    }
+    PID(double p, double i, double d, std::string logName);
+    ~PID();
+    void set(double setPoint);
+    double update(double current, double dt); // dt in seconds
+    double getErr() {
+        return last;
+    }
 };
 
 #endif

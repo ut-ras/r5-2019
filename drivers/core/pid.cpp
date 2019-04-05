@@ -1,37 +1,44 @@
-#include "pid.h"
+#include <stdlib.h>
+#include <algorithm>
+#include "../inc/pid.h"
 
-int get__sign(double d) {
-  return d < 0 ? -1 : (d > 0 ? 1 : 0);
+#define MAX_SPEED (.4)
+#define MAX_SUM (1000)
+
+PID::PID(double p, double i, double d, std::string logName) : kP(p), kI(i),
+    kD(d) {
+    set(0);
+    logFile.open(logName.c_str(),
+                 std::fstream::app); // change to "out" to overwrite
 }
 
-
-PidController::PidController(double kp, double ki, double kd) {
-  this->kp = kp;
-  this->ki = ki;
-  this->kd = kd;
-  errorLast = errorTotal = timeLast = 0;
+void PID::set(double set) {
+    goal = set;
+    sum = 0;
+    last = 0;
+    if(logFile.is_open()) {
+        logFile << std::endl << "Set: " << set << " P: " << kP << " I: "
+                << kI << " D: " << kD << std::endl;
+    }
 }
 
-double PidController::update(double error, double time) {
-  if (RESET_I && get__sign(error) != get__sign(errorLast))
-    errorTotal = 0;
-
-  double result = kp * error + ki * errorTotal;
-  double dt = time - timeLast;
-
-  if (dt != 0)
-    result += kd * (error - errorLast) / dt;
-
-  errorTotal += error;
-  timeLast = time;
-  errorLast = error;
-  return result;
+double PID::update(double current, double dt) {
+    double err = goal - current;
+    double d = (err - last) / dt;
+    sum += err * dt;
+    // sum = std::min(std::max(controller->sum, -MAX_SUM), MAX_SUM);
+    last = err;
+    double result = kP * err + kI * sum + kD * d;
+    if(logFile.is_open()) {
+        logFile << dt << " " << kP* err << " " << kI* sum << " " << kD* d
+                << " " << result << std::endl;
+    }
+    return result;
 }
 
-PidController* PidController::clone() {
-    return new PidController(kp, ki, kd);
+PID::~PID() {
+    if(logFile.is_open()) {
+        logFile.close();
+    }
 }
 
-void PidController::clear() {
-    errorLast = errorTotal = timeLast = 0;
-}
