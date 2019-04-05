@@ -1,6 +1,9 @@
-from camera import Camera
-from vision import VisionModule
+from vision import Camera, VisionModule
+from drivers import LED3, LED4
+
+LED4.on()
 import cv2
+LED4.off()
 
 
 COLORS = {
@@ -44,7 +47,9 @@ if __name__ == '__main__':
         src = camera.capture()
 
         start = time.time()
+        LED3.on()
         objects, mask, cvxhull = mod.process(src)
+        LED3.off()
         dur = (time.time() - start)
 
         n += 1
