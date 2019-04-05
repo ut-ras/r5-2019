@@ -116,6 +116,7 @@ time.sleep(4)
 regV.RobotControl(lstate2)
 
 """
+"""
 regV.RobotControl(scene1)
 time.sleep(2)
 regV.RobotControl(scene2)
@@ -130,6 +131,7 @@ regV.RobotControl(scene1)
 #regV.RobotControl(lstate3)
 #regV.RobotControl(backward)
 #time.sleep(1)
+"""
 """
 regV.RobotControl(clawen)
 time.sleep(1)

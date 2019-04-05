@@ -13,6 +13,10 @@ public:
   PidController(double kp, double ki, double kd);
 
   double update(double error, double time);
+
+  PidController* clone();
+
+  void clear();
 };
 
 #endif

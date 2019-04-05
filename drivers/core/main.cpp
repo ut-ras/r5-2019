@@ -17,24 +17,251 @@
 using namespace std;
 enum VALID_STATES{TURN, DRIVE};
 const int CLAW = 14;                //GPIO pins for servos
-const int CAMERA = 15;              
-const int ELEVATOR = 18;            
+const int CAMERA = 15;
+const int ELEVATOR = 18;
+const float DRIVE_SPURT = 5;
+const float TURN_SPURT = 3.14159 / 6;
 Motor* motors[2];
 //time_t timer;
+
 
 
 /*
     returns current time in milliseconds
 */
-double time(){      
+double time(){
     chrono::milliseconds ms = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
     return ms.count() / 1000.0;
 }
 
 
+
+
+
+
+class RobotMind {
+protected:
+    const float DRIVE_VELOCITY = 200;
+    const float TURN_VELOCITY = 100;
+    const float CM_TICK_RATIO = 3.5 * 3.14159 / 300;
+    const float TRACK_WIDTH = 9.5;
+    const float CONTROL_FREQUENCY = 0.1;
+
+    const int PID_MODE_DRIVE = 0;
+    const int PID_MODE_TURN = 1;
+
+    Motor *motor_alpha, *motor_beta;
+    PidController *pid_drive_alpha, *pid_drive_beta;
+    PidController *pid_turn_alpha, *pid_turn_beta;
+    PidController *pid_alpha, *pid_beta;
+
+    double time_last;
+    float target_velocity_alpha, target_velocity_beta;
+    float velocity_target_alpha, velocity_target_beta;
+    float velocity_alpha, velocity_beta;
+    float power_alpha, power_beta;
+    int ticker_last_alpha, ticker_last_beta;
+
+    int sign(float f) {
+        return f < 0 ? -1 : (f > 0 ? 1 : 0);
+    }
+
+    float clamp(float f, float low, float high) {
+        return f < low ? low : (f > high ? high : f);
+    }
+
+    void set_pid_mode(int mode) {
+        switch (mode) {
+            case PID_MODE_DRIVE:
+                pid_alpha = pid_drive_alpha;
+                pid_beta = pid_drive_beta;
+                break;
+
+            case PID_MODE_TURN:
+                pid_alpha = pid_turn_alpha;
+                pid_beta = pid_turn_beta;
+                break;
+        }
+
+        pid_alpha->clear();
+        pid_beta->clear();
+    }
+
+public:
+    RobotMind() {
+        cout << "Creating RobotMind..." << endl;
+
+        gpioSetMode(CLAW, PI_OUTPUT);
+        gpioSetMode(ELEVATOR, PI_OUTPUT);
+        gpioSetMode(CAMERA, PI_OUTPUT);
+
+        pid_drive_alpha = new PidController(0.0001, 0.00000000, 0.00001);
+        pid_drive_beta = pid_drive_alpha->clone();
+
+        pid_turn_alpha = new PidController(0.00075, 0, 0.0001);
+        pid_turn_beta = pid_turn_alpha->clone();
+
+        motor_alpha = new DRV(6, 27, 7, 25);
+        motor_beta = new DRV(13, 22, 8, 1);
+
+        cout << "Robot online" << endl;
+    }
+
+    ~RobotMind() {
+        delete motor_alpha;
+        delete motor_beta;
+
+        delete pid_drive_alpha;
+        delete pid_drive_beta;
+        delete pid_turn_alpha;
+        delete pid_turn_beta;
+    }
+
+    float drive(float cm) {
+        cout << "Robot attempting drive(" << cm << ")" << endl;
+
+        double epoch = time();
+
+        ticker_last_alpha = ticker_last_beta = -1;
+        power_alpha = power_beta = 0;
+        time_last = 0;
+
+        int ticker_init_alpha = motor_alpha->getTicks();
+        int ticker_init_beta = motor_beta->getTicks();
+
+        int displacement_ticks = (int)(cm / CM_TICK_RATIO);
+
+        int ticker_target_alpha = ticker_init_alpha + displacement_ticks;
+        int ticker_target_beta = ticker_init_beta + displacement_ticks;
+
+        int direction_alpha = sign(ticker_target_alpha - ticker_init_alpha);
+        int direction_beta = sign(ticker_target_beta - ticker_init_beta);
+
+        velocity_target_alpha = DRIVE_VELOCITY * direction_alpha;
+        velocity_target_beta = DRIVE_VELOCITY * direction_beta;
+
+        set_pid_mode(PID_MODE_DRIVE);
+
+        bool done = false;
+
+        do {
+            double time_current = time() - epoch;
+            double dt = time_current - time_last;
+
+            if (dt >= CONTROL_FREQUENCY) {
+                int ticker_alpha = motor_alpha->getTicks();
+                int ticker_beta = motor_beta->getTicks();
+
+                int direction_now_alpha = sign(ticker_target_alpha - ticker_alpha);
+                int direction_now_beta = sign(ticker_target_beta - ticker_beta);
+
+                if (direction_now_alpha != direction_alpha || direction_now_beta != direction_beta)
+                    done = true;
+                else
+                    control(ticker_alpha, ticker_beta, time_current);
+
+                time_last = time_current;
+            }
+
+        } while (!done);
+
+        stop();
+
+        cout << "Finished drive(" << cm << ")";
+
+        return 0;
+    }
+
+    float turn(float rad) {
+        cout << "Robot attempting turn(" << rad << ")" << endl;
+
+        double epoch = time();
+        ticker_last_alpha = ticker_last_beta = -1;
+        power_alpha = power_beta = 0;
+        time_last = 0;
+
+        int direction = sign(rad);
+        velocity_target_alpha = TURN_VELOCITY * -direction;
+        velocity_target_beta = TURN_VELOCITY * direction;
+
+        set_pid_mode(PID_MODE_TURN);
+
+        float turn_arc = 0;
+        bool done = false;
+
+        do {
+            double time_current = time() - epoch;
+            double dt = time_current - time_last;
+
+            if (dt >= CONTROL_FREQUENCY) {
+                int ticker_alpha = motor_alpha->getTicks();
+                int ticker_beta = motor_beta->getTicks();
+
+                control(ticker_alpha, ticker_beta, time_current);
+
+                turn_arc += (-velocity_alpha + velocity_beta) / TRACK_WIDTH * dt * CM_TICK_RATIO;
+                time_last = time_current;
+
+                if (sign(rad - turn_arc) != direction)
+                    done = true;
+            }
+
+        } while (!done);
+
+        stop();
+
+        cout << "Finished turn(" << rad << ")";
+
+        return 0;
+    }
+
+    void stop() {
+        motor_alpha->stop();
+        motor_beta->stop();
+    }
+
+    void control(int ticker_alpha, int ticker_beta, double t) {
+        if (ticker_last_alpha != -1) {
+            double dt = t - time_last;
+
+            int d_ticker_alpha = ticker_alpha - ticker_last_alpha;
+            int d_ticker_beta = ticker_beta - ticker_last_beta;
+
+            velocity_alpha = d_ticker_alpha / dt;
+            velocity_beta = d_ticker_beta / dt;
+
+            float update_alpha = pid_alpha->update(velocity_target_alpha - velocity_alpha, t);
+            float update_beta = pid_beta->update(velocity_target_beta - velocity_beta, t);
+
+            power_alpha = clamp(power_alpha + update_alpha, -1, 1);
+            power_beta = clamp(power_beta + update_beta, -1, 1);
+
+            motor_alpha->set(power_alpha);
+            motor_beta->set(power_beta);
+        }
+
+        ticker_last_alpha = ticker_alpha;
+        ticker_last_beta = ticker_beta;
+    }
+};
+
+static RobotMind *robot_mind = nullptr;
+
+static float drive(float cm) {
+    return robot_mind->drive(cm);
+}
+
+static float turn(float rad) {
+    return robot_mind->turn(rad);
+}
+
+static void stop() {
+    return robot_mind->stop();
+}
+
 /*
     updates velocity of motor according to pid control and target velocity
-*//
+*/
 void control(Motor* motor, PidController* pid, double targetvel, double* currvel, double time){
     double update = pid->update(targetvel - *currvel, time);
     *currvel = *currvel + update;
@@ -52,15 +279,16 @@ void control(Motor* motor, PidController* pid, double targetvel, double* currvel
 */
 static PyObject* RobotInit(PyObject* self, PyObject* args){
     while(gpioInitialise() < 0);
-    //motors[3] = new DRV(15, 14, 17, 18);
-    //motors[2] = new DRV(25, 8, 7, 1);
+
     gpioSetMode(CLAW, PI_OUTPUT);
     gpioSetMode(ELEVATOR, PI_OUTPUT);
     gpioSetMode(CAMERA, PI_OUTPUT);
-    motors[1] = new DRV(13, 22, 1, 8);
-    motors[0] = new DRV(6, 27, 25, 7);
 
-    //time(&timer);
+    // motors[1] = new DRV(13, 22, 1, 8);
+    // motors[0] = new DRV(6, 27, 25, 7);
+
+    robot_mind = new RobotMind();
+
     return Py_BuildValue("i", 1);
 }
 
@@ -75,14 +303,14 @@ static PyObject* RobotInit(PyObject* self, PyObject* args){
     and performs action until target is reached (until drive reaches its desired magnitude)
 */
 static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotState
-    PyObject* RobotState;
+    /*PyObject* RobotState;
     PyArg_ParseTuple(args, "O", &RobotState);
     PyObject* pyDriveState = PyObject_GetAttrString(RobotState, "drive_state");         //retrieve all attributes from Python object
     PyObject* pyMagnitude = PyObject_GetAttrString(RobotState, "drive_velocity");
     PyObject* pyElevator =  PyObject_GetAttrString(RobotState, "elevator_state");
     PyObject* pyClaw = PyObject_GetAttrString(RobotState, "claw_state");
     PyObject* pyCamera = PyObject_GetAttrString(RobotState, "camera_state");
-    
+
     int driveState;
     bool elevator, claw, camera;
     float magnitude;
@@ -95,10 +323,10 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
     bool stopped1, stopped2;
     int target;
     double speeds[2], time_start, time_last, timer, dt_target;
-    int target1, target2;               
+    int target1, target2;
     int diff1, diff2, currt1, currt2, last1, last2;
-    double vel1, vel2;      
-    
+    double vel1, vel2;
+
     switch(driveState){
         case TURN:
         {
@@ -124,12 +352,12 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
             time_last = 0;
             //motors[0]->set(0.1);
             //motors[1]->set(-0.05);
-            do{ 
+            do{
                 cout << motors[0]->getTicks() << " " << motors[1]->getTicks() << endl;
-                timer = time() - time_start;                                               
+                timer = time() - time_start;
                 double dt = timer - time_last;              //dt = time since last pid update
                 if (dt >= dt_target) {
-                    
+
                     currt1 = motors[0]->getTicks();
                     currt2 = motors[1]->getTicks();
                     diff1 = abs(currt1 - tick1);
@@ -164,7 +392,7 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
             cout << "diff " << diff1 << " " << diff2 << endl;
             for(int i = 0; i < 2; i++){
                 motors[i]->stop();
-            } 
+            }
         break;
         }
         case DRIVE:{
@@ -195,7 +423,7 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
             time_last = 0;
             for(int i = 0; i < 100; i++)
                 buf[i] = 69;
-            do{ 
+            do{
                 timer = time() - time_start;
                 double dt = timer - time_last;              //dt = time since last pid update
                 if (dt >= dt_target) {
@@ -214,7 +442,7 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
                         control(motors[1], &ctrl2, target, &speeds[1], timer);
 
                     }
-                    
+
                     last1 = currt1;
                     last2 = currt2;
                     it++;
@@ -232,28 +460,43 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) { //Pass in RobotS
                         gpioWrite(19, 1);
                     }
                 }
-                
+
             } while(diff1 < 2.5*abs(magnitude) || diff2 < 2.5*abs(magnitude));
             //cout << diff1 << " " << diff2 << endl;
             gpioWrite(26, 1);
             for(int i = 0; i < 2; i++){
                 motors[i]->stop();
-            } 
+            }
             cout << "too" << diff1 << " " << diff2 << endl;
             cout << stream.str();
             // for(int i = 0; i < 100; i++)
             //     cout << buf[i] << endl;
             // cout << "it " << it << endl;
-            
+
         break;
         }
 
-    }
+    }*/
 
-    claw == 1 ? gpioServo(CLAW, 600) : gpioServo(CLAW, 1000); //true, claw closed, false, claw opened
-    elevator == 1 ? gpioServo(ELEVATOR, 2500) : gpioServo(ELEVATOR, 500); //true, elevator lifted, false, elevator lowered
-    camera == 1 ? gpioServo(CAMERA, 750) : gpioServo(CAMERA, 1500); //true, camera down, false, camera up
-    
+    PyObject* state;
+    PyArg_ParseTuple(args, "O", &state);
+    PyObject* drive_state = PyObject_GetAttrString(state, "drive_state");
+    PyObject* velocity = PyObject_GetAttrString(state, "drive_velocity");
+    PyObject* elevator =  PyObject_GetAttrString(state, "elevator_state");
+    PyObject* claw = PyObject_GetAttrString(state, "claw_state");
+    PyObject* camera = PyObject_GetAttrString(state, "camera_state");
+
+    if (drive_state == DRIVE)
+        drive(DRIVE_SPURT * (velocity < 0 ? -1 : 1));
+    else if (drive_state == TURN)
+        turn(TURN_SPURT * (velocity < 0 ? -1 : 1));
+        
+    stop();
+
+    // claw == 1 ? gpioServo(CLAW, 600) : gpioServo(CLAW, 1000); //true, claw closed, false, claw opened
+    // elevator == 1 ? gpioServo(ELEVATOR, 2500) : gpioServo(ELEVATOR, 500); //true, elevator lifted, false, elevator lowered
+    // camera == 1 ? gpioServo(CAMERA, 750) : gpioServo(CAMERA, 1500); //true, camera down, false, camera up
+
     return Py_BuildValue("i", 1);
 }
 

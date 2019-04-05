@@ -27,3 +27,11 @@ double PidController::update(double error, double time) {
   errorLast = error;
   return result;
 }
+
+PidController* PidController::clone() {
+    return new PidController(kp, ki, kd);
+}
+
+void PidController::clear() {
+    errorLast = errorTotal = timeLast = 0;
+}
