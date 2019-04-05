@@ -1,4 +1,5 @@
 import drivers
+import math
 
 drivers.LED4.on()
 from vision import Camera, VisionModule
@@ -26,6 +27,21 @@ def draw(img, objects):
         cv2.putText(
             img, "{:.2f}".format(c.dist), (c.rect[0], c.rect[1]),
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
+
+
+def in_the_way(objs):
+
+    right = 0
+
+    for obj in objs:
+        if (
+                obj.dist > 0 and
+                obj.dist < 25 and
+                obj.rect[0] < 300 and
+                obj.rect[0] + obj.rect[2] > 340):
+            right = max(right, obj.rect[0] + obj.rect[2] - 320)
+
+    return right
 
 
 if __name__ == '__main__':
@@ -58,11 +74,14 @@ if __name__ == '__main__':
         total += dur
         print("{}s ({}fps)".format(dur, 1 / dur))
 
+        itw = in_the_way(objects)
+
         src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
         draw(src, objects)
         if cvxhull is not None:
             cv2.drawContours(
                 src, [cvxhull], -1, (255, 255, 255), 3, cv2.LINE_8)
+        cv2.line(src, (itw + 320, 0), (itw + 320, 480), (0, 0, 0), 3)
 
         src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
 
@@ -73,7 +92,10 @@ if __name__ == '__main__':
         cv2.imwrite('{}.jpg'.format(x), src)
 
         drivers.LED2.on()
-        drivers.move(drivers.RobotState(drivers.DRIVE, 5))
+        if(in_the_way(objects) != 0):
+            drivers.move(drivers.RobotState(drivers.TURN, math.pi * 0.25))
+        else:
+            drivers.move(drivers.RobotState(drivers.DRIVE, -5))
         drivers.LED2.off()
 
     print("{} frames computed in {}s ({}fps)".format(n, total, n / total))

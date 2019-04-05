@@ -47,7 +47,7 @@ class VisionModule():
 
     FOV_H = math.radians(63.54)
     FOV_V = math.radians(42.36)
-    CAM_HEIGHT = 4
+    CAM_HEIGHT = 6
 
     FIELD_LOWER = np.array([0, 110, 130])
     FIELD_UPPER = np.array([25, 255, 255])
