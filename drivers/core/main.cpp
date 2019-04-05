@@ -290,9 +290,9 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) {
     bool camera = PyObject_IsTrue(py_camera);
 
     if (drive_state == DRIVE_INSTRUCTION)
-        robot_mind->drive(DRIVE_SPURT * (velocity < 0 ? -1 : 1));
+        robot_mind->drive(velocity);
     else if (drive_state == TURN_INSTRUCTION)
-        robot_mind->turn(TURN_SPURT * (velocity < 0 ? -1 : 1));
+        robot_mind->turn(velocity);
 
     robot_mind->set_elevator(elevator);
     robot_mind->set_claw(claw);
