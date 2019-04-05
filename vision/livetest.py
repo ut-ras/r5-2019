@@ -62,7 +62,7 @@ if __name__ == '__main__':
             src, '{:.1f}fps'.format(n / total), (0, 20),
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
-        cv2.imsave('{}.jpg'.format(x), src)
+        cv2.imwrite('{}.jpg'.format(x), src)
 
     print("{} frames computed in {}s ({}fps)".format(n, total, n / total))
 
