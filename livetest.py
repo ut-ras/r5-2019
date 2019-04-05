@@ -76,6 +76,7 @@ if __name__ == '__main__':
 
         itw = in_the_way(objects)
 
+        """
         src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
         draw(src, objects)
         if cvxhull is not None:
@@ -90,6 +91,7 @@ if __name__ == '__main__':
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
         cv2.imwrite('{}.jpg'.format(x), src)
+        """
 
         drivers.LED2.on()
         if(in_the_way(objects) != 0):
