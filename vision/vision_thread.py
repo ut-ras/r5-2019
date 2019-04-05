@@ -6,7 +6,6 @@ LED3 indicates vision processing.
 import time
 import threading
 
-from ..drivers import LED3
 from .vision import VisionModule
 from .camera import Camera
 
@@ -19,13 +18,14 @@ class VisionModuleThread(threading.Thread):
     mod = VisionModuleThread()
     mod.start()  # run in separate thread
     """
-    def __init__(self):
+    def __init__(self, led=None):
 
         self.camera = Camera()
         self.vision = VisionModule(width=640, height=480)
         self.done = False
 
         self.capture = False
+        self.led = led
 
         # Asynchronous output; designed to be read by much faster loop
         self.objects = []
@@ -36,10 +36,10 @@ class VisionModuleThread(threading.Thread):
             if self.capture:
                 img = self.camera.capture()
 
-                LED3.on()
+                self.led.on()
                 self.objects = self.vision.process(img)
                 self.flag = True
-                LED3.off()
+                self.led.off()
             else:
                 time.sleep(0.1)
 
