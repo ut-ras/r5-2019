@@ -97,7 +97,7 @@ if __name__ == '__main__':
         if(in_the_way(objects) != 0):
             drivers.move(drivers.RobotState(drivers.TURN, math.pi * 0.25))
         else:
-            drivers.move(drivers.RobotState(drivers.DRIVE, -5))
+            drivers.move(drivers.RobotState(drivers.DRIVE, 5))
         drivers.LED2.off()
 
     print("{} frames computed in {}s ({}fps)".format(n, total, n / total))
