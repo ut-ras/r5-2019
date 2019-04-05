@@ -49,6 +49,7 @@ if __name__ == '__main__':
 
         n += 1
         total += dur
+        print("{}s ({}fps)".format(dur, 1 / dur))
 
         src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
         draw(src, objects)
@@ -65,6 +66,5 @@ if __name__ == '__main__':
         cv2.imwrite('{}.jpg'.format(x), src)
 
     print("{} frames computed in {}s ({}fps)".format(n, total, n / total))
-
 
     camera.close()

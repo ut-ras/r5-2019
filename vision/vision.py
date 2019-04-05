@@ -91,7 +91,6 @@ class VisionModule():
     def __below_horizon(self, contour):
 
         x, y, w, h = cv2.boundingRect(contour)
-        print(w)
         return y + h > self.HORIZON and w > 100 and h > 50
 
     def __get_field_mask(self, src):
