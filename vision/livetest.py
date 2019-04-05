@@ -1,10 +1,6 @@
 from camera import Camera
 from vision import VisionModule
-from ..drivers import LED3
-
-LED3.on()
 import cv2
-LED3.off()
 
 
 COLORS = {
@@ -33,6 +29,8 @@ if __name__ == '__main__':
 
     import sys
     import time
+
+    print("Starting...")
 
     i = int(sys.argv[1])
 
@@ -65,5 +63,8 @@ if __name__ == '__main__':
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
         cv2.imsave('{}.jpg'.format(x), src)
+
+    print("{} frames computed in {}s ({}fps)".format(n, total, n / total))
+
 
     camera.close()
