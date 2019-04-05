@@ -152,7 +152,7 @@ public:
 
         stop();
 
-        return 0;
+        return (ticker_target_alpha - ticker_init_alpha) * CM_TICK_RATIO;
     }
 
     float turn(float rad) {
@@ -191,7 +191,7 @@ public:
 
         stop();
 
-        return 0;
+        return turn_arc;
     }
 
     void stop() {
@@ -284,21 +284,23 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) {
     PyObject* py_camera = PyObject_GetAttrString(state, "camera_state");
 
     int drive_state = (int)PyLong_AsLong(py_drive_state);
-    float velocity = (float)PyFloat_AsDouble(py_velocity);
+    float magnitude = (float)PyFloat_AsDouble(py_velocity);
     bool elevator = PyObject_IsTrue(py_elevator);
     bool claw = PyObject_IsTrue(py_claw);
     bool camera = PyObject_IsTrue(py_camera);
 
+    float return_value;
+
     if (drive_state == DRIVE_INSTRUCTION)
-        robot_mind->drive(velocity);
+        return_value = robot_mind->drive(magnitude);
     else if (drive_state == TURN_INSTRUCTION)
-        robot_mind->turn(velocity);
+        return_value = robot_mind->turn(magnitude);
 
     robot_mind->set_elevator(elevator);
     robot_mind->set_claw(claw);
     robot_mind->set_camera(camera);
 
-    return Py_BuildValue("i", 1);
+    return Py_BuildValue("f", return_value);
 }
 
 static PyMethodDef regVmethods[] = {
