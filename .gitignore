@@ -25,9 +25,8 @@
 
 # -- Module drivers/core -------------------------------------------------------
 
-drivers/.idea
-drivers/core/__pychache__
-drivers/core/test.py
+drivers/core/__pycache__
+.idea/
 
 
 # -- Test Results --------------------------------------------------------------

@@ -4,3 +4,6 @@
 [submodule "tools/ssh-manage"]
 	path = tools/ssh-manage
 	url = https://github.com/thetianshuhuang/ssh-manage
+[submodule "drivers/core/pb-HAL"]
+	path = drivers/core/pb-HAL
+	url = https://github.com/ut-ras/pb-HAL
