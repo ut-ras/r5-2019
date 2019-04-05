@@ -1,12 +1,23 @@
 import drivers
 import math
 
+
 drivers.LED4.on()
 from vision import Camera, VisionModule
 import cv2
 drivers.LED4.off()
 
 
+PI = math.PI
+ROBOT_LATERAL = 3 + 5 / 8
+ROBOT_AXIAL = 3 + 3 / 8
+BASE_ORIGIN = [4 * 12, 4 * 12]
+ROBOT_ORIGIN_POSES = {
+    "YELLOW": [BASE_ORIGIN[0] + 1 + ROBOT_LATERAL / 2, BASE_ORIGIN[1] + 1 + ROBOT_AXIAL / 2, 3 * PI / 2],
+    "BLUEYELLOW": [BASE_ORIGIN[0] + 12 - 1 - ROBOT_LATERAL / 2, BASE_ORIGIN[1] + 1 + ROBOT_AXIAL / 2, 3 * PI / 2],
+    "BLUE": [BASE_ORIGIN[0] + 1 + ROBOT_LATERAL / 2, BASE_ORIGIN[1] + 12 - 1 - ROBOT_AXIAL / 2, PI / 2],
+    "GREEN": [BASE_ORIGIN[0] + 12 - 1 - ROBOT_LATERAL / 2, BASE_ORIGIN[1] + 12 - 1 - ROBOT_AXIAL / 2, PI / 2]
+}
 COLORS = {
     "obstacle": (255, 0, 0),
     "cube": (0, 0, 255),
@@ -14,6 +25,18 @@ COLORS = {
     "yellow": (255, 255, 0),
     "base": (0, 255, 255)
 }
+PARKER_ROBOTS = ["BLUE", "BLUEYELLOW"]
+COLLECTOR_ROBOTS = ["YELLOW", "GREEN"]
+
+
+def in_to_cm(in):
+    return in / 0.393701
+
+
+def sleep(seconds):
+    now = time.time()
+    while time.time() - now < seconds:
+        pass
 
 
 def draw(img, objects):
@@ -45,36 +68,60 @@ def in_the_way(objs):
 
 
 if __name__ == '__main__':
-
     import sys
     import time
 
-    print("Starting...")
+    print("Spinning up. Pray to Lafayette Official God.")
 
+    # Figure out which robot I am
+    identity = None
+    with open("identity.dat", "r") as file:
+        identity = file.readlines()[0].strip()
+
+    print(identity, "online!")
+
+    # Figure out where I'm headed
+    goal = [-1, 1]
+    with open("goal.dat", "r") as file:
+        nums = file.readlines[0].strip().split(" ")
+        goal = [float(x) for x in nums]
+
+    print("Targeting block at", goal)
+
+    # System initialization
     drivers.init()
-
-    i = int(sys.argv[1])
-
     camera = Camera()
     mod = VisionModule(width=640, height=480)
 
-    total = 0
-    n = 0
+    # State
+    pose = ROBOT_ORIGIN_POSES[identity]
+    time = 0
+    iterations = 0
+    done = False
+    epoch = time.time()
 
-    for x in range(i):
+    # Parker robots have a simple routine
+    if identity in PARKER_ROBOTS:
+        drivers.move(drivers.RobotState(drivers.DRIVE, in_to_cm(ROBOT_AXIAL + 2)))
+        sleep(3)
+        drivers.move(drivers.RobotState(drivers.DRIVE, -in_to_cm(ROBOT_AXIAL + 3)))
+        done = True
+    # Collector robots will wait a bit for parkers to park
+    elif identity in COLLECTOR_ROBOTS:
+        sleep(8)
+        goal_direction = math.atan2(goal[1] - pose[1], goal[0] - pose[0])
+
+    while not done:
+        # Run vision on current FOV, set indicators
         src = camera.capture()
 
-        start = time.time()
         drivers.LED3.on()
         objects, mask, cvxhull = mod.process(src)
         drivers.LED3.off()
-        dur = (time.time() - start)
 
-        n += 1
-        total += dur
-        print("{}s ({}fps)".format(dur, 1 / dur))
-
-        itw = in_the_way(objects)
+        # Timekeeping
+        time = (time.time() - start)
+        iterations += 1
 
         """
         src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
@@ -92,6 +139,9 @@ if __name__ == '__main__':
 
         cv2.imwrite('{}.jpg'.format(x), src)
         """
+
+        # Obstacle avoidance
+        itw = in_the_way(objects)
 
         drivers.LED2.on()
         if(in_the_way(objects) != 0):

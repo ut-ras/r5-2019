@@ -224,15 +224,24 @@ public:
     }
 
     void set_claw(int toggle) {
-        toggle == 1 ? gpioServo(CLAW_PIN, 600) : gpioServo(CLAW_PIN, 1000);
+        if (toggle)
+            gpioServo(CLAW_PIN, 600);
+        else
+            gpioServo(CLAW_PIN, 1000);
     }
 
     void set_elevator(int toggle) {
-        toggle == 1 ? gpioServo(ELEVATOR_PIN, 2500) : gpioServo(ELEVATOR_PIN, 500);
+        if (toggle)
+            gpioServo(ELEVATOR_PIN, 2500);
+        else
+            gpioServo(ELEVATOR_PIN, 500);
     }
 
     void set_camera(int toggle) {
-        toggle == 1 ? gpioServo(CAMERA_PIN, 750) : gpioServo(CAMERA_PIN, 1500);
+        if (toggle)
+            gpioServo(CAMERA_PIN, 750);
+        else
+            gpioServo(CAMERA_PIN, 1500);
     }
 };
 
@@ -291,14 +300,16 @@ static PyObject* RobotControl(PyObject *self, PyObject *args) {
 
     float return_value;
 
-    if (drive_state == DRIVE_INSTRUCTION)
-        return_value = robot_mind->drive(magnitude);
-    else if (drive_state == TURN_INSTRUCTION)
-        return_value = robot_mind->turn(magnitude);
-
     robot_mind->set_elevator(elevator);
     robot_mind->set_claw(claw);
     robot_mind->set_camera(camera);
+
+    if (magnitude != 0) {
+        if (drive_state == DRIVE_INSTRUCTION)
+            return_value = robot_mind->drive(magnitude);
+        else if (drive_state == TURN_INSTRUCTION)
+            return_value = robot_mind->turn(magnitude);
+    }
 
     return Py_BuildValue("f", return_value);
 }
