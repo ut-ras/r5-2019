@@ -1,5 +1,5 @@
 #include <pigpio.h>
-#include "../inc/enc.h"
+#include "enc.h"
 
 void _cb(int gpio, int level, uint32_t tick, void* user) {
     Enc* enc = (Enc*)user;
