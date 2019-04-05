@@ -1,11 +1,7 @@
-# from matplotlib import pyplot as plt
+from camera import Camera
 from vision import VisionModule
 import cv2
-import samples
 
-
-WIDTH = 640
-HEIGHT = 480
 
 COLORS = {
     "obstacle": (255, 0, 0),
@@ -14,11 +10,6 @@ COLORS = {
     "yellow": (255, 255, 0),
     "base": (0, 255, 255)
 }
-
-
-def load(tgt):
-
-    return cv2.resize(samples.load(int(tgt)), (WIDTH, HEIGHT))
 
 
 def draw(img, objects):
@@ -34,21 +25,23 @@ def draw(img, objects):
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
 
-def test(target, pause=True):
+if __name__ == '__main__':
 
+    import sys
     import time
-    import os
 
-    mod = VisionModule(width=WIDTH, height=HEIGHT)
+    print("Starting...")
+
+    i = int(sys.argv[1])
+
+    camera = Camera()
+    mod = VisionModule(width=640, height=480)
 
     total = 0
     n = 0
 
-    srcs = os.listdir(target)
-    srcs.sort()
-
-    for img in srcs:
-        src = cv2.imread(os.path.join(target, img))
+    for x in range(i):
+        src = camera.capture()
 
         start = time.time()
         objects, mask, cvxhull = mod.process(src)
@@ -56,6 +49,7 @@ def test(target, pause=True):
 
         n += 1
         total += dur
+        print("{}s ({}fps)".format(dur, 1 / dur))
 
         src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
         draw(src, objects)
@@ -69,16 +63,8 @@ def test(target, pause=True):
             src, '{:.1f}fps'.format(n / total), (0, 20),
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
-        cv2.imshow('test_01', src)
-        if cv2.waitKey(0 if pause else 1) & 0xFF == ord('q'):
-            break
+        cv2.imwrite('{}.jpg'.format(x), src)
 
-    if pause:
-       cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    print("{} frames computed in {}s ({}fps)".format(n, total, n / total))
 
-
-if __name__ == '__main__':
-    # import sys
-    test('tests_02')
-    # test(sys.argv[1])
+    camera.close()

@@ -47,21 +47,27 @@ class VisionModule():
 
     FOV_H = math.radians(63.54)
     FOV_V = math.radians(42.36)
-    CAM_HEIGHT = 5
+    CAM_HEIGHT = 4
 
-    FIELD_LOWER = np.array([4, 120, 120])
-    FIELD_UPPER = np.array([16, 200, 255])
+    FIELD_LOWER = np.array([0, 110, 130])
+    FIELD_UPPER = np.array([25, 255, 255])
 
-    CUBE_LOWER = np.array([0, 0, 150])
-    CUBE_UPPER = np.array([255, 120, 255])
+    CUBE_LOWER = np.array([0, 0, 100])
+    CUBE_UPPER = np.array([30, 200, 255])
 
-    BASE_STATION_LOWER = np.array([100, 240, 0])
-    BASE_STATION_UPPER = np.array([130, 255, 100])
+    BASE_STATION_LOWER = np.array([45, 140, 60])
+    BASE_STATION_UPPER = np.array([65, 255, 150])
 
     LIGHT_LOWER = np.array([70, 20, 250])
     LIGHT_UPPER = np.array([100, 50, 255])
 
-    HORIZON = 80
+    GREEN_LOWER = np.array([50, 245, 50])
+    GREEN_UPPER = np.array([70, 255, 80])
+
+    YELLOW_LOWER = np.array([20, 220, 175])
+    YELLOW_UPPER = np.array([30, 255, 255])
+
+    HORIZON = 240
 
     def __init__(
             self, width=640, height=480,
@@ -85,7 +91,7 @@ class VisionModule():
     def __below_horizon(self, contour):
 
         x, y, w, h = cv2.boundingRect(contour)
-        return y + h > self.HORIZON
+        return y + h > self.HORIZON and w > 100 and h > 50
 
     def __get_field_mask(self, src):
         """Get field mask:
@@ -110,6 +116,7 @@ class VisionModule():
         # Clean up
         mask = cv2.erode(mask, self.__erode_mask)
         mask = cv2.dilate(mask, self.__dilate_mask)
+        cv2.rectangle(mask, (0, 0), (640, self.HORIZON), 0, -1)
 
         # Compute and fill convex hull
         hull_fill = np.zeros(mask.shape, dtype=np.uint8)
@@ -119,16 +126,15 @@ class VisionModule():
                 if self.__below_horizon(c)
             ])
 
-            hull_fill = cv2.fillConvexPoly(
-                hull_fill, cv2.convexHull(contours), 255)
+            cvxhull = cv2.convexHull(contours)
+            hull_fill = cv2.fillConvexPoly(hull_fill, cvxhull, 255)
 
             # bitwise AND with !FIELD
             mask = cv2.bitwise_and(cv2.bitwise_not(mask), hull_fill)
+            return mask, cvxhull
 
         except ValueError:
-            pass
-
-        return mask
+            return mask, None
 
     def __get_object_properties(self, obj, meta):
         """Get object properties
@@ -197,19 +203,24 @@ class VisionModule():
             Found objects
         """
 
-        """
-        base_station_mask = cv2.inRange(
+        # cv2.imshow("src", src)
+
+        green_halo = cv2.inRange(src, self.GREEN_LOWER, self.GREEN_UPPER)
+        green_halo = cv2.dilate(green_halo, self.__dilate_mask)
+        cv2.rectangle(green_halo, (0, self.HORIZON), (640, 480), 0, -1)
+        green = self.__mask_to_objects(green_halo, "green")
+
+        yellow_halo = cv2.inRange(src, self.YELLOW_LOWER, self.YELLOW_UPPER)
+        yellow_halo = cv2.dilate(yellow_halo, self.__dilate_mask)
+        cv2.rectangle(yellow_halo, (0, self.HORIZON), (640, 480), 0, -1)
+        yellow = self.__mask_to_objects(yellow_halo, "yellow")
+
+        base_station = cv2.inRange(
             src, self.BASE_STATION_LOWER, self.BASE_STATION_UPPER)
-
-        base_station_mask = cv2.bitwise_and(mask, base_station_mask)
-        base_station_mask = cv2.dilate(base_station_mask, self.__dilate_mask)
-        base_station_mask = cv2.erode(base_station_mask, self.__erode_mask)
-
-        base_station = self.__mask_to_objects(base_station_mask, "base")
-        """
+        base_station = cv2.dilate(base_station, self.__dilate_mask)
+        base = self.__mask_to_objects(base_station, "base")
 
         cube_mask = cv2.inRange(src, self.CUBE_LOWER, self.CUBE_UPPER)
-
         cube_mask = cv2.bitwise_and(mask, cube_mask)
         cube_mask = cv2.dilate(cube_mask, self.__dilate_mask)
         cube_mask = cv2.erode(cube_mask, self.__cube_erode_mask)
@@ -223,12 +234,7 @@ class VisionModule():
 
         obstacles = self.__mask_to_objects(mask, "obstacle")
 
-        # light_mask = cv2.inRange(src, self.LIGHT_LOWER, self.LIGHT_UPPER)
-        # light_mask = cv2.dilate(light_mask, self.__dilate_mask)
-        # lights = self.__mask_to_objects(light_mask, "light")
-        # return cubes + obstacles + base_station + lights
-
-        return cubes + obstacles
+        return cubes + obstacles + yellow + green + base
 
     def __inside(self, target, refs):
 
@@ -267,31 +273,21 @@ class VisionModule():
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        mask = self.__get_field_mask(img)
+        mask, cvxhull = self.__get_field_mask(img)
         objs = self.__get_objects(img, mask)
-
-        """
-        base = [x for x in objs if x.meta == 'base']
-        for x in objs:
-            if self.__contains(x, base):
-                base.append(Object(rect=x.rect, dist=x.dist, meta='base'))
-
-        lights = [x for x in objs if x.meta == 'light']
-        for x in objs:
-            if self.__contains(x, lights):
-                lights.append(
-                    Object(rect=x.rect, dist=x.dist, meta='mothership'))
-
-        final = base + lights
-        """
 
         final = []
         objs.sort(key=lambda x: x.rect[2], reverse=True)
         for x in objs:
-            # if x.meta == 'light':
-            #     final.append(x)
-            # elif x.meta != 'base' and not self.__inside(x, final):
-            #     final.append(x)
-            if not self.__inside(x, final):
-                final.append(x)
-        return final, mask
+
+            if x.meta in ["yellow", "blue", "green"]:
+                if x.rect[2] > 25:
+                    final.append(x)
+            elif x.meta in ["base"]:
+                if x.rect[2] < 100 and x.rect[3] > 50:
+                    final.append(x)
+            else:
+                if not self.__inside(x, final):
+                    final.append(x)
+
+        return final, mask, cvxhull
