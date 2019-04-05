@@ -1,6 +1,6 @@
 #include <pigpio.h>
 #include <cmath>
-#include "../inc/motor.h"
+#include "motor.h"
 
 using namespace std;
 
