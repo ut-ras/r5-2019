@@ -22,7 +22,7 @@ class VisionModuleThread(threading.Thread):
     def __init__(self):
 
         self.camera = Camera()
-        self.vision = VisionModule(width=640, height=360)
+        self.vision = VisionModule(width=640, height=480)
         self.done = False
 
         self.capture = False
