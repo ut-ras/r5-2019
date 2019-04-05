@@ -1,7 +1,7 @@
-from vision import Camera, VisionModule
 from drivers import LED3, LED4
 
 LED4.on()
+from vision import Camera, VisionModule
 import cv2
 LED4.off()
 
