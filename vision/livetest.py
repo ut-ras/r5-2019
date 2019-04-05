@@ -1,7 +1,10 @@
 from camera import Camera
 from vision import VisionModule
+from ..drivers import LED3
 
+LED3.on()
 import cv2
+LED3.off()
 
 
 COLORS = {
@@ -31,7 +34,7 @@ if __name__ == '__main__':
     import sys
     import time
 
-    i = sys.argv[1]
+    i = int(sys.argv[1])
 
     camera = Camera()
     mod = VisionModule(width=640, height=480)
