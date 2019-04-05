@@ -1,9 +1,9 @@
-from drivers import LED3, LED4
+import drivers
 
-LED4.on()
+drivers.LED4.on()
 from vision import Camera, VisionModule
 import cv2
-LED4.off()
+drivers.LED4.off()
 
 
 COLORS = {
@@ -35,6 +35,8 @@ if __name__ == '__main__':
 
     print("Starting...")
 
+    drivers.init()
+
     i = int(sys.argv[1])
 
     camera = Camera()
@@ -47,9 +49,9 @@ if __name__ == '__main__':
         src = camera.capture()
 
         start = time.time()
-        LED3.on()
+        drivers.LED3.on()
         objects, mask, cvxhull = mod.process(src)
-        LED3.off()
+        drivers.LED3.off()
         dur = (time.time() - start)
 
         n += 1
@@ -69,6 +71,10 @@ if __name__ == '__main__':
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
         cv2.imwrite('{}.jpg'.format(x), src)
+
+        drivers.LED2.on()
+        drivers.drive(drivers.DRIVE, 5)
+        drivers.LED2.off()
 
     print("{} frames computed in {}s ({}fps)".format(n, total, n / total))
 
