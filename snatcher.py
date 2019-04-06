@@ -42,6 +42,43 @@ def draw(img, objects):
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
 
+def turn_to_block():
+    src = camera.capture()
+    drivers.LED3.on()
+    objects, mask, cvxhull = mod.process(src)
+    drivers.LED3.off()
+    draw(src, objects)
+    cv2.imwrite("out.jpg", src)
+
+    cubes = find_blocks(objects)
+    best_cube = None
+
+    for cube in cubes:
+        area = cube.rect[2] * cube.rect[3]
+        print("area", area)
+
+        horizon_req = cube.rect[1] > 220
+        dist_req = cube.dist > 0
+        area_req = area > 500
+
+        print(horizon_req, dist_req, area_req)
+
+        if horizon_req and dist_req and area_req and (best_cube == None or area > best_cube.rect[2] * best_cube.rect[3]):
+            best_cube = cube
+            print("new best has area", area)
+
+
+    # Trying for a cube
+    if best_cube != None:
+        midpoint = best_cube.rect[0] + best_cube.rect[2] / 2
+        print("mid", midpoint)
+        arc = (midpoint - 320) / 320 * CAMERA_FOV / 2
+        print("arc", arc)
+        drivers.move(drivers.RobotState(drivers.TURN, -arc))
+
+    return best_cube
+
+
 print("Initializing modules...")
 drivers.LED4.on()
 from vision import Camera, VisionModule
@@ -61,43 +98,30 @@ while not os.path.isfile("go"):
 print("Go time!")
 camera = Camera()
 mod = VisionModule(width=640, height=480)
+collecting = False
 
-# Initial scan
+# Retrieval
 try:
+    cube = turn_to_block()
+    if cube != None:
+        drivers.move(drivers.RobotState(drivers.DRIVE, -cube.dist / 2))
+        cube = turn_to_block()
+        if cube != None:
+            drivers.move(drivers.RobotState(drivers.DRIVE, -cube.dist / 4))
+            drivers.move(drivers.RobotState(drivers.TURN, math.pi))
+            drivers.move(drivers.RobotState(drivers.DRIVE, 20))
+            collecting = True
 
-    for i in range(3):
-        src = camera.capture()
-        drivers.LED3.on()
-        objects, mask, cvxhull = mod.process(src)
-        drivers.LED3.off()
-        draw(src, objects)
-        cv2.imwrite("out.jpg", src)
-
-        cubes = find_blocks(objects)
-        best_cube = None
-
-        for cube in cubes:
-            area = cube.rect[2] * cube.rect[3]
-
-            horizon_req = cube.rect[1] > 220
-            dist_req = cube.dist > 0
-            area_req = area > 500 and area < 5000
-
-            print(horizon_req, dist_req, area_req)
-
-            if horizon_req and dist_req and area_req and (best_cube == None or area > best_cube.rect[2] * best_cube.rect[3]):
-                best_cube = cube
-                print("new best has area", area)
-
-
-        # Trying for a cube
-        if best_cube != None:
-            midpoint = (best_cube.rect[0] * 2 + best_cube.rect[2]) / 2
-            arc = (midpoint - 320) / 320 * CAMERA_FOV
-            print("arc", arc)
-            drivers.move(drivers.RobotState(drivers.TURN, -arc))
 except Exception:
     pass
+
+# Snap claw shut
+if collecting:
+    collect_start = time.time()
+    while time.time() - collect_start < 10:
+        drivers.move(drivers.RobotState(drivers.DRIVE, 0,
+            True,
+            time.time() - collect_start > 2.5))
 
 # Signal done
 drivers.LED1.on()
