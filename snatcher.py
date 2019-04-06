@@ -1,6 +1,7 @@
 import drivers
 import math
 import os
+import time
 
 
 CAMERA_FOV = math.radians(62)
@@ -22,7 +23,8 @@ def in_to_cm(i):
 def find_blocks(objects):
     blocks = []
     for obj in objects:
-        if obj.meta == "block":
+        print(obj.meta, COLORS[obj.meta])
+        if obj.meta == "cube":
             blocks.append(obj)
     return blocks
 
@@ -36,7 +38,7 @@ def draw(img, objects):
             (c.rect[0] + c.rect[2], c.rect[1] + c.rect[3]),
             COLORS.get(c.meta), 3)
         cv2.putText(
-            img, "{:.2f}".format(c.dist), (c.rect[0], c.rect[1]),
+            img, "{:.2f} {}".format(c.dist, c.meta), (c.rect[0], c.rect[1]),
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
 
@@ -61,13 +63,42 @@ camera = Camera()
 mod = VisionModule(width=640, height=480)
 
 # Initial scan
-src = camera.capture()
-drivers.LED3.on()
-objects, mask, cvxhull = mod.process(src)
-drivers.LED3.off()
+try:
 
-# src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
-draw(src, objects)
-cv2.imwrite("out.jpg", src)
+    for i in range(3):
+        src = camera.capture()
+        drivers.LED3.on()
+        objects, mask, cvxhull = mod.process(src)
+        drivers.LED3.off()
+        draw(src, objects)
+        cv2.imwrite("out.jpg", src)
 
-print(find_blocks(objects))
+        cubes = find_blocks(objects)
+        best_cube = None
+
+        for cube in cubes:
+            area = cube.rect[2] * cube.rect[3]
+
+            horizon_req = cube.rect[1] > 220
+            dist_req = cube.dist > 0
+            area_req = area > 500 and area < 5000
+
+            print(horizon_req, dist_req, area_req)
+
+            if horizon_req and dist_req and area_req and (best_cube == None or area > best_cube.rect[2] * best_cube.rect[3]):
+                best_cube = cube
+                print("new best has area", area)
+
+
+        # Trying for a cube
+        if best_cube != None:
+            midpoint = (best_cube.rect[0] * 2 + best_cube.rect[2]) / 2
+            arc = (midpoint - 320) / 320 * CAMERA_FOV
+            print("arc", arc)
+            drivers.move(drivers.RobotState(drivers.TURN, -arc))
+except Exception:
+    pass
+
+# Signal done
+drivers.LED1.on()
+time.sleep(60)

@@ -52,8 +52,8 @@ class VisionModule():
     FIELD_LOWER = np.array([0, 110, 130])
     FIELD_UPPER = np.array([25, 255, 255])
 
-    CUBE_LOWER = np.array([0, 0, 100])
-    CUBE_UPPER = np.array([30, 200, 255])
+    CUBE_LOWER = np.array([0, 0, 90])
+    CUBE_UPPER = np.array([30, 235, 255])
 
     BASE_STATION_LOWER = np.array([45, 140, 60])
     BASE_STATION_UPPER = np.array([65, 255, 150])
