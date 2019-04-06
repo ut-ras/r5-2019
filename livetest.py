@@ -130,13 +130,10 @@ if __name__ == '__main__':
             cv2.drawContours(
                 src, [cvxhull], -1, (255, 255, 255), 3, cv2.LINE_8)
         cv2.line(src, (itw + 320, 0), (itw + 320, 480), (0, 0, 0), 3)
-
         src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
-
         cv2.putText(
             src, '{:.1f}fps'.format(n / total), (0, 20),
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
-
         cv2.imwrite('{}.jpg'.format(x), src)
         """
 
