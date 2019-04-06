@@ -156,6 +156,8 @@ public:
     }
 
     float turn(float rad) {
+        rad -= rad * (1 / 6.0);
+
         double epoch = time();
         ticker_last_alpha = ticker_last_beta = -1;
         power_alpha = power_beta = 0;

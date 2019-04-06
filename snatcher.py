@@ -80,6 +80,10 @@ def turn_to_block():
 
 
 print("Initializing modules...")
+drivers.init()
+drivers.move(drivers.RobotState(drivers.TURN, math.pi))
+time.sleep(60)
+
 drivers.LED4.on()
 from vision import Camera, VisionModule
 import cv2
