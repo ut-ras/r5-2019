@@ -14,6 +14,7 @@ COLORS = {
     "yellow": (255, 255, 0),
     "base": (0, 255, 255)
 }
+CLOCKWISE_TURNERS = ["YELLOW", "GREEN"]
 
 
 def in_to_cm(i):
@@ -80,9 +81,6 @@ def turn_to_block():
 
 
 print("Initializing modules...")
-drivers.init()
-drivers.move(drivers.RobotState(drivers.TURN, math.pi))
-time.sleep(60)
 
 drivers.LED4.on()
 from vision import Camera, VisionModule
@@ -98,14 +96,18 @@ with open("identity.dat", "r") as file:
 print(identity, "online. Pray to Lafayette Official God.\nWaiting for start signal")
 while not os.path.isfile("go"):
     pass
+os.remove("go")
 
 print("Go time!")
 camera = Camera()
 mod = VisionModule(width=640, height=480)
 collecting = False
 
-# Retrieval
-try:
+
+drivers.move(drivers.RobotState(drivers.DRIVE, -in_to_cm(5)))
+
+
+def sweep():
     cube = turn_to_block()
     if cube != None:
         drivers.move(drivers.RobotState(drivers.DRIVE, -cube.dist / 3))
@@ -115,6 +117,17 @@ try:
             drivers.move(drivers.RobotState(drivers.TURN, math.pi))
             drivers.move(drivers.RobotState(drivers.DRIVE, 10))
             collecting = True
+    return cube
+
+
+# Retrieval
+try:
+    cube = sweep()
+    if cube == None:
+        dir = 1 if identity in CLOCKWISE_TURNERS else -1
+        drivers.move(drivers.RobotState(drivers.TURN, -math.pi / 2 * dir))
+        sweep()
+
 
 except Exception:
     pass
