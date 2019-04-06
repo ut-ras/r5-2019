@@ -104,7 +104,7 @@ mod = VisionModule(width=640, height=480)
 collecting = False
 
 
-drivers.move(drivers.RobotState(drivers.DRIVE, -in_to_cm(5)))
+drivers.move(drivers.RobotState(drivers.DRIVE, -in_to_cm(6)))
 
 
 def sweep():
