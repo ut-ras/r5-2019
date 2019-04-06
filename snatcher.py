@@ -104,12 +104,12 @@ collecting = False
 try:
     cube = turn_to_block()
     if cube != None:
-        drivers.move(drivers.RobotState(drivers.DRIVE, -cube.dist / 2))
+        drivers.move(drivers.RobotState(drivers.DRIVE, -cube.dist / 3))
         cube = turn_to_block()
         if cube != None:
-            drivers.move(drivers.RobotState(drivers.DRIVE, -cube.dist / 4))
+            drivers.move(drivers.RobotState(drivers.DRIVE, -cube.dist / 5))
             drivers.move(drivers.RobotState(drivers.TURN, math.pi))
-            drivers.move(drivers.RobotState(drivers.DRIVE, 20))
+            drivers.move(drivers.RobotState(drivers.DRIVE, 10))
             collecting = True
 
 except Exception:
