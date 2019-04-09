@@ -1,96 +1,84 @@
 //!
-//! # Core Image Structs and Access Routines
+//! # Core Image access routines
 //!
 
-use std::cmp;
 
-
-/// # Color Space
-///
-/// ## Members
-///
-/// - RGB: RGB (red-green-blue) color space
-/// - HSV: HSV (hue-saturation-value) color space
-pub enum ColorSpace { RGB, HSV }
-
-
-/// # Unpacked Pixel Struct
-///
-/// ## Members
-///
-/// - h: hue value
-/// - s: saturation value
-/// - v: 'value' (lightness)
-/// - mask: mask membership indicator
-pub struct Pixel { h: i32, s: i32, v: i32, mask: i32 }
-
-
-/// # Image struct
-///
-/// ## Members
-///
-/// - colorspace: RGB or HSV color space
-/// - width: width of the image, in pixels
-/// - height: height of the image, in pixels
-/// - data: flattened image vector. Each row in the image is appended
-///     horizontally.
-pub struct Image {
-    colorspace: ColorSpace,
-    width: i32,
-    height: i32,
-    data: Vec<i32>
-}
+use core::convert::*;
+use core::types::*;
 
 
 impl Image {
 
-	/// # Unpack a packed 32-bit integer
-	///
-	/// ## Parameters
-	///
-	/// - idx : index of the value to fetch
-	///
-	/// ## Returns
-	///
-	/// Unpacked pixel struct
-	fn unpack(&self, idx: i32) -> Pixel {
-		let packed = self.data.get(idx);
-        Pixel {
-            h: packed & 0xF000 >> 24,
-            s: packed & 0x0F00 >> 16,
-            v: packed & 0x00F0 >> 8,
-            mask: packed & 0x000F,
-        }
-	}
-
-	/// # Pack a pixel struct and store
-	///
-	/// ## Parameters
-	///
-	/// - input : pixel value to pack and store
-	/// - idx : destination to store to
-	fn pack(&self, input: Pixel, idx: i32) {
-		self.data[idx] = (
-			input.h << 24 | input.s << 16 | input.v << 8 | input.mask);
-	}
-
-    /// # Access and unpack an image pixel
-    /// Since images are stored as flattened vectors, the target index
-    /// is ```y * width + x```.
+    /// # Get image pixel
     ///
     /// ## Parameters
     ///
-    /// - x : x coordinate
-    /// - y : y coordinate
+    /// - x, y: coordinates of the pixel to fetch
     ///
     /// ## Returns
     ///
     /// Unpacked pixel struct
-    pub fn access(&self, x: i32, y: i32) -> Pixel {
+    fn get(&self, x: usize, y: usize) -> Pixel {
         debug_assert!(x < self.width);
         debug_assert!(y < self.height);
 
-        unpack(&self, self.width * y + x);
+        let packed = self.data[x][y];
+        Pixel {
+            h:      (packed >> H_OFFSET) & BYTE_MASK,
+            s:      (packed >> S_OFFSET) & BYTE_MASK,
+            v:      (packed >> V_OFFSET) & BYTE_MASK,
+            mask:   (packed >> M_OFFSET) & BYTE_MASK,
+            x:      x,
+            y:      y,
+        }
+    }
+
+    /// # Pack a pixel struct and store
+    ///
+    /// ## Parameters
+    ///
+    /// - input : pixel value to pack and store
+    fn set(&mut self, input: &Pixel) {
+        debug_assert!(input.x < self.width);
+        debug_assert!(input.y < self.height);
+
+        self.data[input.x][input.y] = (
+            input.h     << H_OFFSET |
+            input.s     << S_OFFSET |
+            input.v     << V_OFFSET |
+            input.mask  << M_OFFSET) as u32;
+    }
+
+    /// # Iterate over pixels
+    ///
+    /// ## Parameters
+    ///
+    /// - f : function to call on all pixels; pixels are read and passed into
+    ///     f. f is then allowed to modify the pixel. After, the pixel is
+    ///     packed and stored.
+    pub fn iter_pixels(&mut self, f: &Fn(&mut Pixel)) {
+        for x in 0..self.width {
+            for y in 0..self.height {
+                let mut p = self.get(x, y);
+                f(&mut p);
+                self.set(&mut p);
+            }
+        }
+    }
+
+    /// # Iterate over pixels, with borrowing
+    ///
+    /// ## Parameters
+    ///
+    /// - f : function to call; same as iter_pixels
+    pub fn iter_borrow(&mut self, f: &Fn(&mut Pixel, &Image), border: usize) {
+        for x in border .. self.width - border {
+            for y in border .. self.height - border {
+                let mut p = self.get(x, y);
+                f(&mut p, &self);
+                self.set(&mut p);
+            }
+        }
     }
 
     /// # Convert color spaces.
@@ -98,31 +86,10 @@ impl Image {
     /// ## Parameters
     ///
     /// - format : target color space; ColorSpace::RGB or ColorSpace::HSV
-    pub fn cvt_color(&self, format: ColorSpace) {
-
-    	if format == ColorSpace::HSV && self.colorspace == ColorSpace::RGB {
-
-    		for x in 0..self.width * self.height {
-    			let pixel = access(&self, x);
-
-    			let v = cmp::max(cmp::max(pixel.h, pixel.s), pixel.v);
-    			let delta = v - cmp::min(cmp::min(pixel.h, pixel.s), pixel.v);
-    			let h = 0;
-    			let h = if v == self.h {
-    				255 * (((pixel.s - pixel.v) / delta) % 6) / 6;
-    			} else if v == self.s {
-    				255 * (((pixel.v - pixel.h) / delta) + 2) / 6;
-    			} else if v == self.v {
-    				255 * (((pixel.h - pixel.s) / delta) + 4) / 6;
-    			};
-    			let s = delta / v;
-
-    			let pixel:h = h;
-    			let pixel:s = s;
-    			let pixel:v = v;
-
-    			pack(&self, pixel, x);
-    		}
-    	}
+    pub fn cvt_color(&mut self, format: ColorSpace) {
+        match format {
+            ColorSpace::HSV => { self.iter_pixels(&rgb_to_hsv); },
+            ColorSpace::RGB => { self.iter_pixels(&hsv_to_rgb); },
+        }
     }
 }
