@@ -1,6 +1,6 @@
 [package]
 name = "vision"
-version = "0.1.0"
-authors = ["tianshu"]
+version = "0.0.1"
+authors = ["tianshu","sanjayyepuri","benbelov"]
 
 [dependencies]
