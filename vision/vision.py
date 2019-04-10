@@ -47,13 +47,13 @@ class VisionModule():
 
     FOV_H = math.radians(63.54)
     FOV_V = math.radians(42.36)
-    CAM_HEIGHT = 4
+    CAM_HEIGHT = 6
 
     FIELD_LOWER = np.array([0, 110, 130])
     FIELD_UPPER = np.array([25, 255, 255])
 
-    CUBE_LOWER = np.array([0, 0, 100])
-    CUBE_UPPER = np.array([30, 200, 255])
+    CUBE_LOWER = np.array([0, 17, 110])
+    CUBE_UPPER = np.array([30, 213, 230])
 
     BASE_STATION_LOWER = np.array([45, 140, 60])
     BASE_STATION_UPPER = np.array([65, 255, 150])
@@ -91,7 +91,6 @@ class VisionModule():
     def __below_horizon(self, contour):
 
         x, y, w, h = cv2.boundingRect(contour)
-        print(w)
         return y + h > self.HORIZON and w > 100 and h > 50
 
     def __get_field_mask(self, src):

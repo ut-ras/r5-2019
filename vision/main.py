@@ -34,6 +34,21 @@ def draw(img, objects):
             cv2.FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255))
 
 
+def in_the_way(objs):
+
+    right = 0
+
+    for obj in objs:
+        if (
+                obj.dist > 0 and
+                obj.dist < 25 and
+                obj.rect[0] < 300 and
+                obj.rect[0] + obj.rect[2] > 340):
+            right = max(right, obj.rect[0] + obj.rect[2] - 320)
+
+    return right
+
+
 def test(target, pause=True):
 
     import time
@@ -59,9 +74,11 @@ def test(target, pause=True):
 
         src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
         draw(src, objects)
+        itw = in_the_way(objects)
         if cvxhull is not None:
             cv2.drawContours(
                 src, [cvxhull], -1, (255, 255, 255), 3, cv2.LINE_8)
+        cv2.line(src, (itw + 320, 0), (itw + 320, 480), (0, 0, 0), 3)
 
         src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
 

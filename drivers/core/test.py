@@ -157,6 +157,11 @@ time.sleep(1)
 regV.RobotControl(forward)
 time.sleep(1)
 """
-regV.RobotControl(stop)
+start_time = time.time()
+duration = 10
+while time.time() - start_time < duration:
+    regV.RobotControl(RobotState(TURN, 0,
+        True,
+        False if time.time() - start_time < 5 else True))
 print("made it ma")
 sys.exit()

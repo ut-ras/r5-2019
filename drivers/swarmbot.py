@@ -21,19 +21,21 @@ LED4
 """
 
 from socket import gethostname
-from .core import RobotFrame
+from .core import RobotFrame, RobotState
 from . import io
 import time
+import regV
 
 
 class SwarmBot(RobotFrame):
 
     def __init__(self, **kwargs):
-
         super().__init__(gethostname(), **kwargs)
+        state = RobotState()
 
     def init(self):
         self.tmp_idx = 0
+        regV.RobotInit()
 
     def loop(self):
 
@@ -56,3 +58,6 @@ class SwarmBot(RobotFrame):
             self.tmp_idx += 1
         else:
             io.LED1.on()
+
+        # Operating motors and servos
+        regV.RobotControl(self.state)

@@ -31,7 +31,8 @@ class Camera:
         self.camera.rotation = 180
         self.camera.resolution = (640, 480)
         self.camera.rotation = 180
-        self.camera.awb_mode = 'fluorescent'
+        self.camera.awb_mode = 'off'
+        self.camera.awb_gains = (1.45, 1.9)
         self.capture_raw = PiRGBArray(self.camera)
 
         self.frame_id = 0
